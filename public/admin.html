@@ -499,18 +499,27 @@
         let currentFilters = null;
 
         // Tikriname, ar vartotojas yra administratorius
-      /*  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser || !['admin', 'quality'].includes(currentUser.role)) {
-            alert('Prieiga draudžiama. Reikalingos administratoriaus teisės.');
-            location.href = 'index.html';
-        }
-*/
+      //  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+       // if (!currentUser || !['admin', 'quality'].includes(currentUser.role)) {
+       //     alert('Prieiga draudžiama. Reikalingos administratoriaus teisės.');
+      //      location.href = 'index.html';
+       // }
+//
+
+
+
+// ✅ Tikriname, ar vartotojas prisijungęs ir ar turi teises
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
 if (!currentUser) {
     alert('Prieiga draudžiama. Prisijunkite.');
     window.location.href = 'admin-login.html';
+} else if (!['admin', 'quality'].includes(currentUser.role)) {
+    alert('Jūs neturite teisių peržiūrėti šią zoną.');
+    window.location.href = 'index.html';
 }
-        
+
+
 
 function setModalHeader(title, showViewSeparately = false) {
     document.getElementById('modal-title').textContent = title;
