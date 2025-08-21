@@ -1,0 +1,4 @@
+[
+  { "id": "SP-001", "name": "Vilniaus servisas", "contactPerson": "Jonas", "phone": "+37061234567", "email": "vilnius@servisas.lt" },
+  { "id": "SP-002", "name": "Kauno technika", "contactPerson": "Petras", "phone": "+37061234568", "email": "kaunas@tech.lt" }
+]

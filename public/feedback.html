@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Įvertinkite aptarnavimą – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        header {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        main {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 30px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        .rating {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .rating-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #dee2e6;
+        }
+        .rating-item:hover {
+            background: #e9ecef;
+        }
+        .rating-item.selected {
+            background: var(--primary-light);
+            color: var(--white);
+            border-color: var(--primary);
+            font-weight: bold;
+        }
+        .rating-item span {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-light);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
+        }
+        @media (max-width: 600px) {
+            .rating {
+                flex-direction: column;
+            }
+            .rating-item {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="duku.html">DUK</a>
+            <a href="login.html">Prisijungti</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Ačiū, kad naudojatės mūsų paslaugomis</h1>
+        <p class="subtitle">Prašome įvertinti aptarnavimą, kad galėtume tobulėti.</p>
+
+        <form id="feedback-form" onsubmit="submitFeedback(event)">
+            <input type="hidden" id="claim-id" value="">
+
+            <div class="form-group">
+                <label>1. Aptarnavimo greitis</label>
+                <div class="rating" id="rating-speed">
+                    <div class="rating-item" data-value="1"><strong>1</strong><span>Labai lėtai</span></div>
+                    <div class="rating-item" data-value="2"><strong>2</strong></div>
+                    <div class="rating-item" data-value="3"><strong>3</strong><span>Normaliai</span></div>
+                    <div class="rating-item" data-value="4"><strong>4</strong></div>
+                    <div class="rating-item" data-value="5"><strong>5</strong><span>Labai greitai</span></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>2. Remonto kokybė</label>
+                <div class="rating" id="rating-quality">
+                    <div class="rating-item" data-value="1"><strong>1</strong><span>Bloga</span></div>
+                    <div class="rating-item" data-value="2"><strong>2</strong></div>
+                    <div class="rating-item" data-value="3"><strong>3</strong><span>Patenkinama</span></div>
+                    <div class="rating-item" data-value="4"><strong>4</strong></div>
+                    <div class="rating-item" data-value="5"><strong>5</strong><span>Puiki</span></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>3. Personalo mandagumas</label>
+                <div class="rating" id="rating-politeness">
+                    <div class="rating-item" data-value="1"><strong>1</strong><span>Nemandagus</span></div>
+                    <div class="rating-item" data-value="2"><strong>2</strong></div>
+                    <div class="rating-item" data-value="3"><strong>3</strong><span>Neutralus</span></div>
+                    <div class="rating-item" data-value="4"><strong>4</strong></div>
+                    <div class="rating-item" data-value="5"><strong>5</strong><span>Labai mandagus</span></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>4. Kiek tikėtina, kad rekomenduotumėte mus kitiems? (NPS 0–10)</label>
+                <div class="rating" id="rating-nps">
+                    <div class="rating-item" data-value="0"><strong>0</strong><span>Nevertinu</span></div>
+                    <div class="rating-item" data-value="1"><strong>1</strong></div>
+                    <div class="rating-item" data-value="2"><strong>2</strong></div>
+                    <div class="rating-item" data-value="3"><strong>3</strong></div>
+                    <div class="rating-item" data-value="4"><strong>4</strong></div>
+                    <div class="rating-item" data-value="5"><strong>5</strong></div>
+                    <div class="rating-item" data-value="6"><strong>6</strong></div>
+                    <div class="rating-item" data-value="7"><strong>7</strong></div>
+                    <div class="rating-item" data-value="8"><strong>8</strong></div>
+                    <div class="rating-item" data-value="9"><strong>9</strong></div>
+                    <div class="rating-item" data-value="10"><strong>10</strong><span>Labai tikėtina</span></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="comments">5. Jūsų komentarai (nebūtina)</label>
+                <textarea id="comments" placeholder="Ar galite papasakoti, kas patiko ar nepatiko?"></textarea>
+            </div>
+
+            <button type="submit" class="btn">Pateikti atsiliepimą</button>
+        </form>
+
+        <div class="success-message" id="success-message">
+            <h2>✔ Ačiū už atsiliepimą!</h2>
+            <p>Jūsų nuomonė svarbi mums. Ji padės tobulinti aptarnavimą.</p>
+            <a href="index.html" class="btn" style="background: var(--primary-light); margin-top: 20px;">Grįžti į pagrindinį</a>
+        </div>
+    </main>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        // Gauname pretenzijos ID iš URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const claimId = urlParams.get('claimId');
+
+        if (!claimId) {
+            alert('Nenurodyta pretenzijos ID.');
+            location.href = 'index.html';
+        } else {
+            document.getElementById('claim-id').value = claimId;
+        }
+
+        // Pasirinkimo funkcija
+        function setupRatings(ratingId) {
+            const items = document.querySelectorAll(`#${ratingId} .rating-item`);
+            items.forEach(item => {
+                item.addEventListener('click', () => {
+                    items.forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                });
+            });
+        }
+
+        // Inicijuoti visus įvertinimus
+        setupRatings('rating-speed');
+        setupRatings('rating-quality');
+        setupRatings('rating-politeness');
+        setupRatings('rating-nps');
+
+        // Pateikti atsiliepimą
+        function submitFeedback(event) {
+            event.preventDefault();
+
+            const speed = getSelectedValue('rating-speed');
+            const quality = getSelectedValue('rating-quality');
+            const politeness = getSelectedValue('rating-politeness');
+            const nps = getSelectedValue('rating-nps');
+            const comments = document.getElementById('comments').value.trim();
+
+            if (!speed || !quality || !politeness || !nps) {
+                alert('Prašome įvertinti visus kriterijus.');
+                return;
+            }
+
+            const feedback = {
+                id: 'FB-' + Date.now(),
+                claimId: document.getElementById('claim-id').value,
+                date: new Date().toISOString(),
+                ratings: {
+                    speed: parseInt(speed),
+                    quality: parseInt(quality),
+                    politeness: parseInt(politeness),
+                    nps: parseInt(nps)
+                },
+                comments: comments
+            };
+
+            const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+            feedbacks.push(feedback);
+            localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+
+            // Rodyti sėkmės pranešimą
+            document.getElementById('feedback-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+
+            console.log('Atsiliepimas išsaugotas:', feedback);
+        }
+
+        function getSelectedValue(containerId) {
+            const selected = document.querySelector(`#${containerId} .rating-item.selected`);
+            return selected ? selected.getAttribute('data-value') : null;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUK montuotojams – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        header {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .filters {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .filters input, .filters select {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            flex: 1;
+            min-width: 180px;
+        }
+        .solution-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        .solution-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+            font-size: 18px;
+        }
+        .solution-card p {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        .solution-card ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        .part-code {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .btn {
+            padding: 10px 16px;
+            background: var(--primary-light);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 10px;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+        .btn-warning {
+            background: var(--secondary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .btn-warning:hover {
+            background: #FFD700;
+        }
+        .locked {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .locked h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
+        }
+        @media (max-width: 600px) {
+            .filters {
+                flex-direction: column;
+            }
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="duku.html">DUK</a>
+            <a href="login.html">Prisijungti</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Techninė pagalba montuotojams</h1>
+
+        <!-- Filtrai -->
+        <div class="filters">
+            <input type="text" id="search-input" placeholder="Ieškoti problemos ar produkto...">
+            <select id="filter-model">
+                <option value="">Visi modeliai</option>
+                <option value="ecosens">ECOSENS</option>
+                <option value="aquaflow">AQUAFLOW</option>
+                <option value="thermoclick">THERMOCLICK</option>
+                <option value="minimix">MINIMIX</option>
+                <option value="viva">VIVA</option>
+            </select>
+        </div>
+
+        <!-- Sprendimų katalogas -->
+        <div id="solutions">
+            <!-- Turinys bus užkraunamas dinamiškai -->
+            <p style="text-align: center; color: var(--gray);">Kraunama...</p>
+        </div>
+    </main>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        // Tikriname, ar vartotojas yra prisijungęs ir ar yra montuotojas
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const content = document.getElementById('solutions');
+
+        if (!currentUser) {
+            showLocked('Prisijunkite, kad peržiūrėtumėte techninę informaciją.');
+        } else if (currentUser.role !== 'installer') {
+            showLocked('Ši informacija prieinama tik registruotiems montuotojams.');
+        } else if (currentUser.status !== 'active') {
+            showLocked('Jūsų paskyra dar nepatvirtinta. Prašome palaukti administratoriaus patvirtinimo.');
+        } else {
+            // Vartotojas turi teises – rodomas turinys
+            loadSolutions();
+        }
+
+        function showLocked(message) {
+            content.innerHTML = `
+                <div class="locked">
+                    <h2>🏆 Specializuota DUK montuotojams</h2>
+                    <p>${message}</p>
+                    <a href="login.html" class="btn">Prisijungti</a>
+                </div>
+            `;
+        }
+
+        // Techniniai sprendimai
+        const solutions = [
+            {
+                id: 1,
+                model: 'ecosens',
+                title: 'ECOSENS: Užsikimšęs aeratorius',
+                problem: 'Vandens srautas tampa silpnas arba nelygus',
+                diagnosis: [
+                    'Patikrinkite, ar problema yra tik maišytuve, o ne vamzdyne',
+                    'Atsukite aeratorių ir apžiūrėkite, ar jis užsikimšęs kalkėmis'
+                ],
+                fix: [
+                    'Nuimkite aeratorių',
+                    'Išmirkykite jį acto tirpale 30 minučių',
+                    'Nuplaukite ir vėl pritvirtinkite'
+                ],
+                part: 'Aeratorius ECO-AERO-01',
+                video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                manual: 'ecosens_aerator.pdf'
+            },
+            {
+                id: 2,
+                model: 'aquaflow',
+                title: 'AQUAFLOW: Temperatūros reguliavimo gedimas',
+                problem: 'Karšto vandens temperatūra per aukšta arba nereguojama',
+                diagnosis: [
+                    'Patikrinkite, ar nėra vandens slėgio pokyčių',
+                    'Ar termofiksuotojas veikia tinkamai?'
+                ],
+                fix: [
+                    'Išjunkite vandenį',
+                    'Išimkite termofiksuotoją',
+                    'Patikrinkite, ar nėra pažeidimų',
+                    'Įdėkite naują termofiksuotoją'
+                ],
+                part: 'Termofiksuotojas AQUA-TERM-02',
+                video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                manual: 'aquaflow_manual.pdf'
+            },
+            {
+                id: 3,
+                model: 'thermoclick',
+                title: 'THERMOCLICK: „Klik“ garsas naudojant',
+                problem: 'Girdimas garsas maišytuve veikiant',
+                diagnosis: [
+                    'Tai gali būti normalus reiškinys dėl metalo plėtimosi',
+                    'Patikrinkite, ar nėra per didelio slėgio'
+                ],
+                fix: [
+                    'Patikrinkite vandens slėgį – neturėtų viršyti 6 bar',
+                    'Užtikrinkite, kad būtų sumontuoti slėgio mažintuvai'
+                ],
+                part: 'Slėgio mažintuvas TH-6BAR',
+                video: '',
+                manual: 'thermoclick_guide.pdf'
+            },
+            {
+                id: 4,
+                model: 'minimix',
+                title: 'MINIMIX: Vidaus filtrų keitimas',
+                problem: 'Mažėja vandens srautas arba atsiranda teršalai',
+                diagnosis: [
+                    'Patikrinkite, ar nėra teršalų vandenyje',
+                    'Nuimkite maišytuvą ir apžiūrėkite vidaus filtrus'
+                ],
+                fix: [
+                    'Nuimkite apatinį dangtelį',
+                    'Išimkite filtrus',
+                    'Nuplaukite arba pakeiskite naujais'
+                ],
+                part: 'Filtrų rinkinys MINI-FILTER-01',
+                video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                manual: 'minimix_filters.pdf'
+            },
+            {
+                id: 5,
+                model: 'viva',
+                title: 'VIVA: Rankenėlės judėjimas',
+                problem: 'Rankenėlė laisvai juda arba neužfiksuota',
+                diagnosis: [
+                    'Patikrinkite, ar nėra atsileidusių varžtų',
+                    'Ar yra pažeidimų rankenėlės viduje?'
+                ],
+                fix: [
+                    'Atsukite rankenėlę',
+                    'Patikrinkite ir užveržkite varžtus',
+                    'Jeigu reikia – pakeiskite rankenėlės mechanizmą'
+                ],
+                part: 'Rankenėlės komplektas VIVA-HANDLE-01',
+                video: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                manual: 'viva_handle.pdf'
+            }
+        ];
+
+        function loadSolutions() {
+            const container = document.getElementById('solutions');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const modelFilter = document.getElementById('filter-model').value;
+
+            container.innerHTML = '';
+
+            let filtered = solutions.filter(item => {
+                return (modelFilter === '' || item.model === modelFilter) &&
+                       (item.title.toLowerCase().includes(searchQuery) ||
+                        item.problem.toLowerCase().includes(searchQuery) ||
+                        item.fix.some(step => step.toLowerCase().includes(searchQuery)));
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--gray);">Deja, pagal jūsų kriterijus sprendimų nerasta.</p>';
+                return;
+            }
+
+            filtered.forEach(sol => {
+                const card = document.createElement('div');
+                card.className = 'solution-card';
+                card.innerHTML = `
+                    <h3>${sol.title}</h3>
+                    <p><strong>Problema:</strong> ${sol.problem}</p>
+                    <p><strong>Diagnostika:</strong></p>
+                    <ul>
+                        ${sol.diagnosis.map(d => `<li>${d}</li>`).join('')}
+                    </ul>
+                    <p><strong>Taisymo procedūra:</strong></p>
+                    <ul>
+                        ${sol.fix.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                    <p><strong>Būtina detalė:</strong> <span class="part-code">${sol.part}</span></p>
+                    <div style="margin-top: 15px;">
+                        ${sol.video ? `<a href="${sol.video}" target="_blank" class="btn">Žiūrėti vaizdo įrašą</a>` : ''}
+                        ${sol.manual ? `<a href="${sol.manual}" target="_blank" class="btn btn-warning">Atsisiųsti instrukciją (PDF)</a>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Filtravimo funkcijos
+        document.getElementById('search-input').addEventListener('input', loadSolutions);
+        document.getElementById('filter-model').addEventListener('change', loadSolutions);
+
+        // Užkrauti duomenis
+        document.addEventListener('DOMContentLoaded', loadSolutions);
+    </script>
+</body>
+</html>

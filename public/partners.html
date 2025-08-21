@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviso partneriai – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        header {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        main {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .filters {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .filters input, .filters select {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: var(--primary-light);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: var(--primary-light);
+            color: var(--white);
+        }
+        .btn-success:hover {
+            background: var(--primary-hover);
+        }
+        .btn-warning {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+        .btn-warning:hover {
+            background: #FFD700;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #F44336;
+            color: var(--white);
+        }
+        .btn-danger:hover {
+            background: #DA190B;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 500;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close {
+            color: var(--gray);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: var(--dark);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .form-actions {
+            margin-top: 20px;
+            text-align: right;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
+        }
+        @media (max-width: 600px) {
+            .filters {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="duku.html">DUK</a>
+            <a href="login.html">Prisijungti</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Serviso partneriai</h1>
+
+        <div class="filters">
+            <input type="text" id="filter-name" placeholder="Ieškoti pagal pavadinimą">
+            <input type="text" id="filter-city" placeholder="Ieškoti pagal miestą">
+            <button onclick="applyFilters()" class="btn btn-primary">Filtruoti</button>
+            <button onclick="openAddModal()" class="btn btn-success">+ Pridėti partnerį</button>
+        </div>
+
+        <table id="partners-table">
+            <thead>
+                <tr>
+                    <th>Pavadinimas</th>
+                    <th>Kontaktinis asmuo</th>
+                    <th>Kontaktai</th>
+                    <th>Veiklos zona</th>
+                    <th>Veiksmai</th>
+                </tr>
+            </thead>
+            <tbody id="partners-body">
+                <tr><td colspan="5" style="text-align: center; padding: 40px;">Kraunama...</td></tr>
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Modal: Pridėti/redaguoti partnerį -->
+    <div id="partnerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Pridėti partnerį</h2>
+            <form id="partner-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="name">Pavadinimas *</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-person">Kontaktinis asmuo *</label>
+                    <input type="text" id="contact-person" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefonas *</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">El. paštas *</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="cities">Veiklos zona (miestai, regionai) *</label>
+                    <input type="text" id="cities" placeholder="Vilnius, Kaunas, Šiauliai" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" class="btn">Atšaukti</button>
+                    <button type="submit" class="btn btn-success">Išsaugoti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Ištrinti partnerį -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeleteModal()">&times;</span>
+            <h2>Patvirtinti trynimą</h2>
+            <p>Ar tikrai norite ištrinti šį serviso partnerį? Šis veiksmas negrįžtamas.</p>
+            <div class="form-actions">
+                <button onclick="closeDeleteModal()" class="btn">Atšaukti</button>
+                <button onclick="confirmDelete()" class="btn btn-danger">Ištrinti</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        // Tikriname, ar vartotojas yra administratorius
+        //const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        //if (!currentUser || !['admin', 'quality'].includes(currentUser.role)) {
+            //alert('Prieiga draudžiama. Reikalingos administratoriaus teisės.');
+            //location.href = 'index.html';
+      //  }
+
+        function loadPartners(partnersToShow = null) {
+            const partners = partnersToShow || JSON.parse(localStorage.getItem('servicePartners') || '[]');
+            const tbody = document.getElementById('partners-body');
+            tbody.innerHTML = '';
+
+            if (partners.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">Nėra įregistruotų serviso partnerių.</td></tr>';
+                return;
+            }
+
+            partners.forEach(partner => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${partner.name}</td>
+                    <td>${partner.contactPerson}</td>
+                    <td>
+                        <strong>Tel:</strong> ${partner.phone}<br>
+                        <strong>El. paštas:</strong> ${partner.email}
+                    </td>
+                    <td>${partner.cities}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="openEditModal('${partner.id}')">Redaguoti</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal('${partner.id}')">Ištrinti</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddModal() {
+            document.getElementById('modal-title').textContent = 'Pridėti partnerį';
+            document.getElementById('partner-form').reset();
+            document.getElementById('edit-id').value = '';
+            document.getElementById('partnerModal').style.display = 'flex';
+        }
+
+        function openEditModal(id) {
+            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+            const partner = partners.find(p => p.id === id);
+            if (partner) {
+                document.getElementById('modal-title').textContent = 'Redaguoti partnerį';
+                document.getElementById('edit-id').value = partner.id;
+                document.getElementById('name').value = partner.name;
+                document.getElementById('contact-person').value = partner.contactPerson;
+                document.getElementById('phone').value = partner.phone;
+                document.getElementById('email').value = partner.email;
+                document.getElementById('cities').value = partner.cities;
+                document.getElementById('partnerModal').style.display = 'flex';
+            }
+        }
+
+        let deleteId = null;
+        function openDeleteModal(id) {
+            deleteId = id;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            deleteId = null;
+        }
+
+        function confirmDelete() {
+            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+            const updated = partners.filter(p => p.id !== deleteId);
+            localStorage.setItem('servicePartners', JSON.stringify(updated));
+            alert('Serviso partneris sėkmingai ištrintas.');
+            closeDeleteModal();
+            applyFilters();
+        }
+
+        document.getElementById('partner-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const name = document.getElementById('name').value.trim();
+            const contactPerson = document.getElementById('contact-person').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const cities = document.getElementById('cities').value.trim();
+
+            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+
+            if (id) {
+                const index = partners.findIndex(p => p.id === id);
+                if (index !== -1) {
+                    partners[index] = { id, name, contactPerson, phone, email, cities };
+                }
+                alert('Serviso partneris atnaujintas.');
+            } else {
+                const newPartner = {
+                    id: Date.now().toString(),
+                    name,
+                    contactPerson,
+                    phone,
+                    email,
+                    cities
+                };
+                partners.push(newPartner);
+                alert('Naujas serviso partneris pridėtas.');
+            }
+
+            localStorage.setItem('servicePartners', JSON.stringify(partners));
+            closeModal();
+            applyFilters();
+        });
+
+        function applyFilters() {
+            const nameFilter = document.getElementById('filter-name').value.toLowerCase();
+            const cityFilter = document.getElementById('filter-city').value.toLowerCase();
+
+            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+            const filtered = partners.filter(p => {
+                return (nameFilter === '' || p.name.toLowerCase().includes(nameFilter)) &&
+                       (cityFilter === '' || p.cities.toLowerCase().includes(cityFilter));
+            });
+            loadPartners(filtered);
+        }
+
+        function closeModal() {
+            document.getElementById('partnerModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('partnerModal');
+            const deleteModal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+            if (event.target === deleteModal) {
+                deleteModal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('servicePartners')) {
+                const initialPartners = [
+                    {
+                        id: '1',
+                        name: 'Vilniaus Vamzdynas',
+                        contactPerson: 'Jonas Jankauskas',
+                        phone: '+370 612 34567',
+                        email: 'jonas@vamzdynas.lt',
+                        cities: 'Vilnius'
+                    },
+                    {
+                        id: '2',
+                        name: 'Kauno Vandentekis',
+                        contactPerson: 'Petras Petraitis',
+                        phone: '+370 612 76543',
+                        email: 'petras@vandentekis.lt',
+                        cities: 'Kaunas'
+                    }
+                ];
+                localStorage.setItem('servicePartners', JSON.stringify(initialPartners));
+            }
+            loadPartners();
+        });
+    </script>
+</body>
+</html>

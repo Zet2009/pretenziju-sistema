@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilis – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        header {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .btn {
+            padding: 12px 20px;
+            background: var(--primary-light);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 500;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-new { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-sent { background: #17a2b8; color: #fff; }
+        .status-resolved { background: #d1ecf1; color: #0c5460; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #cce5ff; color: #004085; }
+        .status-active { background: #28a745; color: #fff; }
+        .status-rejected { background: #dc3545; color: #fff; }
+        .installer-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
+        }
+        @media (max-width: 600px) {
+            .card {
+                padding: 20px;
+            }
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="duku.html">DUK</a>
+            <a href="login.html">Prisijungti</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Jūsų profilis</h1>
+
+        <!-- Profilio informacija -->
+        <div class="card">
+            <h2>Asmeninė informacija</h2>
+            <form id="profile-form">
+                <div class="form-group">
+                    <label>Vardas *</label>
+                    <input type="text" id="profile-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Pavardė *</label>
+                    <input type="text" id="profile-surname" required>
+                </div>
+                <div class="form-group">
+                    <label>El. paštas *</label>
+                    <input type="email" id="profile-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Telefonas *</label>
+                    <input type="tel" id="profile-phone" required>
+                </div>
+                <div class="form-group">
+                    <label>Adresas (gatvė, namo nr., butas) *</label>
+                    <input type="text" id="profile-street" required>
+                </div>
+                <div class="form-group">
+                    <label>Miestas *</label>
+                    <input type="text" id="profile-city" required>
+                </div>
+                <div class="form-group">
+                    <label>Pašto kodas *</label>
+                    <input type="text" id="profile-postal" required>
+                </div>
+                <button type="button" class="btn" onclick="saveProfile()">Išsaugoti pakeitimus</button>
+            </form>
+        </div>
+
+        <!-- Vartotojo statusas (jei montuotojas) -->
+        <div id="installer-status" class="card" style="display: none;">
+            <h2>Montuotojo statusas</h2>
+            <p><strong>Tipas:</strong> Montuotojas <span class="installer-badge">MONTUOTOJAS</span></p>
+            <p><strong>Statusas:</strong> <span id="installer-status-text">Kraunama...</span></p>
+            <p id="installer-status-desc"></p>
+        </div>
+
+        <!-- Pretenzijų istorija -->
+        <div class="card">
+            <h2>Pretenzijų istorija</h2>
+            <table id="claims-history">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Produktas</th>
+                        <th>Problema</th>
+                        <th>Būsena</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="5" style="text-align: center;">Kraunama...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Specializuota DUK nuoroda (tik patvirtintiems montuotojams) -->
+        <div id="duku-link" class="card" style="display: none;">
+            <h2>Specializuota DUK</h2>
+            <p>Jūs esate patvirtintas montuotojas. Galite peržiūrėti techninę informaciją.</p>
+            <a href="duku-montuotojams.html" class="btn">Eiti į DUK montuotojams</a>
+        </div>
+    </main>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            alert('Prisijunkite, kad peržiūrėtumėte profilį.');
+            location.href = 'login.html';
+        }
+
+        // Užpildyti profilį
+        document.getElementById('profile-name').value = currentUser.name || '';
+        document.getElementById('profile-surname').value = currentUser.surname || '';
+        document.getElementById('profile-email').value = currentUser.email || '';
+        document.getElementById('profile-phone').value = currentUser.phone || '';
+        document.getElementById('profile-street').value = currentUser.street || '';
+        document.getElementById('profile-city').value = currentUser.city || '';
+        document.getElementById('profile-postal').value = currentUser.postal || '';
+
+        // Išsaugoti profilį
+        function saveProfile() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.id === currentUser.id);
+            if (user) {
+                user.name = document.getElementById('profile-name').value;
+                user.surname = document.getElementById('profile-surname').value;
+                user.email = document.getElementById('profile-email').value;
+                user.phone = document.getElementById('profile-phone').value;
+                user.street = document.getElementById('profile-street').value;
+                user.city = document.getElementById('profile-city').value;
+                user.postal = document.getElementById('profile-postal').value;
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                alert('Profilis atnaujintas!');
+            }
+        }
+
+        // Rodyti montuotojo statusą
+        if (currentUser.role === 'installer') {
+            document.getElementById('installer-status').style.display = 'block';
+            const statusText = document.getElementById('installer-status-text');
+            const statusDesc = document.getElementById('installer-status-desc');
+
+            if (currentUser.status === 'pending') {
+                statusText.textContent = 'Laukia patvirtinimo';
+                statusText.className = 'status status-pending';
+                statusDesc.textContent = 'Jūsų dokumentai perduoti kokybės komandai. Atsakymas bus išsiųstas per 5 darbo dienas.';
+            } else if (currentUser.status === 'active') {
+                statusText.textContent = 'Patvirtintas';
+                statusText.className = 'status status-active';
+                statusDesc.innerHTML = 'Sveikiname! Jūs esate oficialus „Rubineta“ montuotojas.<br><strong>Privalumai:</strong> prieiga prie techninių vadovų, specializuotos DUK, prioritetas aptarnavime.';
+                document.getElementById('duku-link').style.display = 'block';
+            } else if (currentUser.status === 'rejected') {
+                statusText.textContent = 'Atmestas';
+                statusText.className = 'status status-rejected';
+                statusDesc.textContent = 'Registracija atmesta. Jei norite sužinoti priežastį, susisiekite su info@rubineta.lt';
+            }
+        }
+
+        // Rodyti pretenzijų istoriją
+        function loadClaimsHistory() {
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const userClaims = claims.filter(c => c.userId === currentUser.id);
+            const tbody = document.getElementById('claims-history').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            if (userClaims.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
+                return;
+            }
+
+            userClaims.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.id}</td>
+                    <td>${new Date(c.date).toLocaleDateString('lt-LT')}</td>
+                    <td>${c.product}</td>
+                    <td>${c.description.substring(0, 30)}...</td>
+                    <td><span class="status status-${getStatusClass(c.status)}">${c.status}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'Nauja': return 'new';
+                case 'Laukia patvirtinimo': return 'pending';
+                case 'Patvirtinta': return 'approved';
+                case 'Perduota servisui': return 'sent';
+                case 'Išspręsta': return 'resolved';
+                case 'Atmesta': return 'rejected';
+                default: return 'new';
+            }
+        }
+
+        // Užkrauti duomenis
+        loadClaimsHistory();
+    </script>
+</body>
+</html>

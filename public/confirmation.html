@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pretenzija pateikta – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        header {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        main {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 30px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .success-icon {
+            text-align: center;
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .summary p {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        .summary strong {
+            color: var(--primary);
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        .info-box p {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        .btn {
+            padding: 14px 20px;
+            background: var(--primary-light);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            display: inline-block;
+            transition: background 0.3s;
+            margin: 0 10px;
+        }
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .btn-secondary:hover {
+            background: #FFD700;
+        }
+        .btn-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
+        }
+        @media (max-width: 600px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                text-align: center;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="duku.html">DUK</a>
+            <a href="login.html">Prisijungti</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="success-icon">✔</div>
+        <h1>Jūsų pretenzija sėkmingai pateikta</h1>
+
+        <div class="summary">
+            <p><strong>ID:</strong> <span id="claim-id">Kraunama...</span></p>
+            <p><strong>Tema:</strong> <span id="claim-topic">Kraunama...</span></p>
+            <p><strong>Produktas:</strong> <span id="claim-product">Kraunama...</span></p>
+            <p><strong>Miestas:</strong> <span id="claim-city">Kraunama...</span></p>
+        </div>
+
+        <div class="info-box">
+            <p>✔ Per <strong>5 minutes</strong> gausite patvirtinimo laišką į nurodytą el. paštą.</p>
+            <p>✔ Atsakysime išsamią analizę per <strong>24 valandas</strong>.</p>
+            <p>✔ Sekti pretenzijos būseną galėsite <strong>prisijungę į savo profilį</strong>.</p>
+        </div>
+
+        <div class="btn-group">
+            <a href="index.html" class="btn">Grįžti į pagrindinį</a>
+            <a href="duku.html" class="btn btn-secondary">Peržiūrėti DUK</a>
+            <a href="profile.html" class="btn">Atidaryti profilį</a>
+        </div>
+    </main>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        // ✅ Gauname ID iš URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const claimId = urlParams.get('id');
+
+        if (!claimId) {
+            alert('Pretenzijos ID nerastas.');
+            console.error('Nerastas ?id= parametras URL');
+            location.href = 'index.html';
+        }
+
+        // ✅ Gauname visas pretenzijas iš localStorage
+        const claimsJSON = localStorage.getItem('claims');
+        if (!claimsJSON) {
+            alert('Pretenzijų duomenys nerasti. Nepavyko išsaugoti.');
+            console.error('localStorage neturi "claims" rakto');
+            location.href = 'index.html';
+        }
+
+        const claims = JSON.parse(claimsJSON);
+        const claim = claims.find(c => c.id === claimId);
+
+        if (!claim) {
+            alert(`Pretenzija su ID "${claimId}" nerasta.`);
+            console.error('Pretenzija nerasta:', claimId);
+            console.log('Visos pretenzijos:', claims);
+            location.href = 'index.html';
+        }
+
+        // ✅ Užpildome duomenis
+        document.getElementById('claim-id').textContent = claim.id;
+        document.getElementById('claim-topic').textContent = claim.topic;
+        document.getElementById('claim-product').textContent = claim.product;
+        document.getElementById('claim-city').textContent = claim.contact?.city || 'Nenurodyta';
+
+        console.log('✅ Patvirtinimas: Rasta pretenzija', claim);
+    </script>
+</body>
+</html>

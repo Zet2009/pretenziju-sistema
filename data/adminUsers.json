@@ -1,0 +1,18 @@
+[
+  {
+    "id": "ADM-001",
+    "name": "Darius",
+    "surname": "Petraitis",
+    "email": "admin@rubineta.lt",
+    "passwordHash": "$2b$10$u9p8Zb5vZJ6X1Y2W3V4U5O6N7M8L9K0J1H2G3F4E5D6C7B8A9Z0Y1X",
+    "role": "admin"
+  },
+  {
+    "id": "ADM-002",
+    "name": "Eglė",
+    "surname": "Jonaitė",
+    "email": "quality@rubineta.lt",
+    "passwordHash": "$2b$10$a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6A7B",
+    "role": "quality"
+  }
+]

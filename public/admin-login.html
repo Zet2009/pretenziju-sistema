@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prisijungimas – Administratoriaus zona</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --font: 'Roboto', sans-serif;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn:hover {
+            background: #4A4A4A;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary);
+            text-decoration: underline;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Prisijungimas į administratoriaus zoną</h1>
+        <form id="admin-login-form">
+            <div class="form-group">
+                <label for="email">El. paštas</label>
+                <input type="email" id="email" placeholder="jūs@rubineta.lt" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Slaptažodis</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <div class="error" id="login-error"></div>
+            </div>
+            <button type="submit" class="btn">Prisijungti</button>
+        </form>
+        <a href="index.html" class="back-link">← Grįžti į pagrindinį puslapį</a>
+    </div>
+
+    <script>
+        // Testiniai administratoriai
+        const adminUsers = [
+            { email: 'admin@rubineta.lt', password: 'admin123', role: 'admin' },
+            { email: 'quality@rubineta.lt', password: 'quality123', role: 'quality' },
+            { email: 'manager@rubineta.lt', password: 'manager123', role: 'manager' }
+        ];
+
+        document.getElementById('admin-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            const user = adminUsers.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify({
+                    email: user.email,
+                    role: user.role
+                }));
+                alert(`Sveiki, ${user.role}!`);
+                location.href = 'admin.html';
+            } else {
+                document.getElementById('login-error').textContent = 'Neteisingas el. paštas arba slaptažodis.';
+            }
+        });
+    </script>
+</body>
+</html>

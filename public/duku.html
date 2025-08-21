@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUK – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        header {
+            background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .search {
+            margin-bottom: 30px;
+        }
+        .search input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        .search input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .faq-item {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .faq-item h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .faq-item p {
+            color: var(--dark);
+            line-height: 1.7;
+        }
+        .category {
+            display: inline-block;
+            background: #e9ecef;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
+        }
+        @media (max-width: 600px) {
+            main {
+                padding: 15px;
+            }
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="login.html">Prisijungti</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Dažniausiai užduodami klausimai</h1>
+        <p class="subtitle">Raskite atsakymus į dažniausiai užduodamus klausimus apie produktus, garantiją ir techninę pagalbą.</p>
+
+        <div class="search">
+            <input type="text" id="search-input" placeholder="Ieškoti klausimų ar temų...">
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Garantija</span>
+            <h3>Kiek ilgai veikia garantija?</h3>
+            <p>Garantinis laikotarpis – 2 metai nuo pirkimo datos. Garantija galioja tik su pirkimo dokumentu. Jei dokumentas nepateiktas, pretenzija nebus priimta.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Pretenzijos</span>
+            <h3>Kaip pateikti pretenziją?</h3>
+            <p>Prisijunkite prie savo paskyros ir pildykite daugiapakopę formą. Reikės nurodyti produkto pavadinimą, problemos aprašymą, kontaktus ir įkelti dokumentus. Neregistruotiems vartotojams – galima pateikti be registracijos, bet nebus galima stebėti būsenos.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Montavimas</span>
+            <h3>Kaip tinkamai sumontuoti maišytuvą?</h3>
+            <p>Visiems produktams pateikiama detali montavimo instrukcija. Rekomenduojame naudoti tik kvalifikuotus montuotojus. Netinkamas montavimas gali pažeisti produktą ir netekti garantijos.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Techninė pagalba</span>
+            <h3>Ką daryti, jei produktas sugedo?</h3>
+            <p>Pateikite pretenziją su foto, vaizdo įrašu ir pirkimo patvirtinimu. Mūsų kokybės komanda peržiūrės ir nustatys, ar problema garantinė. Jei taip – bus siūlomas nemokamas remontas ar keitimas.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Kontaktai</span>
+            <h3>Ar galima pateikti pretenziją be paskyros?</h3>
+            <p>Ne, pretenziją galima pateikti tik prisijungus prie registruotos paskyros. Tai užtikrina saugų ir sekamą procesą. Tačiau neregistruotiems vartotojams suteikiama galimybė pateikti pretenziją per supaprastintą formą be prisijungimo.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Atsarginės detalės</span>
+            <h3>Kaip užsisakyti atsarginę detalę?</h3>
+            <p>Atsarginės detalės užsakomos per pretenzijos formą. Nurodykite produkto pavadinimą, modelį ir reikiamą detalę. Po patvirtinimo detalė bus išsiųsta per 3–5 darbo dienas.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Servisas</span>
+            <h3>Kaip susisiekti su serviso partneriu?</h3>
+            <p>Meistras bus išsiųstas į namus, jei pasirinksite „Meistras į namus“ pretenzijos metu. Administratorius priskirs artimiausią serviso partnerį pagal jūsų miestą.</p>
+        </div>
+
+        <div class="faq-item">
+            <span class="category">Dokumentai</span>
+            <h3>Kokių dokumentų reikia pretenzijai?</h3>
+            <p>Reikia pateikti: pirkimo dokumento kopiją (čekį, sąskaitą-faktūrą), nuotraukas ar vaizdo įrašą su problema, bei, jei taikoma – montavimo dokumentus. Visi failai – iki 10 MB.</p>
+        </div>
+    </main>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        document.getElementById('search-input').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
