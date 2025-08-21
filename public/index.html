@@ -182,6 +182,11 @@
             </div>
         </section>
 
+
+
+
+
+        
         <!-- DUK sekcija -->
         <section class="section">
             <h2>Dažniausiai užduodami klausimai</h2>
@@ -202,7 +207,27 @@
                 <p>Taip, galite pateikti pretenziją be registracijos. Tačiau registruotiems vartotojams suteikiama galimybė stebėti būseną profilyje.</p>
             </div>
         </section>
+<script>
+// Patikriname, ar vartotojas jau prisijungęs
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (currentUser) {
+    // Jei prisijungęs – pakeičiame mygtuką
+    const btnBlock = document.querySelector('.btn-block');
+    if (btnBlock) {
+        btnBlock.innerHTML = `
+            <p style="color: #2D2D2D; margin-bottom: 15px;">Sveiki, <strong>${currentUser.name}</strong>!</p>
+            <a href="pretention.html" class="btn btn-primary">Pateikti pretenziją</a>
+            <button onclick="logout()" class="btn btn-secondary">Atsijungti</button>
+        `;
+    }
+}
 
+// Funkcija atsijungimui
+function logout() {
+    localStorage.removeItem('currentUser');
+    location.reload();
+}
+</script>
         <!-- Kitos paslaugos -->
         <section class="section">
             <h2>Jūsų naudai</h2>
@@ -214,6 +239,8 @@
             </ul>
         </section>
     </main>
+
+    
 
     <footer>
         © 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt
