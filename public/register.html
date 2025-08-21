@@ -180,75 +180,59 @@
             document.getElementById('document-field').style.display = role === 'installer' ? 'block' : 'none';
         }
 
-function register(event) {
-    event.preventDefault();
-    const name = document.getElementById('name').value.trim();
-    const surname = document.getElementById('surname').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
+        function register(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const surname = document.getElementById('surname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
 
-    // Patikriname, ar toks el. paštas jau egzistuoja
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    if (users.some(u => u.email === email)) {
-        alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
-        return;
-    }
+            // Patikriname, ar toks el. paštas jau egzistuoja
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.some(u => u.email === email)) {
+                alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
+                return;
+            }
 
-    // Sukuriame naują vartotoją
-    const newUser = {
-        id: Date.now().toString(),
-        name,
-        surname,
-        email,
-        password,
-        role,
-        status: role === 'installer' ? 'pending' : 'active',
-        createdAt: new Date().toISOString()
-    };
+            // Sukuriame naują vartotoją
+            const newUser = {
+                id: Date.now().toString(),
+                name,
+                surname,
+                email,
+                password,
+                role,
+                status: role === 'installer' ? 'pending' : 'active',
+                createdAt: new Date().toISOString()
+            };
 
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
 
-    // Įkeliame dokumentą, jei vartotojas yra montuotojas
-    const fileInput = document.getElementById('document');
-    if (fileInput.files.length > 0 && role === 'installer') {
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const docs = JSON.parse(localStorage.getItem('installerDocs') || '[]');
-            docs.push({
-                userId: newUser.id,
-                fileName: file.name,
-                fileData: e.target.result
-            });
-            localStorage.setItem('installerDocs', JSON.stringify(docs));
-            alert('Registracija sėkminga! Laukite kokybės komandos patvirtinimo.');
-            
-            // ✅ Automatiškai prisijunk ir nukreipk
-            localStorage.setItem('currentUser', JSON.stringify({
-                id: newUser.id,
-                name: newUser.name,
-                surname: newUser.surname,
-                email: newUser.email,
-                role: newUser.role
-            }));
-            location.href = 'claim-form.html';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        // ✅ Automatiškai prisijunk ir nukreipk
-        localStorage.setItem('currentUser', JSON.stringify({
-            id: newUser.id,
-            name: newUser.name,
-            surname: newUser.surname,
-            email: newUser.email,
-            role: newUser.role
-        }));
-        alert('Registracija sėkminga! Jūs automatiškai prisijungėte.');
-        location.href = 'claim-form.html';
-    }
-}
+            // Įkeliame dokumentą, jei vartotojas yra montuotojas
+            const fileInput = document.getElementById('document');
+            if (fileInput.files.length > 0 && role === 'installer') {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const docs = JSON.parse(localStorage.getItem('installerDocs') || '[]');
+                    docs.push({
+                        userId: newUser.id,
+                        fileName: file.name,
+                        fileData: e.target.result
+                    });
+                    localStorage.setItem('installerDocs', JSON.stringify(docs));
+                    alert('Registracija sėkminga! Laukite kokybės komandos patvirtinimo.');
+                    location.href = 'login.html';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Registracija sėkminga!');
+                location.href = 'login.html';
+            }
+        }
     </script>
 </body>
 </html>
+
