@@ -649,7 +649,7 @@ function setModalHeader(title, showViewSeparately = false) {
                     <option value="video">Video nuoroda (YouTube)</option>
                     <option value="link">Nuoroda į instrukciją</option>
                 </select>
-                <input type="text" id="attachment-url" placeholder="Įkelkite failą arba įdėkite nuorodą" style="width:100%; padding:5px; margin-top:5px;">
+                <input type="file" id="attachment-file" accept="image/*,video/*,.pdf,.doc,.docx"> style="width:100%; padding:5px; margin-top:5px;">
                 <button type="button" onclick="addAttachment()" style="margin-top:5px; padding:5px 10px; font-size:11px;">+ Pridėti</button>
             </div>
 
@@ -666,17 +666,26 @@ let tempAttachments = [];
 
 function addAttachment() {
     const type = document.getElementById('attachment-type').value;
-    const url = document.getElementById('attachment-url').value.trim();
-    const name = prompt('Įveskite pavadinimą (pvz., „Schema.pdf“):', '');
+    const fileInput = document.getElementById('attachment-file');
+    const file = fileInput.files[0];
+    const name = prompt('Įveskite pavadinimą (pvz., „Schema.pdf“):', file ? file.name : '');
 
-    if (!name || !url) {
-        alert('Užpildykite visus laukus.');
+    if (!file) {
+        alert('Pasirinkite failą.');
+        return;
+    }
+    if (!name) {
+        alert('Būtinas pavadinimas.');
         return;
     }
 
-    tempAttachments.push({ type, name, url });
-    updateAttachmentsList();
-    document.getElementById('attachment-url').value = '';
+    uploadToCloudinary(file, (url) => {
+        tempAttachments.push({ type, name, url });
+        updateAttachmentsList();
+        fileInput.value = ''; // išvalo input
+    }, (err) => {
+        alert('Nepavyko įkelti failo į Cloudinary.');
+    });
 }
 
 function updateAttachmentsList() {
@@ -1571,6 +1580,40 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
 
             loadClaims();
         });
+
+// === CLOUDINARY FAILŲ ĮKĖLIMO FUNKCIJA ===
+function uploadToCloudinary(file, onSuccess, onError) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'pretenzijos_unsigned'); // Tavo Upload Preset
+
+    let uploadUrl;
+    if (file.type.startsWith('image/')) {
+        uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
+    } else if (file.type.startsWith('video/')) {
+        uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
+    } else {
+        uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
+    }
+
+
+    fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        onSuccess(data.secure_url);
+    })
+    .catch(err => {
+        console.error('Klaida įkeliant į Cloudinary:', err);
+        onError(err);
+    });
+}
+// === KODAS APIE ĮKĖLIMĄ ===
+
+
+
     </script>
 </body>
 </html>
