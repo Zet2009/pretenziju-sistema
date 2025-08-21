@@ -205,10 +205,10 @@
                     <input type="text" id="product" placeholder="Pvz., Viva-33, ECOSENS">
                 </div>
                 <div class="form-group">
-                    <label for="description">Skundo aprašymas (ne mažiau 50 simb.) *</label>
+                    <label for="description">Skundo aprašymas (ne mažiau 10 simb.) *</label>
                     <textarea id="description" placeholder="Apibūdinkite problemą kuo išsamiau..."></textarea>
                     <div id="desc-error" style="color: #F44336; font-size: 14px; margin-top: 5px; display: none;">
-                        Aprašymas turi būti ne mažiau kaip 50 simbolių.
+                        Aprašymas turi būti ne mažiau kaip 10 simbolių.
                     </div>
                 </div>
                 <div class="form-group">
@@ -336,7 +336,7 @@
             // Patikrinti aprašymo ilgį
             if (step === 1) {
                 const desc = document.getElementById('description').value.trim();
-                if (desc.length < 50) {
+                if (desc.length < 10) {
                     document.getElementById('desc-error').style.display = 'block';
                     return;
                 } else {
@@ -419,7 +419,7 @@
             event.preventDefault();
 
             const desc = document.getElementById('description').value.trim();
-            if (desc.length < 50) {
+            if (desc.length < 10) {
                 alert('Aprašymas turi būti ne mažiau kaip 50 simbolių.');
                 return;
             }
