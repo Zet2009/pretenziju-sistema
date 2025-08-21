@@ -250,17 +250,25 @@
         document.getElementById('preferred-time').textContent = claim.preferredTime;
 
         // Failai
-        const filesContainer = document.getElementById('claim-files');
-        if (claim.files && claim.files.length > 0) {
-            claim.files.forEach(file => {
-                const fileEl = document.createElement('div');
-                fileEl.className = 'file-item';
-                fileEl.innerHTML = `📎 <a href="${file}" target="_blank">${file}</a>`;
-                filesContainer.appendChild(fileEl);
-            });
+const filesContainer = document.getElementById('claim-files');
+let fileListHtml = ''; // ✅ 1. Apibrėžk kintamąjį
+
+if (claim.files && claim.files.length > 0) {
+    claim.files.forEach(file => {
+        if (file.includes('/video/')) {
+            fileListHtml += `<div class="file-item"><video controls src="${file}" style="max-width:100%"></video></div>`;
+        } else if (file.endsWith('.pdf')) {
+            fileListHtml += `<div class="file-item"><a href="${file}" target="_blank" style="color:#2D2D2B">📄 ${file.split('/').pop()}</a></div>`;
         } else {
-            filesContainer.innerHTML = '<div class="file-item">Nėra įkeltų failų</div>';
+            fileListHtml += `<div class="file-item"><img src="${file}" style="max-width:100%;border-radius:4px"></div>`;
         }
+    });
+} else {
+    fileListHtml = '<div class="file-item">Nėra įkeltų failų</div>'; // ✅ Naudok `=` vietoj `+=`
+}
+
+// ✅ 2. Įdėk į konteinerį
+filesContainer.innerHTML = fileListHtml;
 
         // Atsakymas klientui
         document.getElementById('client-response').textContent = claim.qualityResponseToClient || 'Nėra išsiųsto atsakymo klientui.';
