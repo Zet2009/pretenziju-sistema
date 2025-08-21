@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="lt">
 <head>
+    <!DOCTYPE html>
+<html lang="lt">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registruotis – Rubineta</title>
@@ -163,6 +166,24 @@
                 <label for="document">Įkelkite dokumentą (PDF, nuotrauka)</label>
                 <input type="file" id="document" accept=".pdf,image/*">
             </div>
+<div class="form-group">
+    <label for="phone">Telefonas *</label>
+    <input type="tel" id="phone" required>
+</div>
+<div class="form-group">
+    <label for="street">Adresas (gatvė, namas, butas) *</label>
+    <input type="text" id="street" required>
+</div>
+<div class="form-group">
+    <label for="city">Miestas *</label>
+    <input type="text" id="city" required>
+</div>
+<div class="form-group">
+    <label for="postal">Pašto kodas *</label>
+    <input type="text" id="postal" required>
+</div>
+
+
             <button type="submit" class="btn">Registruotis</button>
         </form>
         <div class="links">
@@ -187,6 +208,13 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const role = document.getElementById('role').value;
+ const phone = document.getElementById('phone').value.trim();
+    const street = document.getElementById('street').value.trim();
+    const city = document.getElementById('city').value.trim();
+    const postal = document.getElementById('postal').value.trim();
+
+
+
 
             // Patikriname, ar toks el. paštas jau egzistuoja
             const users = JSON.parse(localStorage.getItem('users')) || [];
@@ -196,16 +224,21 @@
             }
 
             // Sukuriame naują vartotoją
-            const newUser = {
-                id: Date.now().toString(),
-                name,
-                surname,
-                email,
-                password,
-                role,
-                status: role === 'installer' ? 'pending' : 'active',
-                createdAt: new Date().toISOString()
-            };
+           const newUser = {
+    id: Date.now().toString(),
+    name,
+    surname,
+    email,
+    password,
+    role,
+    status: role === 'installer' ? 'pending' : 'active',
+    createdAt: new Date().toISOString(),
+    // Papildomi duomenys
+    phone,
+    street,
+    city,
+    postal
+};
 
             users.push(newUser);
             localStorage.setItem('users', JSON.stringify(users));
@@ -223,8 +256,22 @@
                         fileData: e.target.result
                     });
                     localStorage.setItem('installerDocs', JSON.stringify(docs));
-                    alert('Registracija sėkminga! Laukite kokybės komandos patvirtinimo.');
-                    location.href = 'login.html';
+   // ✅ Išsaugome prisijungusį vartotoją su visais duomenimis
+localStorage.setItem('currentUser', JSON.stringify({
+    id: newUser.id,
+    name: newUser.name,
+    surname: newUser.surname,
+    email: newUser.email,
+    role: newUser.role,
+    phone: newUser.phone,
+    street: newUser.street,
+    city: newUser.city,
+    postal: newUser.postal
+}));
+
+// ✅ Nukreipiame į pagrindinį puslapį
+alert('Registracija sėkminga! Jūs automatiškai prisijungėte.');
+location.href = 'index.html';
                 };
                 reader.readAsDataURL(file);
             } else {
