@@ -258,8 +258,9 @@ if (claim.files && claim.files.length > 0) {
         if (file.includes('/video/')) {
             fileListHtml += `<div class="file-item"><video controls src="${file}" style="max-width:100%"></video></div>`;
         } else if (file.endsWith('.pdf')) {
-            fileListHtml += `<div class="file-item"><a href="${file}" target="_blank" style="color:#2D2D2B">📄 ${file.split('/').pop()}</a></div>`;
-        } else {
+    const pdfUrl = file + '?dl=1'; // Priverčia atsisiųsti
+    fileListHtml += `<div class="file-item"><a href="${pdfUrl}" target="_blank">📄 ${file.split('/').pop()}</a></div>`;
+} else {
             fileListHtml += `<div class="file-item"><img src="${file}" style="max-width:100%;border-radius:4px"></div>`;
         }
     });
