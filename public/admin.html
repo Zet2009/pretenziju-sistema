@@ -6,10 +6,6 @@
     <title>Administratoriaus zona – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
-    
-    
-    
-    
     <style>
         :root {
             --primary: #2D2D2D;
@@ -506,8 +502,6 @@
        // }
 //
 
-
-
 // ✅ Tikriname, ar vartotojas prisijungęs ir ar turi teises
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
@@ -518,8 +512,6 @@ if (!currentUser) {
     alert('Jūs neturite teisių peržiūrėti šią zoną.');
     window.location.href = 'index.html';
 }
-
-
 
 function setModalHeader(title, showViewSeparately = false) {
     document.getElementById('modal-title').textContent = title;
@@ -616,50 +608,32 @@ function setModalHeader(title, showViewSeparately = false) {
             }
         }
 
-        function showAssignModal(id) {
+   function showAssignModal(id) {
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const claim = claims.find(c => c.id === id);
-    if (!claim) return;
+    if (claim) {
+        // Sukuriame partnerių pasirinkimo sąrašą
+        let partnerSelect = `<select id="assign-partner-select" style="width:100%; padding:5px; margin-bottom:10px;">`;
+        partnerSelect += `<option value="">Pasirinkite meistrą...</option>`;
+        const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+        partners.forEach(p => {
+            partnerSelect += `<option value="${p.name}">${p.name}</option>`;
+        });
+        partnerSelect += `</select>`;
 
-    const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-    let partnerSelect = `<select id="assign-partner-select" style="width:100%; padding:5px; margin-bottom:10px;">`;
-    partnerSelect += `<option value="">Pasirinkite meistrą...</option>`;
-    partners.forEach(p => {
-        partnerSelect += `<option value="${p.name} – ${p.cities}">${p.name} – ${p.cities}</option>`;
-    });
-    partnerSelect += `</select>`;
-
-    document.getElementById('modal-body').innerHTML = `
-        <div class="modal-section">
-            <h3>Priskirti pretenziją meistrui</h3>
-            <p><strong>ID:</strong> ${claim.id}</p>
-            <p><strong>Produktas:</strong> ${claim.product}</p>
-            <p><strong>Aprašymas:</strong> ${claim.description}</p>
-            ${partnerSelect}
-
-            <div class="form-group">
-                <label for="quality-note">Rekomendacija partneriui</label>
-                <textarea id="quality-note" placeholder="Įrašykite pastabas, ką verta patikrinti..." style="width:100%; padding:8px; margin:5px 0;"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="attachment-type">Prisegti dokumentą</label>
-                <select id="attachment-type" style="width:100%; padding:5px;">
-                    <option value="file">Failas (PDF, nuotrauka)</option>
-                    <option value="video">Video nuoroda (YouTube)</option>
-                    <option value="link">Nuoroda į instrukciją</option>
-                </select>
-                <input type="file" id="attachment-file" accept="image/*,video/*,.pdf,.doc,.docx"> style="width:100%; padding:5px; margin-top:5px;">
-                <button type="button" onclick="addAttachment()" style="margin-top:5px; padding:5px 10px; font-size:11px;">+ Pridėti</button>
-            </div>
-
-            <div id="attachments-list" style="margin:10px 0; font-size:11px;"></div>
-
-            <button class="btn-small btn-assign" onclick="assignToPartner('${claim.id}')">Patvirtinti ir išsiųsti partneriui</button>
-        </div>
-    `;
-    setModalHeader('Priskirti meistrui', false);
-    document.getElementById('claimModal').style.display = 'flex';
+        // Sukuriame modalinį langą be komentarų ir dokumentų
+        const modalBody = `
+            <div class="modal-section">
+                <h3>Priskirti meistrui</h3>
+                <p><strong>ID:</strong> ${claim.id}</p>
+                <p><strong>Produktas:</strong> ${claim.product}</p>
+                <p><strong>Aprašymas:</strong> ${claim.description}</p>
+                ${partnerSelect}
+                <button class="btn-small btn-assign" onclick="assignToPartner('${claim.id}')">Priskirti</button>
+            </div>`;
+        
+        openModal(modalBody);
+    }
 }
 
 let tempAttachments = [];
@@ -707,7 +681,6 @@ function removeAttachment(index) {
     tempAttachments.splice(index, 1);
     updateAttachmentsList();
 }
-
 
  async function sendClaimToPartnerViaEmail(claim, partner, note, qualityAttachments) {
     const formData = new FormData();
@@ -864,9 +837,6 @@ function savePartner() {
 }
 
 
-
-
-
 function sendEmailToPartner(claim, partner, note, attachments) {
     const subject = `Pretenzija ${claim.id} – perduota jūsų aptarnavimui`;
     
@@ -903,18 +873,20 @@ function sendEmailToPartner(claim, partner, note, attachments) {
 
                 const modalBody = `
                     <div class="modal-section">
-                        <h3>Paskirti atsakingą kokybės skyriaus darbuotoją</h3>
-                        <p><strong>Pretenzijos ID:</strong> ${claim.id}</p>
-                        <p><strong>Produktas:</strong> ${claim.product}</p>
-                        <p><strong>Aprašymas:</strong> ${claim.description}</p>
-                        <select id="responsible-select">${userOptions}</select>
-                        <button class="btn-small btn-primary" onclick="assignResponsible('${claim.id}')">Paskirti</button>
-                    </div>
+        <h3>Kokybės skyriaus komentaras</h3>
+        <div class="comment-box">
+            <textarea id="quality-comment-${claim.id}" placeholder="Įrašykite komentarą...">${claim.qualityComment || ''}</textarea>
+            <label for="quality-attachment">Prisegti dokumentą</label>
+            <input type="file" id="quality-attachment" accept="image/*,video/*,.pdf">
+            <button class="btn-small btn-primary" onclick="saveQualityWithAttachment('${claim.id}')">Išsaugoti komentarą ir failą</button>
+        </div>
+    </div>
                 `;
                 openModal(modalBody);
             }
         }
 
+        
         function assignResponsible(id) {
             const selectElement = document.getElementById('responsible-select');
             const selectedResponsible = selectElement.value;
@@ -1000,20 +972,32 @@ function sendEmailToPartner(claim, partner, note, attachments) {
         }
 
         function saveQualityComment(id) {
-            const comment = document.getElementById(`quality-comment-${id}`).value.trim();
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (claim) {
-                claim.qualityComment = comment;
-                localStorage.setItem('claims', JSON.stringify(claims));
-                alert('Komentaras išsaugotas!');
-                if (currentFilters) {
-                    applyFilters();
-                } else {
-                    loadClaims();
-                }
-            }
+    const comment = document.getElementById(`quality-comment-${id}`).value;
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+
+    if (claim) {
+        claim.qualityComment = comment;
+
+        // ✅ Išsaugoti prisegtus dokumentus
+        if (tempAttachments.length > 0) {
+            claim.qualityAttachments = tempAttachments;
         }
+
+        localStorage.setItem('claims', JSON.stringify(claims));
+        alert('Komentaras ir dokumentai sėkmingai išsaugoti!');
+        closeModal();
+        if (currentFilters) {
+            applyFilters();
+        } else {
+            loadClaims();
+        }
+
+        // ✅ Išvalyti laikiną sąrašą
+        tempAttachments = [];
+        updateAttachmentsList();
+    }
+}
 
         function filterPartners() {
     const nameFilter = document.getElementById('filter-partner-name').value.toLowerCase();
@@ -1471,6 +1455,31 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
             document.getElementById('claimModal').style.display = 'flex';
         }
 
+// === FUNKCIJA: PRISKIRTi MEISTRĄ ===
+function assignToPartner(id) {
+    const selectElement = document.getElementById('assign-partner-select');
+    const selectedPartner = selectElement.value;
+
+    if (!selectedPartner) {
+        alert('Pasirinkite meistrą iš sąrašo.');
+        return;
+    }
+
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+
+    if (claim) {
+        claim.assignedPartner = selectedPartner;
+        claim.status = 'Perduota servisui';
+        localStorage.setItem('claims', JSON.stringify(claims));
+        alert(`✅ Pretenzija ${id} sėkmingai priskirta meistrui: ${selectedPartner}`);
+        closeModal(); // uždaro modalinį langą
+        loadClaims(); // perkrauna lentelę
+    } else {
+        alert('Pretenzija nerasta.');
+    }
+}
+// === PABAIGA ===
 
         // -----------------------------
         // UŽKRAUTI DUOMENIS
