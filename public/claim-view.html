@@ -78,6 +78,11 @@
         .file-item a:hover {
             text-decoration: underline;
         }
+        .file-item img, .file-item video {
+            margin-top: 5px;
+            border-radius: 4px;
+            max-width: 100%;
+        }
         footer {
             text-align: center;
             margin-top: 40px;
@@ -91,48 +96,45 @@
                 grid-template-columns: 1fr;
             }
         }
-/* Timeline (veiksmų istorija) */
-.timeline {
-    margin-top: 10px;
-    padding-left: 10px;
-    position: relative;
-}
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    bottom: 5px;
-    width: 2px;
-    background: #ccc;
-}
-.timeline-item {
-    position: relative;
-    margin-bottom: 10px;
-    padding-left: 20px;
-}
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 3px;
-    top: 8px;
-    width: 6px;
-    height: 6px;
-    background: #17a2b8;
-    border-radius: 50%;
-}
-.timeline-item small {
-    color: #777;
-    font-size: 10px;
-}
-
-
-
+        /* Veiksmų istorija */
+        .timeline {
+            margin-top: 10px;
+            padding-left: 10px;
+            position: relative;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background: #ccc;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background: #17a2b8;
+            border-radius: 50%;
+        }
+        .timeline-item small {
+            color: #777;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Kairė pusė: vartotojo informacija -->
+        <!-- Kairė pusė -->
         <div class="left-column">
             <div class="section">
                 <h3>1. Pagrindinė informacija</h3>
@@ -144,9 +146,6 @@
                 <div class="field"><span class="field-label">Aprašymas:</span> <span id="claim-description"></span></div>
                 <div class="field"><span class="field-label">Kliento reikalavimas:</span> <span id="claim-request"></span></div>
             </div>
-
-
-
 
             <div class="section">
                 <h3>2. Kontaktiniai duomenys</h3>
@@ -162,25 +161,20 @@
             </div>
 
             <div class="section">
-                <h3>3. Pridėti failai</h3>
-                <div id="claim-files"></div>
-            </div>
-
-            <div class="section">
-                <h3>4. Atsakymas klientui</h3>
-                <p id="client-response">Nėra išsiųsto atsakymo klientui.</p>
+                <h3>3. Vartotojo prisegti dokumentai</h3>
+                <div id="user-files"></div>
             </div>
         </div>
 
-        <!-- Dešinė pusė: vidinė informacija -->
+        <!-- Dešinė pusė -->
         <div class="right-column">
             <div class="section">
-                <h3>5. Kokybės skyriaus komentarai</h3>
-                <p id="quality-note">Nėra papildomų pastabų partneriui.</p>
+                <h3>4. Kokybės skyriaus komentarai</h3>
+                <p id="quality-note">Nėra papildomų pastabų.</p>
             </div>
 
             <div class="section">
-                <h3>6. Atsakingas asmuo</h3>
+                <h3>5. Atsakingas asmuo</h3>
                 <div class="field"><span class="field-label">Vardas:</span> <span id="responsible-name"></span></div>
                 <div class="field"><span class="field-label">Pavardė:</span> <span id="responsible-surname"></span></div>
                 <div class="field"><span class="field-label">Pareigos:</span> <span id="responsible-role"></span></div>
@@ -189,23 +183,19 @@
             </div>
 
             <div class="section">
-                <h3>7. Priskirtas partneris</h3>
+                <h3>6. Priskirtas partneris</h3>
                 <div class="field"><span class="field-label">Pavadinimas:</span> <span id="partner-name"></span></div>
-                <div class="field"><span class="field-label">Kontaktas:</span> <span id="partner-contact"></span></div>
-                <div class="field"><span class="field-label">Tel.:</span> <span id="partner-phone"></span></div>
-                <div class="field"><span class="field-label">El. paštas:</span> <span id="partner-email"></span></div>
             </div>
 
             <div class="section">
-                <h3>8. Būsena ir komentarai</h3>
+                <h3>7. Būsena</h3>
                 <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status"></span></div>
-                <div class="field"><span class="field-label">Komentaras:</span> <span id="quality-comment"></span></div>
             </div>
 
             <div class="section">
-    <h3>9. Veiksmų istorija</h3>
-    <div id="timeline-container" class="timeline"></div>
-</div>
+                <h3>8. Veiksmų istorija</h3>
+                <div id="timeline-container" class="timeline"></div>
+            </div>
         </div>
     </div>
 
@@ -230,7 +220,7 @@
             history.back();
         }
 
-        // Užpildyti kairę pusę
+        // --- Užpildyti pagrindinę informaciją ---
         document.getElementById('claim-id').textContent = claim.id;
         document.getElementById('claim-date').textContent = new Date(claim.date).toLocaleString('lt-LT');
         document.getElementById('claim-topic').textContent = claim.topic;
@@ -239,6 +229,7 @@
         document.getElementById('claim-description').textContent = claim.description;
         document.getElementById('claim-request').textContent = claim.request;
 
+        // --- Kontaktiniai duomenys ---
         document.getElementById('contact-name').textContent = claim.contact.name;
         document.getElementById('contact-surname').textContent = claim.contact.surname;
         document.getElementById('contact-email').textContent = claim.contact.email;
@@ -249,73 +240,59 @@
         document.getElementById('contact-method').textContent = claim.contactMethod;
         document.getElementById('preferred-time').textContent = claim.preferredTime;
 
-        // Failai
-const filesContainer = document.getElementById('claim-files');
-let fileListHtml = ''; // ✅ 1. Apibrėžk kintamąjį
-
-if (claim.files && claim.files.length > 0) {
-    claim.files.forEach(file => {
-        if (file.includes('/video/')) {
-            fileListHtml += `<div class="file-item"><video controls src="${file}" style="max-width:100%"></video></div>`;
-        } else if (file.endsWith('.pdf')) {
-    const pdfUrl = file + '?dl=1'; // Priverčia atsisiųsti
-    fileListHtml += `<div class="file-item"><a href="${pdfUrl}" target="_blank">📄 ${file.split('/').pop()}</a></div>`;
-} else {
-            fileListHtml += `<div class="file-item"><img src="${file}" style="max-width:100%;border-radius:4px"></div>`;
+        // --- Vartotojo failai ---
+        const userFilesContainer = document.getElementById('user-files');
+        let userFilesHtml = '';
+        if (Array.isArray(claim.files) && claim.files.length > 0) {
+            claim.files.forEach(url => {
+                if (typeof url !== 'string') return;
+                if (url.includes('/video/')) {
+                    userFilesHtml += `<div class="file-item"><video controls src="${url}" style="max-width:100%"></video></div>`;
+                } else if (url.endsWith('.pdf')) {
+                    userFilesHtml += `<div class="file-item"><a href="${url}?dl=1" target="_blank">📄 ${url.split('/').pop()}</a></div>`;
+                } else {
+                    userFilesHtml += `<div class="file-item"><img src="${url}" style="max-width:100%;border-radius:4px"></div>`;
+                }
+            });
+        } else {
+            userFilesHtml = '<div class="file-item">Nėra įkeltų failų</div>';
         }
-    });
-} else {
-    fileListHtml = '<div class="file-item">Nėra įkeltų failų</div>'; // ✅ Naudok `=` vietoj `+=`
-}
+        userFilesContainer.innerHTML = userFilesHtml;
 
-// ✅ 2. Įdėk į konteinerį
-filesContainer.innerHTML = fileListHtml;
+        // --- Kokybės komentaras ---
+        document.getElementById('quality-note').textContent = claim.qualityComment || 'Nėra papildomų pastabų.';
 
-        // Atsakymas klientui
-        document.getElementById('client-response').textContent = claim.qualityResponseToClient || 'Nėra išsiųsto atsakymo klientui.';
-
-        // Dešinė pusė
-        document.getElementById('quality-note').textContent = claim.qualityNote || 'Nėra papildomų pastabų partneriui.';
-        document.getElementById('quality-comment').textContent = claim.qualityComment || 'Nėra komentaro.';
-
-        // Atsakingas
+        // --- Atsakingas asmuo ---
         if (claim.responsible) {
             const [name, surname] = claim.responsible.split(' ');
-            document.getElementById('responsible-name').textContent = name;
-            document.getElementById('responsible-surname').textContent = surname;
-            // Jei turi papildomus duomenis – galima pridėti iš `adminUsers`
+            document.getElementById('responsible-name').textContent = name || '';
+            document.getElementById('responsible-surname').textContent = surname || '';
         }
 
-        // Priskirtas partneris
-        if (claim.assignedPartner) {
-            document.getElementById('partner-name').textContent = claim.assignedPartner;
-        }
+        // --- Priskirtas partneris ---
+        document.getElementById('partner-name').textContent = claim.assignedPartner || 'Nėra';
 
-        // Būsena
+        // --- Būsena ---
         document.getElementById('claim-status').textContent = claim.status;
-    // --- VEIKSMŲ ISTORIJA (TIMELINE) ---
-const timeline = document.getElementById('timeline-container');
-timeline.innerHTML = ''; // Išvalo ankstesnį turinį
 
-// Sukuriam istorijos įrašus
-const historyEvents = [
-    { user: 'Sistema', time: claim.date, action: 'Pretenzija pateikta' },
-    { user: claim.responsible || 'Kokybės skyrius', time: claim.date, action: `Būsena: ${claim.status}` },
-    { user: claim.assignedPartner || 'Sistema', time: claim.date, action: claim.assignedPartner ? `Priskirta partneriui` : 'Laukia priskyrimo' }
-];
-
-// Sugeneruojam kiekvieną įrašą
-historyEvents.forEach(event => {
-    const item = document.createElement('div');
-    item.className = 'timeline-item';
-    item.innerHTML = `
-        <strong>${event.user}</strong>
-        <small>${new Date(event.time).toLocaleString('lt-LT')}</small>
-        <div>${event.action}</div>
-    `;
-    timeline.appendChild(item);
-});
-    
+        // --- Veiksmų istorija ---
+        const timeline = document.getElementById('timeline-container');
+        timeline.innerHTML = '';
+        const historyEvents = [
+            { user: 'Sistema', time: claim.date, action: 'Pretenzija pateikta' },
+            { user: claim.responsible || 'Kokybės skyrius', time: claim.date, action: `Būsena: ${claim.status}` },
+            { user: claim.assignedPartner || 'Sistema', time: claim.date, action: claim.assignedPartner ? `Priskirta partneriui` : 'Laukia priskyrimo' }
+        ];
+        historyEvents.forEach(event => {
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.innerHTML = `
+                <strong>${event.user}</strong>
+                <small>${new Date(event.time).toLocaleString('lt-LT')}</small>
+                <div>${event.action}</div>
+            `;
+            timeline.appendChild(item);
+        });
     </script>
 </body>
 </html>
