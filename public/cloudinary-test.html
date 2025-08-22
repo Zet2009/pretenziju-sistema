@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudinary Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2D2D2D;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2D2D2D;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #2D2D2D;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1a1a1a;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        #result img {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        #result video {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        #result a {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+        #result a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>✅ Cloudinary Test – Įkelkite failą</h1>
+
+    <div class="form-group">
+        <label for="file">1. Pasirinkite failą</label>
+        <input type="file" id="file" accept="image/*,video/*,.pdf,.doc,.docx">
+    </div>
+
+    <!-- Štai jis – akivaizdus mygtukas -->
+    <button onclick="upload()">2. Įkelti į Cloudinary</button>
+
+    <div id="result" style="display:none;">
+        <strong>Statusas:</strong> <span id="status"></span><br>
+        <strong>Failo tipas:</strong> <span id="file-type"></span><br>
+        <strong>URL:</strong> <a id="url-link" target="_blank">Atidaryti failą</a><br>
+        <img id="preview" style="display:none;">
+        <video id="video-preview" controls style="display:none;"></video>
+    </div>
+
+    <script>
+        function upload() {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+            const resultDiv = document.getElementById('result');
+
+            if (!file) {
+                alert('❌ Pasirinkite failą, kurį norite įkelti.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
+
+            // Rodyti, kad vyksta įkėlimas
+            document.getElementById('status').textContent = 'Įkelama...';
+            resultDiv.style.display = 'block';
+
+            fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.secure_url) {
+                    const url = data.secure_url;
+                    const resourceType = data.resource_type;
+
+                    document.getElementById('status').textContent = '✅ Sėkmingai įkelta!';
+                    document.getElementById('file-type').textContent = resourceType;
+                    document.getElementById('url-link').href = url;
+                    document.getElementById('url-link').textContent = url;
+
+                    // Parodyti failą pagal tipą
+                    const preview = document.getElementById('preview');
+                    const videoPreview = document.getElementById('video-preview');
+
+                    preview.style.display = 'none';
+                    videoPreview.style.display = 'none';
+
+                    if (resourceType === 'image') {
+                        preview.src = url;
+                        preview.style.display = 'block';
+                    } else if (resourceType === 'video') {
+                        videoPreview.src = url;
+                        videoPreview.style.display = 'block';
+                    }
+
+                } else {
+                    document.getElementById('status').textContent = '❌ Klaida: ' + (data.error?.message || 'Nežinoma');
+                }
+            })
+            .catch(err => {
+                console.error('Klaida:', err);
+                document.getElementById('status').textContent = '❌ Nepavyko įkelti. Klaida žurnale.';
+            });
+        }
+    </script>
+</body>
+</html>
