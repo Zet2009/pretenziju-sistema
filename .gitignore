@@ -1,0 +1,16 @@
+# .gitignore
+
+# Neikelti aplanko su priklausomybėmis
+node_modules/
+
+# Neikelti aplinkos kintamųjų
+.env
+
+# Neikelti laikinų ar log failų
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Neikelti lokalios saugyklos (jei nereikia)
+local-storage.json
