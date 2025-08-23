@@ -616,7 +616,7 @@ function setModalHeader(title, showViewSeparately = false) {
             }
         }
 
-        function showAssignModal(id) {
+    function showAssignModal(id) {
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const claim = claims.find(c => c.id === id);
     if (!claim) return;
@@ -1259,6 +1259,75 @@ function deletePartner(id) {
             `;
             openModal(modalBody);
         }
+
+
+function assignToPartner(id) {
+    const selectElement = document.getElementById('assign-partner-select');
+    const noteElement = document.getElementById('quality-note');
+    const selectedPartner = selectElement.value;
+    const note = noteElement ? noteElement.value.trim() : '';
+
+    if (!selectedPartner) {
+        alert('Pasirinkite meistrą.');
+        return;
+    }
+
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+
+    if (!claim) {
+        alert('Pretenzija nerasta.');
+        closeModal();
+        return;
+    }
+
+    // Rask partnerį
+    const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    const partner = partners.find(p => p.name === selectedPartner.split(' – ')[0]);
+    if (!partner || !partner.email) {
+        alert('Partneris nerastas arba nenurodytas el. paštas.');
+        return;
+    }
+
+    // Atnaujink duomenis
+    claim.assignedPartner = selectedPartner;
+    claim.status = 'Perduota servisui';
+    claim.qualityComment = note;
+    claim.qualityAttachments = [...tempAttachments];
+    localStorage.setItem('claims', JSON.stringify(claims));
+
+    // ✅ Siųsk laišką meistrui į tavo serverį
+    fetch('https://pretenziju-sistema.onrender.com/send-to-partner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            claimId: claim.id,
+            partnerEmail: partner.email,
+            partnerContactPerson: partner.contactPerson || 'Meistras',
+            note: note,
+            attachments: tempAttachments
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Nepavyko išsiųsti laiško');
+        return response.json();
+    })
+    .then(data => {
+        console.log('✅ Laiškas išsiųstas meistrui:', data);
+    })
+    .catch(error => {
+        console.error('❌ Klaida siunčiant laišką:', error);
+        alert('Nepavyko išsiųsti laiško meistrui. Patikrinkite serverio būseną.');
+    });
+
+    alert(`✅ Pretenzija ${id} sėkmingai priskirta meistrui: ${selectedPartner}`);
+    tempAttachments = [];
+    updateAttachmentsList();
+    closeModal();
+    loadClaims();
+}
+
+
 
 function sendEmailToPartner(claim, partner, note, attachments) {
     const subject = `Pretenzija ${claim.id} – perduota jūsų aptarnavimui`;
