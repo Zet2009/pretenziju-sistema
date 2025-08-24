@@ -138,6 +138,6 @@ app.listen(PORT, () => {
     console.log(`✅ Serveris veikia ant http://localhost:${PORT}`);
 });
 // === Paleidžiame serverį ===
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://localhost:${PORT}`);
 });
