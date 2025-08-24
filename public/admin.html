@@ -1378,13 +1378,12 @@ function assignToPartner(id) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-    claimId: claim.id,
-    partnerEmail: partner.email,
-    partnerContactPerson: partner.contactPerson || 'Meistras',
-    note: note,
-    attachments: allAttachments,
-    claimLink: `https://pretenziju-sistema.onrender.com/master-view.html?id=${claim.id}`
-})
+            claimId: claim.id,
+            partnerEmail: partner.email,
+            partnerContactPerson: partner.contactPerson || 'Meistras',
+            note: note,
+            attachments: allAttachments  // ✅ Dabar veikia – kintamasis apibrėžtas
+        })
     })
     .then(response => response.json())
     .then(data => {
