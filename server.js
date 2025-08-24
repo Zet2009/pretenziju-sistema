@@ -82,7 +82,7 @@ app.post('/send-to-partner', async (req, res) => {
 
     let body = `Sveiki, ${partnerContactPerson},\n\nJums priskirta pretenzija:\n`;
     body += `- ID: ${claimId}\n`;
-    body += `- Rekomendacija: ${claim.qualityExternalComment || 'Nėra papildomų pastabų'}\n`;
+    body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n`;
 
     // Prisegti dokumentai
     body += `Prisegti dokumentai:\n`;
@@ -95,7 +95,9 @@ app.post('/send-to-partner', async (req, res) => {
     }
 
     // Nuoroda meistrui
-    body += `\nPeržiūrėti visą užduotį: ${claimLink}\n\n`;
+    if (claimLink) {
+        body += `\nPeržiūrėti visą užduotį: ${claimLink}\n\n`;
+    }
 
     body += `Prašome išspręsti problemą ir atnaujinti būseną sistemoje.\n\nGeriausios sveikatos,\nRubineta kokybės komanda\ninfo@rubineta.lt\n+370 612 34567`;
 
