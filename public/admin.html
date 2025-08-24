@@ -1378,12 +1378,13 @@ function assignToPartner(id) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            claimId: claim.id,
-            partnerEmail: partner.email,
-            partnerContactPerson: partner.contactPerson || 'Meistras',
-            note: note,
-            attachments: allAttachments  // ✅ Dabar veikia – kintamasis apibrėžtas
-        })
+    claimId: claim.id,
+    partnerEmail: partner.email,
+    partnerContactPerson: partner.contactPerson || 'Meistras',
+    note: note,
+    attachments: allAttachments,
+    claimLink: `${window.location.origin}/master-view.html?id=${claim.id}`
+})
     })
     .then(response => response.json())
     .then(data => {
