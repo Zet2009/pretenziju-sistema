@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors());
