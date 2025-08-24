@@ -544,7 +544,7 @@ function setModalHeader(title, showViewSeparately = false) {
                     ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">${claim.responsible}</a>`
                     : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">Paskirti atsakingą</a>`;
 
-                const commentCell = claim.qualityComment || 'Neaišku kur laša';
+                const commentCell = claim.qualityInternalComment || 'vidinis komentaras';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -1043,27 +1043,29 @@ function sendEmailToPartner(claim, partner, note, attachments) {
                     </div>
 
                     <div class="modal-section">
-                        <h3>Kokybės skyriaus komentaras</h3>
-                        <div class="comment-box">
-                            <textarea id="quality-comment-${claim.id}" placeholder="Įrašykite komentarą...">${claim.qualityComment || ''}</textarea>
-                            <button class="btn-small btn-primary" onclick="saveQualityComment('${claim.id}')">Išsaugoti komentarą</button>
-                        </div>
-                    </div>
+    <h3>Vidinis komentaras (tik kokybės skyriui)</h3>
+    <div class="comment-box">
+        <textarea id="quality-internal-comment-${claim.id}" placeholder="Vidinis komentaras...">${claim.qualityInternalComment || ''}</textarea>
+        <button class="btn-small btn-primary" onclick="saveQualityInternalComment('${claim.id}')">Išsaugoti vidinį komentarą</button>
+    </div>
+</div>
+
+
                 `;
                 document.getElementById('claimModal').style.display = 'flex';
             }
         }
 
-        function saveQualityComment(id) {
-    const comment = document.getElementById(`quality-comment-${id}`).value.trim();
+    function saveQualityInternalComment(id) {
+    const comment = document.getElementById(`quality-internal-comment-${id}`).value.trim();
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const claimIndex = claims.findIndex(c => c.id === id);
     
     if (claimIndex !== -1) {
-        claims[claimIndex].qualityComment = comment;
-        claims[claimIndex].qualityCommentDate = new Date().toISOString();
+        claims[claimIndex].qualityInternalComment = comment;
+        claims[claimIndex].qualityInternalCommentDate = new Date().toISOString();
         localStorage.setItem('claims', JSON.stringify(claims));
-        alert('Komentaras išsaugotas!');
+        alert('Vidinis komentaras išsaugotas!');
         
         if (currentFilters) {
             applyFilters();
@@ -1369,7 +1371,7 @@ function assignToPartner(id) {
     // Atnaujink duomenis
     claim.assignedPartner = selectedPartner;
     claim.status = 'Perduota servisui';
-    claim.qualityComment = note;
+    claim.qualityExternalComment = note;
     claim.qualityAttachments = [...tempAttachments]; // tik kokybės skyriaus
     localStorage.setItem('claims', JSON.stringify(claims));
 
@@ -1709,6 +1711,28 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
 
             loadClaims();
         });
+
+
+function saveQualityExternalComment(id) {
+    const comment = document.getElementById(`quality-external-comment-${id}`).value.trim();
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claimIndex = claims.findIndex(c => c.id === id);
+    
+    if (claimIndex !== -1) {
+        claims[claimIndex].qualityExternalComment = comment;
+        claims[claimIndex].qualityExternalCommentDate = new Date().toISOString();
+        localStorage.setItem('claims', JSON.stringify(claims));
+        alert('Rekomendacijos meistrui išsaugotos!');
+        
+        if (currentFilters) {
+            applyFilters();
+        } else {
+            loadClaims();
+        }
+    }
+}
+
+
 
 // === FUNKCIJA: ĮKELTI Į CLOUDINARY ===
 function uploadToCloudinary(file, onSuccess, onError) {
