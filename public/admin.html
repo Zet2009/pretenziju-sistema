@@ -1376,7 +1376,7 @@ function assignToPartner(id) {
     localStorage.setItem('claims', JSON.stringify(claims));
 
     // ✅ Siųsk laišką meistrui
-    fetch('https://pretenziju-sistema.onrender.com/send-to-partner', {
+    fetch('https://pretenzijos-sistema.onrender.com/send-to-partner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
