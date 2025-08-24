@@ -34,6 +34,62 @@ transporter.verify((error, success) => {
     }
 });
 
+// server.js - pridėkite šį kodą PO transporter.verify(), BET PRIEŠ app.post()
+
+// 📊 Health check endpoint'as
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        service: 'Rubineta Pretenzijų Sistema',
+        version: '1.0.0',
+        environment: {
+            hasEmailUser: !!process.env.EMAIL_USER,
+            hasEmailPass: !!process.env.EMAIL_PASS,
+            qualityEmail: process.env.QUALITY_EMAIL || 'Nenurodyta'
+        }
+    });
+});
+
+// 📧 Testinis email endpoint'as
+app.get('/test-email', async (req, res) => {
+    try {
+        // Patikrinkime ar yra email konfigūracija
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            return res.status(500).json({ 
+                success: false, 
+                error: 'Email konfigūracija nerasta' 
+            });
+        }
+
+        const testMailOptions = {
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER, // siųskite sau
+            subject: 'Testinis laiškas iš Rubineta serverio',
+            text: 'Sveiki, tai testinis laiškas! Jei jį gavote, serveris veikia.'
+        };
+
+        const info = await transporter.sendMail(testMailOptions);
+        res.json({ 
+            success: true, 
+            message: 'Testinis laiškas išsiųstas', 
+            messageId: info.messageId 
+        });
+    } catch (error) {
+        console.error('❌ Testinio laiško klaida:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// 🎯 Toliau eina jūsų esami endpoint'ai:
+// app.post('/send-confirmation', ...);
+// app.post('/send-to-partner', ...);
+// app.post('/notify-quality', ...);
+
+
 // === 1. Laiškas klientui – patvirtinimas, kad pretenzija priimta ===
 app.post('/send-confirmation', async (req, res) => {
     const { email, claimId, language = 'lt' } = req.body;
