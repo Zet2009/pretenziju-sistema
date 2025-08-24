@@ -1,5 +1,5 @@
 {
-  "name": "pretenziju-sistema-server",
+  "name": "pretenzijos-sistema-server",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
