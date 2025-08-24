@@ -82,7 +82,7 @@ app.post('/send-to-partner', async (req, res) => {
 
     let body = `Sveiki, ${partnerContactPerson},\n\nJums priskirta pretenzija:\n`;
     body += `- ID: ${claimId}\n`;
-    body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n`;
+    body += `- Rekomendacija: ${claim.qualityExternalComment || 'Nėra papildomų pastabų'}\n`;
 
     // Prisegti dokumentai
     body += `Prisegti dokumentai:\n`;
