@@ -303,7 +303,7 @@ if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
         userFilesContainer.innerHTML = userFilesHtml;
 
         // --- Kokybės komentaras ---
-        document.getElementById('quality-note').textContent = claim.qualityComment || 'Nėra papildomų pastabų.';
+        document.getElementById('quality-note').textContent = claim.qualityExternalComment || 'Nėra papildomų pastabų.';
 
         // --- Atsakingas asmuo ---
         if (claim.responsible) {
