@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meistro zona – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 24px;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .field {
+            margin: 8px 0;
+        }
+        .field-label {
+            font-weight: 500;
+            color: var(--primary);
+            display: inline-block;
+            min-width: 140px;
+        }
+     .attachments-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+.file-item {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f9f9f9;
+    max-width: 320px;
+    text-align: center;
+}
+.file-item img, .file-item video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--gray);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Meistro užduotis</h1>
+
+        <!-- Pagrindinė informacija -->
+        <div class="section">
+            <h2>1. Užduoties informacija</h2>
+            <div class="field"><span class="field-label">ID:</span> <span id="claim-id"></span></div>
+            <div class="field"><span class="field-label">Data:</span> <span id="claim-date"></span></div>
+            <div class="field"><span class="field-label">Produktas:</span> <span id="claim-product"></span></div>
+            <div class="field"><span class="field-label">Aprašymas:</span> <span id="claim-description"></span></div>
+            <div class="field"><span class="field-label">Kliento reikalavimas:</span> <span id="claim-request"></span></div>
+            <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status"></span></div>
+        </div>
+
+      <!-- Vartotojo dokumentai -->
+<div class="section">
+    <h2>2. Vartotojo prisegti dokumentai</h2>
+    <div id="user-files" class="attachments-list"></div>
+</div>
+
+        <!-- Kokybės skyriaus komentarai -->
+        <div class="section">
+            <h2>3. Kokybės skyriaus rekomendacijos</h2>
+            <p id="quality-note">Nėra papildomų pastabų.</p>
+        </div>
+
+       <!-- Prisegti dokumentai nuo kokybės -->
+<div class="section">
+    <h2>4. Prisegti dokumentai nuo kokybės skyriaus</h2>
+    <div id="quality-attachments" class="attachments-list"></div>
+</div>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos.</footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const claimId = urlParams.get('id');
+
+            if (!claimId) {
+                alert('Nenurodytas pretenzijos ID.');
+                return;
+            }
+
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const claim = claims.find(c => c.id === claimId);
+
+            if (!claim) {
+                alert('Pretenzija nerasta.');
+                return;
+            }
+
+            // Užpildyk pagrindinę informaciją
+            document.getElementById('claim-id').textContent = claim.id;
+            document.getElementById('claim-date').textContent = new Date(claim.date).toLocaleString('lt-LT');
+            document.getElementById('claim-product').textContent = claim.product;
+            document.getElementById('claim-description').textContent = claim.description;
+            document.getElementById('claim-request').textContent = claim.request;
+            document.getElementById('claim-status').textContent = claim.status;
+
+            // Kokybės komentaras
+            document.getElementById('quality-note').textContent = claim.qualityComment || 'Nėra papildomų pastabų.';
+
+            // Vartotojo dokumentai
+const userFilesContainer = document.getElementById('user-files');
+if (claim.files && claim.files.length > 0) {
+    claim.files.forEach(url => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+
+        if (url.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+            // Nuotrauka
+            item.innerHTML = `<img src="${url}" alt="Nuotrauka" style="max-width:300px; border-radius:8px;">`;
+        } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+            // Video
+            item.innerHTML = `<video controls style="max-width:300px;"><source src="${url}" type="video/mp4">Jūsų naršyklė nepalaiko video.</video>`;
+        } else if (url.match(/\.(pdf)$/i)) {
+            // PDF – rodyti kaip nuorodą su ikona
+            item.innerHTML = `<a href="${url}" target="_blank" style="color:#d44646;">📄 Atidaryti PDF</a>`;
+        } else {
+            // Kiti failai
+            item.innerHTML = `<a href="${url}" target="_blank">📎 Atsisiųsti dokumentą</a>`;
+        }
+
+        userFilesContainer.appendChild(item);
+    });
+} else {
+    userFilesContainer.innerHTML = '<p>Nėra prisegtų dokumentų.</p>';
+}
+
+// Kokybės skyriaus dokumentai
+const qualityAttachmentsContainer = document.getElementById('quality-attachments');
+if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
+    claim.qualityAttachments.forEach(att => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+
+        if (att.type === 'file' && att.url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+            item.innerHTML = `<img src="${att.url}" alt="${att.name}" style="max-width:300px; border-radius:8px;">`;
+        } else if (att.type === 'file' && att.url.match(/\.(mp4|webm)$/i)) {
+            item.innerHTML = `<video controls style="max-width:300px;"><source src="${att.url}" type="video/mp4">Jūsų naršyklė nepalaiko video.</video>`;
+        } else if (att.type === 'file' && att.url.match(/\.(pdf)$/i)) {
+            item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#d44646;">📄 ${att.name}</a>`;
+        } else if (att.type === 'video') {
+            item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🎬 ${att.name}</a>`;
+        } else if (att.type === 'link') {
+            item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🔗 ${att.name}</a>`;
+        } else {
+            item.innerHTML = `<a href="${att.url}" target="_blank">📎 ${att.name}</a>`;
+        }
+
+        qualityAttachmentsContainer.appendChild(item);
+    });
+} else {
+    qualityAttachmentsContainer.innerHTML = '<p>Nėra papildomų dokumentų.</p>';
+}
+        });
+    </script>
+</body>
+</html>
