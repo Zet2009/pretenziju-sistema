@@ -11,7 +11,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
-app.use(express.static('public')); // ✅ Rodyti failus iš /public
 
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
@@ -75,15 +74,16 @@ app.post('/send-confirmation', async (req, res) => {
     }
 });
 
-// === 2. Laiškas meistrui – kai priskiriama pretenzija ===
+// === 2. Laiškas meistrui (priskiriant pretenziją) ===
 app.post('/send-to-partner', async (req, res) => {
-    const { claimId, partnerEmail, partnerContactPerson, note, attachments = [] } = req.body;
+    const { claimId, partnerEmail, partnerContactPerson, note, attachments = [], claimLink } = req.body;
 
     let body = `Sveiki, ${partnerContactPerson},\n\nJums priskirta pretenzija:\n`;
     body += `- ID: ${claimId}\n`;
     body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n`;
-    body += `Prisegti dokumentai:\n`;
 
+    // Prisegti dokumentai
+    body += `Prisegti dokumentai:\n`;
     if (attachments.length > 0) {
         attachments.forEach(att => {
             body += `- ${att.name}: ${att.url}\n`;
@@ -92,7 +92,10 @@ app.post('/send-to-partner', async (req, res) => {
         body += `- Nėra pridėtų dokumentų\n`;
     }
 
-    body += `\nPrašome išspręsti problemą ir atnaujinti būseną sistemoje.\n\nGeriausios sveikatos,\nRubineta kokybės komanda\ninfo@rubineta.lt\n+370 612 34567`;
+    // Nuoroda meistrui
+    body += `\nPeržiūrėti visą užduotį: ${claimLink}\n\n`;
+
+    body += `Prašome išspręsti problemą ir atnaujinti būseną sistemoje.\n\nGeriausios sveikatos,\nRubineta kokybės komanda\ninfo@rubineta.lt\n+370 612 34567`;
 
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
@@ -103,7 +106,7 @@ app.post('/send-to-partner', async (req, res) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        res.json({ success: true, message: 'Laiškas išsiųstas meistrui' });
+        res.json({ success: true });
     } catch (error) {
         console.error('Klaida siunčiant meistrui:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -130,6 +133,10 @@ app.post('/notify-quality', async (req, res) => {
     }
 });
 
+// === Paleidžiame serverį ===
+app.listen(PORT, () => {
+    console.log(`✅ Serveris veikia ant http://localhost:${PORT}`);
+});
 // === Paleidžiame serverį ===
 app.listen(PORT, () => {
     console.log(`✅ Serveris veikia ant http://localhost:${PORT}`);
