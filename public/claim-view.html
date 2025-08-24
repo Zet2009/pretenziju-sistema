@@ -196,6 +196,15 @@
                 <h3>8. Veiksmų istorija</h3>
                 <div id="timeline-container" class="timeline"></div>
             </div>
+
+<div class="section">
+    <h3>9. Kokybės skyriaus dokumentai</h3>
+    <div id="quality-attachments"></div>
+</div>
+
+
+
+
         </div>
     </div>
 
@@ -239,6 +248,40 @@
         document.getElementById('contact-postal').textContent = claim.contact.postal;
         document.getElementById('contact-method').textContent = claim.contactMethod;
         document.getElementById('preferred-time').textContent = claim.preferredTime;
+
+// Rodyti kokybės skyriaus dokumentus
+const qualityAttachmentsContainer = document.getElementById('quality-attachments');
+if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
+    claim.qualityAttachments.forEach(att => {
+        const item = document.createElement('div');
+        item.className = 'attachment-item';
+        item.style.margin = '8px 0';
+        item.style.padding = '8px';
+        item.style.border = '1px solid #ddd';
+        item.style.borderRadius = '6px';
+        item.style.backgroundColor = '#f9f9f9';
+
+        let link = '';
+        if (att.type === 'video') {
+            link = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🎬 Peržiūrėti video</a>`;
+        } else if (att.type === 'link') {
+            link = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🔗 Atidaryti nuorodą</a>`;
+        } else {
+            link = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">📎 Atsisiųsti dokumentą</a>`;
+        }
+
+        item.innerHTML = `
+            <strong>${att.name}</strong><br>
+            ${link}
+        `;
+        qualityAttachmentsContainer.appendChild(item);
+    });
+} else {
+    qualityAttachmentsContainer.innerHTML = '<p>Nėra papildomų dokumentų nuo kokybės skyriaus.</p>';
+}
+
+
+
 
         // --- Vartotojo failai ---
         const userFilesContainer = document.getElementById('user-files');
