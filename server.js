@@ -6,7 +6,9 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT;
+
+// Naudoti PORT iš aplinkos arba 3000 (vietiniam testavimui)
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -134,10 +136,6 @@ app.post('/notify-quality', async (req, res) => {
 });
 
 // === Paleidžiame serverį ===
-app.listen(PORT, () => {
-    console.log(`✅ Serveris veikia ant http://localhost:${PORT}`);
-});
-// === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Serveris veikia ant http://localhost:${PORT}`);
+    console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
 });
