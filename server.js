@@ -10,9 +10,9 @@ const app = express();
 // Naudoti PORT iš aplinkos arba 3000 (vietiniam testavimui)
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
+app.use(express.static('public')); // ✅ Čia – kad rodytų HTML failus
 
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
