@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administratoriaus zona – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    
-    
-    
-    
+               
     <style>
         :root {
             --primary: #2D2D2D;
@@ -491,7 +487,6 @@
     </div>
 </div>
 
-
     <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
 
     <script>
@@ -507,7 +502,6 @@
 //
 
 
-
 // ✅ Tikriname, ar vartotojas prisijungęs ir ar turi teises
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
@@ -518,8 +512,6 @@ if (!currentUser) {
     alert('Jūs neturite teisių peržiūrėti šią zoną.');
     window.location.href = 'index.html';
 }
-
-
 
 function setModalHeader(title, showViewSeparately = false) {
     document.getElementById('modal-title').textContent = title;
@@ -616,9 +608,10 @@ function setModalHeader(title, showViewSeparately = false) {
             }
         }
 
-    function showAssignModal(id) {
+function showAssignModal(id) {
+    tempAttachments = [];
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const claim = claims.find(c => c.id === id);
+    const claim = claims.find(c => c.id === id); // ŠITA EILUTĖ TRUKSTA!
     if (!claim) return;
 
     const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
@@ -639,17 +632,21 @@ function setModalHeader(title, showViewSeparately = false) {
 
             <div class="form-group">
                 <label for="quality-note">Rekomendacija partneriui</label>
-                <textarea id="quality-note" placeholder="Įrašykite pastabas, ką verta patikrinti..." style="width:100%; padding:8px; margin:5px 0;"></textarea>
+                <textarea id="quality-note" placeholder="Įrašykite pastabas, ką verta patikrinti..." style="width:100%; padding:8px; margin:5px 0;">${claim.qualityNote || ''}</textarea>
             </div>
 
             <div class="form-group">
                 <label for="attachment-type">Prisegti dokumentą</label>
-                <select id="attachment-type" style="width:100%; padding:5px;">
+                <select id="attachment-type" style="width:100%; padding:5px;" onchange="updateAttachmentInput()">
                     <option value="file">Failas (PDF, nuotrauka)</option>
                     <option value="video">Video nuoroda (YouTube)</option>
                     <option value="link">Nuoroda į instrukciją</option>
                 </select>
-                <input type="file" id="attachment-file" accept="image/*,video/*,.pdf,.doc,.docx"> style="width:100%; padding:5px; margin-top:5px;">
+                <!-- Failas -->
+                <input type="file" id="attachment-file" accept="image/*,video/*,.pdf,.doc,.docx" style="width:100%; padding:5px; margin-top:5px;" />
+
+                <!-- Nuoroda (video arba link) -->
+                <input type="text" id="attachment-url" placeholder="Įveskite nuorodą (pvz., YouTube URL)" style="width:100%; padding:5px; margin-top:5px; display:none;" />
                 <button type="button" onclick="addAttachment()" style="margin-top:5px; padding:5px 10px; font-size:11px;">+ Pridėti</button>
             </div>
 
@@ -658,6 +655,13 @@ function setModalHeader(title, showViewSeparately = false) {
             <button class="btn-small btn-assign" onclick="assignToPartner('${claim.id}')">Patvirtinti ir išsiųsti partneriui</button>
         </div>
     `;
+    
+    // Jei jau yra prisegtų dokumentų, parodykite juos
+    if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
+        tempAttachments = [...claim.qualityAttachments];
+        updateAttachmentsList();
+    }
+    
     setModalHeader('Priskirti meistrui', false);
     document.getElementById('claimModal').style.display = 'flex';
 }
@@ -666,17 +670,46 @@ let tempAttachments = [];
 
 function addAttachment() {
     const type = document.getElementById('attachment-type').value;
-    const url = document.getElementById('attachment-url').value.trim();
-    const name = prompt('Įveskite pavadinimą (pvz., „Schema.pdf“):', '');
+    const fileInput = document.getElementById('attachment-file');
+    const urlInput = document.getElementById('attachment-url');
+    let url = '';
+    let file = null;
 
-    if (!name || !url) {
-        alert('Užpildykite visus laukus.');
+    if (type === 'file') {
+        file = fileInput.files[0];
+        if (!file) {
+            alert('Pasirinkite failą.');
+            return;
+        }
+    } else {
+        url = urlInput.value.trim();
+        if (!url) {
+            alert('Įveskite nuorodą.');
+            return;
+        }
+    }
+
+    const name = prompt('Įveskite pavadinimą (pvz., „Schema.pdf“):', file ? file.name : '');
+    if (!name) {
+        alert('Būtinas pavadinimas.');
         return;
     }
 
-    tempAttachments.push({ type, name, url });
-    updateAttachmentsList();
-    document.getElementById('attachment-url').value = '';
+    if (type === 'file') {
+        // Failas bus įkeltas į Cloudinary
+        uploadToCloudinary(file, (secureUrl) => {
+            tempAttachments.push({ type: 'file', name, url: secureUrl });
+            updateAttachmentsList();
+            fileInput.value = '';
+        }, (error) => {
+            alert('Nepavyko įkelti failo: ' + error.message);
+        });
+    } else {
+        // Video arba nuoroda – tiesiog saugom URL
+        tempAttachments.push({ type, name, url });
+        updateAttachmentsList();
+        urlInput.value = '';
+    }
 }
 
 function updateAttachmentsList() {
@@ -693,6 +726,41 @@ function updateAttachmentsList() {
         }).join('') +
         '</ul>';
 }
+
+// === FUNKCIJA: ĮKELTI Į CLOUDINARY ===
+function uploadToCloudinary(file, onSuccess, onError) {
+
+ if (!file) {
+        onError(new Error('Nepasirinktas failas'));
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+   formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
+    formData.append('cloud_name', 'dtiiwo2bp');
+
+    fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideUploadIndicator(); // Paslėpti indikatorių
+        if (data.secure_url) {
+            onSuccess(data.secure_url);
+        } else {
+            onError(new Error('Nepavyko gauti URL'));
+        }
+    })
+    .catch(err => {
+        hideUploadIndicator(); // Paslėpti indikatorių
+        onError(err);
+    });
+}
+
+
+
 
 function removeAttachment(index) {
     tempAttachments.splice(index, 1);
@@ -854,10 +922,6 @@ function savePartner() {
     loadPartners();
 }
 
-
-
-
-
 function sendEmailToPartner(claim, partner, note, attachments) {
     const subject = `Pretenzija ${claim.id} – perduota jūsų aptarnavimui`;
     
@@ -991,21 +1055,23 @@ function sendEmailToPartner(claim, partner, note, attachments) {
         }
 
         function saveQualityComment(id) {
-            const comment = document.getElementById(`quality-comment-${id}`).value.trim();
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (claim) {
-                claim.qualityComment = comment;
-                localStorage.setItem('claims', JSON.stringify(claims));
-                alert('Komentaras išsaugotas!');
-                if (currentFilters) {
-                    applyFilters();
-                } else {
-                    loadClaims();
-                }
-            }
+    const comment = document.getElementById(`quality-comment-${id}`).value.trim();
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claimIndex = claims.findIndex(c => c.id === id);
+    
+    if (claimIndex !== -1) {
+        claims[claimIndex].qualityComment = comment;
+        claims[claimIndex].qualityCommentDate = new Date().toISOString();
+        localStorage.setItem('claims', JSON.stringify(claims));
+        alert('Komentaras išsaugotas!');
+        
+        if (currentFilters) {
+            applyFilters();
+        } else {
+            loadClaims();
         }
-
+    }
+}
         function filterPartners() {
     const nameFilter = document.getElementById('filter-partner-name').value.toLowerCase();
     const cityFilter = document.getElementById('filter-partner-city').value.toLowerCase();
@@ -1281,6 +1347,17 @@ function assignToPartner(id) {
         return;
     }
 
+    // ✅ Apjunk vartotojo ir kokybės skyriaus failus
+    const allAttachments = [
+        // Vartotojo failai (įkelti per formą)
+        ...(claim.files || []).map(url => ({
+            name: 'Vartotojo dokumentas',
+            url: url
+        })),
+        // Kokybės skyriaus failai (pridėti per admin)
+        ...tempAttachments
+    ];
+
     // Rask partnerį
     const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
     const partner = partners.find(p => p.name === selectedPartner.split(' – ')[0]);
@@ -1293,31 +1370,28 @@ function assignToPartner(id) {
     claim.assignedPartner = selectedPartner;
     claim.status = 'Perduota servisui';
     claim.qualityComment = note;
-    claim.qualityAttachments = [...tempAttachments];
+    claim.qualityAttachments = [...tempAttachments]; // tik kokybės skyriaus
     localStorage.setItem('claims', JSON.stringify(claims));
 
-    // ✅ Siųsk laišką meistrui į tavo serverį
+    // ✅ Siųsk laišką meistrui
     fetch('https://pretenziju-sistema.onrender.com/send-to-partner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            claimId: claim.id,
-            partnerEmail: partner.email,
-            partnerContactPerson: partner.contactPerson || 'Meistras',
-            note: note,
-            attachments: tempAttachments
-        })
+    claimId: claim.id,
+    partnerEmail: partner.email,
+    partnerContactPerson: partner.contactPerson || 'Meistras',
+    note: note,
+    attachments: allAttachments,
+    claimLink: `https://pretenziju-sistema.onrender.com/master-view.html?id=${claim.id}`
+})
     })
-    .then(response => {
-        if (!response.ok) throw new Error('Nepavyko išsiųsti laiško');
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         console.log('✅ Laiškas išsiųstas meistrui:', data);
     })
     .catch(error => {
         console.error('❌ Klaida siunčiant laišką:', error);
-        alert('Nepavyko išsiųsti laiško meistrui. Patikrinkite serverio būseną.');
     });
 
     alert(`✅ Pretenzija ${id} sėkmingai priskirta meistrui: ${selectedPartner}`);
@@ -1326,8 +1400,6 @@ function assignToPartner(id) {
     closeModal();
     loadClaims();
 }
-
-
 
 function sendEmailToPartner(claim, partner, note, attachments) {
     const subject = `Pretenzija ${claim.id} – perduota jūsų aptarnavimui`;
@@ -1491,7 +1563,6 @@ function closePartnerModal() {
     document.getElementById('partnerModal').style.display = 'none';
 }
 
-
         function rejectInstaller(id) {
             const reason = document.getElementById('rejection-reason').value.trim();
             const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -1512,8 +1583,7 @@ function closePartnerModal() {
             if (user) {
 setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
 }
-            
-            
+                  
 
             document.getElementById('modal-body').innerHTML = `
                 <div class="modal-section">
@@ -1530,7 +1600,6 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
             `;
             document.getElementById('claimModal').style.display = 'flex';
         }
-
 
         // -----------------------------
         // UŽKRAUTI DUOMENIS
@@ -1561,7 +1630,7 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
                     contact: {
                         name: 'Jonas',
                         surname: 'Jankauskas',
-                        email: 'reles@inbox.lt',
+                        email: 'jonas@email.lt',
                         phone: '+37061234567',
                         street: 'Gatvė 12',
                         city: 'Vilnius',
@@ -1570,7 +1639,7 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
                     contactMethod: 'email',
                     preferredTime: '9–11 val.',
                     status: 'Nauja',
-                    qualityComment: '',
+                    qualityComment: 'Neaišku kur laša',
                     responsible: 'Inžinierius Jonas T.'
                     
                 }];
@@ -1641,28 +1710,85 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
             loadClaims();
         });
 
-// === CLOUDINARY FAILŲ ĮKĖLIMO FUNKCIJA ===
+// === FUNKCIJA: ĮKELTI Į CLOUDINARY ===
 function uploadToCloudinary(file, onSuccess, onError) {
+
+ if (!file) {
+        onError(new Error('Nepasirinktas failas'));
+        return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'pretenzijos_unsigned'); // Tavo Upload Preset
+    formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
+    formData.append('cloud_name', 'dtiiwo2bp'); // Sutvarkykite šią reikšmę
 
-    fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload', {
+    fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', { // Čia taip pat
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        onSuccess(data.secure_url);
+        hideUploadIndicator(); // Paslėpti indikatorių
+        if (data.secure_url) {
+            onSuccess(data.secure_url);
+        } else {
+            onError(new Error('Nepavyko gauti URL'));
+        }
     })
     .catch(err => {
-        console.error('Klaida įkeliant į Cloudinary:', err);
+        hideUploadIndicator(); // Paslėpti indikatorių
         onError(err);
     });
 }
-// === KODAS APIE ĮKĖLIMĄ ===
+
+function showUploadIndicator() {
+    // Sukurkite arba parodykite įkėlimo indikatorių
+    let indicator = document.getElementById('upload-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'upload-indicator';
+        indicator.innerHTML = 'Įkeliama...';
+        indicator.style.position = 'fixed';
+        indicator.style.top = '10px';
+        indicator.style.right = '10px';
+        indicator.style.background = 'var(--secondary)';
+        indicator.style.padding = '10px';
+        indicator.style.borderRadius = '5px';
+        indicator.style.zIndex = '1000';
+        document.body.appendChild(indicator);
+    }
+    indicator.style.display = 'block';
+}
+
+function hideUploadIndicator() {
+    // Paslėpkite įkėlimo indikatorių
+    const indicator = document.getElementById('upload-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
 
 
+// Rodyti ar paslėpti laukus pagal tipą
+function updateAttachmentInput() {
+    const type = document.getElementById('attachment-type').value;
+    const fileInput = document.getElementById('attachment-file');
+    const urlInput = document.getElementById('attachment-url');
+
+    if (type === 'file') {
+        fileInput.style.display = 'block';
+        urlInput.style.display = 'none';
+        urlInput.value = '';
+    } else {
+        fileInput.style.display = 'none';
+        fileInput.value = '';
+        urlInput.style.display = 'block';
+        urlInput.placeholder = type === 'video' 
+            ? 'Įveskite YouTube nuorodą' 
+            : 'Įveskite nuorodą į instrukciją';
+    }
+}
 
     </script>
 </body>
