@@ -265,7 +265,8 @@
                 body: JSON.stringify({
                     email: claim.contact.email,
                     claimId: claim.id,
-                    language: 'lt'
+                    language: 'lt',
+                    isRegistered: false  // ❌ Nesiunčiama nuoroda į claim-view
                 })
             }).then(() => console.log('Patvirtinimo laiškas išsiųstas'));
 
