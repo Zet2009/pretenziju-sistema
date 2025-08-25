@@ -109,9 +109,70 @@
     <div id="quality-attachments" class="attachments-list"></div>
 </div>
 
+<div style="margin-top: 20px; text-align: center;">
+    <button id="markAsResolved" onclick="markAsResolved()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        ✅ Išsprendžiau
+    </button>
+</div>
+
+
+
     <footer>© 2025 Rubineta. Visos teisės saugomos.</footer>
 
     <script>
+
+// === FUNKCIJA: Pažymėti kaip išspręstą ===
+async function markAsResolved() {
+    if (!confirm('Ar tikrai pažymėti pretenziją kaip išspręstą?')) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const claimId = urlParams.get('id');
+
+    if (!claimId) {
+        alert('Nenurodytas pretenzijos ID.');
+        return;
+    }
+
+    // Rask pretenziją
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === claimId);
+
+    if (!claim) {
+        alert('Pretenzija nerasta.');
+        return;
+    }
+
+    // Atnaujink būseną
+    claim.status = 'Išspręsta';
+    claim.resolvedAt = new Date().toISOString();
+    localStorage.setItem('claims', JSON.stringify(claims));
+
+    // Siųsk laišką klientui ir kokybės darbuotojui
+    try {
+        await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                claimId: claim.id,
+                customerEmail: claim.contact.email,
+                customerName: claim.contact.name,
+                productName: claim.product
+            })
+        });
+
+        alert('✅ Pretenzija pažymėta kaip išspręsta. Klientas ir kokybės komanda informuoti.');
+        document.getElementById('markAsResolved').disabled = true;
+        document.getElementById('markAsResolved').textContent = '✅ Jau išspręsta';
+    } catch (error) {
+        alert('⚠️ Pretenzija pažymėta, bet nepavyko išsiųsti pranešimo.');
+        console.error('Klaida siunčiant pranešimą:', error);
+    }
+}
+
+
+
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const claimId = urlParams.get('id');
