@@ -84,22 +84,13 @@ app.post('/send-confirmation', async (req, res) => {
     }
 });
 
-// === 2. Laiškas meistrui – kai priskiriama pretenzija ===
+// === 2. Laiškas meistrui (priskiriant pretenziją) ===
 app.post('/send-to-partner', async (req, res) => {
-    const { claimId, partnerEmail, partnerContactPerson, note, attachments = [], claimLink, customer } = req.body;
+    const { claimId, partnerEmail, partnerContactPerson, note, attachments = [], claimLink } = req.body;
 
     let body = `Sveiki, ${partnerContactPerson},\n\nJums priskirta pretenzija:\n`;
     body += `- ID: ${claimId}\n`;
-    body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n\n`;
-
-    // --- Kliento kontaktai ---
-    if (customer) {
-        body += `🔹 **KONTAKTINĖ INFORMACIJA**\n`;
-        body += `- Vardas: ${customer.name} ${customer.surname}\n`;
-        body += `- Telefonas: ${customer.phone}\n`;
-        body += `- El. paštas: ${customer.email}\n`;
-        body += `- Adresas: ${customer.street}, ${customer.city}, ${customer.postal}\n\n`;
-    }
+    body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n`;
 
     // Prisegti dokumentai
     body += `Prisegti dokumentai:\n`;
@@ -220,25 +211,7 @@ app.post('/notify-status-change', async (req, res) => {
     }
 });
 
-// === Laiškas klientui – apklausa po išsprendimo ===
-app.post('/send-feedback-survey', async (req, res) => {
-    const { email, claimId, feedbackLink } = req.body;
 
-    const mailOptions = {
-        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
-        text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Klaida siunčiant apklausą:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
 
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
