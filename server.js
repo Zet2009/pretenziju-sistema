@@ -220,7 +220,25 @@ app.post('/notify-status-change', async (req, res) => {
     }
 });
 
+// === Laiškas klientui – apklausa po išsprendimo ===
+app.post('/send-feedback-survey', async (req, res) => {
+    const { email, claimId, feedbackLink } = req.body;
 
+    const mailOptions = {
+        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
+        text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Klaida siunčiant apklausą:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
