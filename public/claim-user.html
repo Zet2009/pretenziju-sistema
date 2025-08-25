@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pretenzija #ID – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+            --font: 'Roboto', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: #333;
+            line-height: 1.4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .field {
+            margin-bottom: 10px;
+        }
+        .field-label {
+            font-weight: 500;
+            color: #555;
+            display: inline-block;
+            min-width: 120px;
+        }
+        .file-item {
+            margin: 5px 0;
+            word-break: break-all;
+        }
+        .file-item a {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+        .status {
+            font-weight: bold;
+            color: #d44646;
+        }
+        .status.Išspręsta {
+            color: green;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #75757d;
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Jūsų pretenzija</h2>
+        
+        <div class="field"><span class="field-label">ID:</span> <span id="claim-id"></span></div>
+        <div class="field"><span class="field-label">Data:</span> <span id="claim-date"></span></div>
+        <div class="field"><span class="field-label">Tema:</span> <span id="claim-topic"></span></div>
+        <div class="field"><span class="field-label">Produktas:</span> <span id="claim-product"></span></div>
+        <div class="field"><span class="field-label">Aprašymas:</span> <span id="claim-description"></span></div>
+        <div class="field"><span class="field-label">Kliento reikalavimas:</span> <span id="claim-request"></span></div>
+        <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status" class="status"></span></div>
+
+        <h2>Vartotojo dokumentai</h2>
+        <div id="user-files"></div>
+
+        <h2>Papildomi dokumentai</h2>
+        <div id="additional-files"></div>
+
+        <h2>Būsenos istorija</h2>
+        <div id="status-history"></div>
+    </div>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const claimId = urlParams.get('id');
+
+        if (!claimId) {
+            alert('Nenurodytas pretenzijos ID.');
+            history.back();
+        }
+
+        const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+        const claim = claims.find(c => c.id === claimId);
+
+        if (!claim) {
+            alert('Pretenzija nerasta.');
+            history.back();
+        }
+
+        // --- Užpildyti pagrindinę informaciją ---
+        document.getElementById('claim-id').textContent = claim.id;
+        document.getElementById('claim-date').textContent = new Date(claim.date).toLocaleString('lt-LT');
+        document.getElementById('claim-topic').textContent = claim.topic;
+        document.getElementById('claim-product').textContent = claim.product;
+        document.getElementById('claim-description').textContent = claim.description;
+        document.getElementById('claim-request').textContent = claim.request;
+        document.getElementById('claim-status').textContent = claim.status;
+        document.getElementById('claim-status').className += ' ' + claim.status;
+
+        // --- Vartotojo failai ---
+        const userFilesContainer = document.getElementById('user-files');
+        if (Array.isArray(claim.files) && claim.files.length > 0) {
+            claim.files.forEach(url => {
+                if (typeof url !== 'string') return;
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `<a href="${url}" target="_blank">📎 ${url.split('/').pop()}</a>`;
+                userFilesContainer.appendChild(item);
+            });
+        } else {
+            userFilesContainer.innerHTML = '<div class="file-item">Nėra įkeltų failų</div>';
+        }
+
+        // --- Papildomi dokumentai ---
+        const additionalFilesContainer = document.getElementById('additional-files');
+        if (claim.additionalFiles && claim.additionalFiles.length > 0) {
+            claim.additionalFiles.forEach(att => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `<a href="${att.url}" target="_blank">📎 ${att.name}</a>`;
+                additionalFilesContainer.appendChild(item);
+            });
+        } else {
+            additionalFilesContainer.innerHTML = '<div class="file-item">Nėra papildomų dokumentų</div>';
+        }
+
+        // --- Būsenos istorija ---
+        const historyContainer = document.getElementById('status-history');
+        const historyEvents = [
+            { time: claim.date, action: 'Pretenzija pateikta' },
+            { time: claim.date, action: `Būsena: ${claim.status}` }
+        ];
+
+        if (claim.resolvedAt) {
+            historyEvents.push({
+                time: claim.resolvedAt,
+                action: 'Išspręsta'
+            });
+        }
+
+        historyEvents.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+        historyEvents.forEach(event => {
+            const item = document.createElement('div');
+            item.className = 'field';
+            item.innerHTML = `
+                <span class="field-label">${new Date(event.time).toLocaleString('lt-LT')}</span>
+                ${event.action}
+            `;
+            historyContainer.appendChild(item);
+        });
+    </script>
+</body>
+</html>
