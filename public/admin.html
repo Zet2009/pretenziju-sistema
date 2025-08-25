@@ -1375,14 +1375,16 @@ function assignToPartner(id) {
 
     // ✅ Siųsk laišką meistrui
     fetch('https://pretenziju-sistema.onrender.com/send-to-partner', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            claimId: claim.id,
-            partnerEmail: partner.email,
-            partnerContactPerson: partner.contactPerson || 'Meistras',
-            note: note,
-            attachments: allAttachments  // ✅ Dabar veikia – kintamasis apibrėžtas
+method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        claimId: claim.id,
+        partnerEmail: partner.email,
+        partnerContactPerson: partner.contactPerson || 'Meistras',
+        note: note,
+        attachments: allAttachments,
+        claimLink: `${window.location.origin}/master-view.html?id=${claim.id}`,
+        customer: claim.contact  // ✅ Siunčiame kliento kontaktus
         })
     })
     .then(response => response.json())
