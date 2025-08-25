@@ -175,42 +175,14 @@ app.post('/notify-resolved', async (req, res) => {
     }
 });
 
-    // === Laiškas klientui – būsenos keitimas ===
-app.post('/notify-status-change', async (req, res) => {
-    const { claimId, customerEmail, customerName, status } = req.body;
+    
 
-    const templates = {
-        'Perduota servisui': {
-            subject: `Pretenzija #${claimId} – perduota servisui`,
-            body: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} buvo perduota serviso partneriui.\nMeistras susisieks su jumis artimiausiu metu.\n\nPagarbiai,\nRubineta kokybės komanda`
-        },
-        'Išspręsta': {
-            subject: `✅ Pretenzija #${claimId} išspręsta`,
-            body: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} yra išspręsta.\nDėkojame, kad pasirinkote Rubineta.\n\nPagarbiai,\nRubineta kokybės komanda`
-        }
-    };
 
-    const template = templates[status] || {
-        subject: `Pretenzija #${claimId} – būsena pasikeitė`,
-        body: `Sveiki, ${customerName},\n\nJūsų pretenzijos #${claimId} būsena pasikeitė į: ${status}.\n\nPagarbiai,\nRubineta kokybės komanda`
-    };
 
-    const mailOptions = {
-        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
-        to: customerEmail,
-        subject: template.subject,
-        text: template.body
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Klaida siunčiant klientui:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
+// === Paleidžiame serverį ===
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
 });
-
 
 
 // === Paleidžiame serverį ===
