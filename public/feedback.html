@@ -239,7 +239,7 @@
     <script>
         // Gauname pretenzijos ID iš URL
         const urlParams = new URLSearchParams(window.location.search);
-        const claimId = urlParams.get('claimId');
+        const claimId = urlParams.get('claimId') || urlParams.get('id');
 
         if (!claimId) {
             alert('Nenurodyta pretenzijos ID.');
@@ -264,6 +264,14 @@
         setupRatings('rating-quality');
         setupRatings('rating-politeness');
         setupRatings('rating-nps');
+
+// `window.onload` arba po `setupRatings()`
+const temp = JSON.parse(localStorage.getItem('tempFeedback') || '{}');
+Object.keys(temp).forEach(key => {
+    const item = document.querySelector(`#rating-${key} .rating-item[data-value="${temp[key]}"]`);
+    if (item) item.classList.add('selected');
+});
+
 
         // Pateikti atsiliepimą
         function submitFeedback(event) {
@@ -308,6 +316,42 @@
             const selected = document.querySelector(`#${containerId} .rating-item.selected`);
             return selected ? selected.getAttribute('data-value') : null;
         }
+
+
+function highlightMissingRatings() {
+    const containers = ['rating-speed', 'rating-quality', 'rating-politeness', 'rating-nps'];
+    containers.forEach(id => {
+        const selected = document.querySelector(`#${id} .rating-item.selected`);
+        const container = document.getElementById(id);
+        if (!selected) {
+            container.style.border = '2px solid #dc3545';
+            container.style.borderRadius = '8px';
+        } else {
+            container.style.border = '';
+        }
+    });
+}
+if (!speed || !quality || !politeness || !nps) {
+    highlightMissingRatings();
+    alert('Prašome įvertinti visus kriterijus.');
+    return;
+}
+
+// Pridėk šią funkciją į `submitFeedback` pabaigą, jei forma nepavyksta
+function saveTempSelections() {
+    const temp = {};
+    ['speed', 'quality', 'politeness', 'nps'].forEach(key => {
+        const selected = document.querySelector(`#rating-${key} .rating-item.selected`);
+        if (selected) {
+            temp[key] = selected.getAttribute('data-value');
+        }
+    });
+    localStorage.setItem('tempFeedback', JSON.stringify(temp));
+}
+
+
+
+
     </script>
 </body>
 </html>
