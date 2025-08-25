@@ -223,7 +223,8 @@ function removeFile(url, element) {
         body: JSON.stringify({
             email: currentUser.email,
             claimId: claim.id,
-            language: 'lt'  // kol kas tik lietuviškai
+            language: 'lt',  // kol kas tik lietuviškai
+            isRegistered: true  // ✅ Siunčiama nuoroda į kabinetą
         })
     })
     .then(response => response.json())
