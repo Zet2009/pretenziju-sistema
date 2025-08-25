@@ -69,11 +69,12 @@ if (!currentUser) {
                         <td>${claim.product}</td>
                         <td>${claim.status}</td>
                         <td>${new Date(claim.date).toLocaleDateString('lt-LT')}</td>
-                        <td><a href="claim-view.html?id=${claim.id}&role=customer" class="btn">Peržiūrėti</a></td>
+                        <a href="claim-user.html?id=${claim.id}&role=customer">Peržiūrėti</a>
                     `;
                     tbody.appendChild(tr);
 
                     if (claim.status === 'Išspręsta') resolvedCount++;
+
                     else openCount++;
                 });
             }
