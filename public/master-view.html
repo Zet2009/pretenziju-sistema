@@ -113,6 +113,12 @@
     <button id="markAsResolved" onclick="markAsResolved()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
         ✅ Išsprendžiau
     </button>
+
+   <button id="sendFeedback" onclick="sendFeedbackSurvey()" style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">
+        📝 Išsiųsti apklausą
+    </button>
+
+
 </div>
 
 
@@ -120,6 +126,45 @@
     <footer>© 2025 Rubineta. Visos teisės saugomos.</footer>
 
     <script>
+
+function sendFeedbackSurvey() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const claimId = urlParams.get('id');
+
+    if (!claimId) {
+        alert('Nenurodytas pretenzijos ID.');
+        return;
+    }
+
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === claimId);
+
+    if (!claim) {
+        alert('Pretenzija nerasta.');
+        return;
+    }
+
+    const feedbackLink = `${window.location.origin}/feedback.html?claimId=${claimId}`;
+
+    // Siųsk laišką klientui
+    fetch('https://pretenzijos-sistema.onrender.com/send-feedback-survey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: claim.contact.email,
+            claimId: claim.id,
+            feedbackLink: feedbackLink
+        })
+    })
+    .then(() => {
+        alert('Apklausos nuoroda išsiųsta klientui.');
+    })
+    .catch(err => {
+        console.error('Klaida siunčiant apklausą:', err);
+        alert('Nepavyko išsiųsti apklausos.');
+    });
+}
+
 
 // === FUNKCIJA: Pažymėti kaip išspręstą ===
 async function markAsResolved() {
@@ -133,7 +178,6 @@ async function markAsResolved() {
         return;
     }
 
-    // Rask pretenziją
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const claim = claims.find(c => c.id === claimId);
 
@@ -142,12 +186,21 @@ async function markAsResolved() {
         return;
     }
 
-    // Atnaujink būseną
+    // Atnaujink būseną ir pridėk istorijos įrašą
     claim.status = 'Išspręsta';
     claim.resolvedAt = new Date().toISOString();
+
+    // Pridėk į veiksmų istoriją
+    if (!claim.history) claim.history = [];
+    claim.history.push({
+        action: 'Išspręsta',
+        user: 'Meistras',
+        time: claim.resolvedAt,
+        note: 'Meistras pažymėjo, kad problema išspręsta.'
+    });
+
     localStorage.setItem('claims', JSON.stringify(claims));
 
-    // Siųsk laišką klientui ir kokybės darbuotojui
     try {
         await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
             method: 'POST',
@@ -162,13 +215,11 @@ async function markAsResolved() {
 
         alert('✅ Pretenzija pažymėta kaip išspręsta. Klientas ir kokybės komanda informuoti.');
         document.getElementById('markAsResolved').disabled = true;
-        document.getElementById('markAsResolved').textContent = '✅ Jau išspręsta';
     } catch (error) {
         alert('⚠️ Pretenzija pažymėta, bet nepavyko išsiųsti pranešimo.');
         console.error('Klaida siunčiant pranešimą:', error);
     }
 }
-
 
 
 
