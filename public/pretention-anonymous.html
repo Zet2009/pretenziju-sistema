@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pateikti pretenziją be registracijos – Rubineta</title>
+    <title>Pateikti pretenziją be prisijungimo – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,16 +20,7 @@
             line-height: 1.6;
             padding: 20px;
         }
-        h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-        p.lead {
-            color: #555;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
+        h1 { color: var(--primary); margin-bottom: 20px; }
         .form-group {
             margin-bottom: 15px;
         }
@@ -44,7 +35,6 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
-            font-size: 14px;
         }
         button {
             padding: 12px 20px;
@@ -53,73 +43,28 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
         }
         button:hover {
             background: #1a1a1a;
         }
         .btn-secondary {
             background: #6c757d;
-            margin-right: 10px;
         }
         .attachments {
             margin-top: 20px;
         }
         .file-list {
             margin-top: 10px;
-            font-size: 13px;
         }
         .file-item {
             margin: 5px 0;
             word-break: break-all;
-            padding: 5px;
-            background: #f0f0f0;
-            border-radius: 4px;
-        }
-        .file-item a {
-            color: #17a2b8;
-            text-decoration: none;
-        }
-        .file-item a:hover {
-            text-decoration: underline;
-        }
-        footer {
-            margin-top: 60px;
-            text-align: center;
-            color: #777;
-            font-size: 12px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Pateikti pretenziją be registracijos</h1>
-    <p class="lead">
-        Jūs galite pateikti pretenziją be paskyros. Tačiau registruotiems vartotojams suteikiama galimybė stebėti būseną ir gauti greitesnį atsakymą.
-    </p>
-
+    <h1>Pateikti pretenziją be prisijungimo</h1>
     <form id="claim-form">
-        <div class="form-group">
-            <label for="name">Vardas *</label>
-            <input type="text" id="name" required>
-        </div>
-
-        <div class="form-group">
-            <label for="surname">Pavardė *</label>
-            <input type="text" id="surname" required>
-        </div>
-
-        <div class="form-group">
-            <label for="email">El. paštas *</label>
-            <input type="email" id="email" required>
-        </div>
-
-        <div class="form-group">
-            <label for="phone">Telefonas *</label>
-            <input type="tel" id="phone" required>
-        </div>
-
         <div class="form-group">
             <label for="topic">Tema *</label>
             <select id="topic" required>
@@ -153,6 +98,36 @@
             </select>
         </div>
 
+        <!-- Kontaktiniai duomenys -->
+        <div class="form-group">
+            <label for="name">Vardas *</label>
+            <input type="text" id="name" required>
+        </div>
+        <div class="form-group">
+            <label for="surname">Pavardė *</label>
+            <input type="text" id="surname" required>
+        </div>
+        <div class="form-group">
+            <label for="email">El. paštas *</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Telefonas *</label>
+            <input type="tel" id="phone" required>
+        </div>
+        <div class="form-group">
+            <label for="street">Gatvė, namas, butas</label>
+            <input type="text" id="street" placeholder="Pvz., Vilniaus g. 12, b. 5">
+        </div>
+        <div class="form-group">
+            <label for="city">Miestas</label>
+            <input type="text" id="city">
+        </div>
+        <div class="form-group">
+            <label for="postal">Pašto kodas</label>
+            <input type="text" id="postal">
+        </div>
+
         <div class="form-group">
             <label for="contact-method">Pageidaujamas kontaktas *</label>
             <select id="contact-method" required>
@@ -173,22 +148,17 @@
 
         <div class="file-list" id="file-list"></div>
 
-        <div style="margin-top: 30px;">
+        <div style="margin-top: 20px;">
             <button type="submit">Pateikti pretenziją</button>
             <button type="button" class="btn-secondary" onclick="location.href='index.html'">Atšaukti</button>
         </div>
     </form>
 
-    <footer>
-        © 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt
-    </footer>
-
     <script>
-        // Cloudinary įkėlimo funkcija
         function uploadToCloudinary(file, onSuccess, onError) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
+            formData.append('upload_preset', 'r6wao0fr');
 
             let uploadUrl;
             if (file.type.startsWith('image/')) {
@@ -199,83 +169,86 @@
                 uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
             }
 
-            fetch(uploadUrl, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.secure_url) {
-                    console.log('✅ Įkelta į Cloudinary:', data.secure_url);
-                    onSuccess(data.secure_url);
-                } else {
-                    console.error('❌ Klaida: Nėra secure_url', data);
-                    onError(new Error('Nepavyko gauti secure_url'));
-                }
-            })
-            .catch(err => {
-                console.error('❌ Klaida siunčiant į Cloudinary:', err);
-                onError(err);
-            });
+            fetch(uploadUrl, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => data.secure_url ? onSuccess(data.secure_url) : onError(new Error('No secure_url')))
+                .catch(onError);
         }
 
-        // Rodyti prisegtus failus
         const fileInput = document.getElementById('attachment');
         const fileList = document.getElementById('file-list');
         const uploadedUrls = [];
 
-
-
-function removeFile(url, element) {
-    // 1. Pašalinti iš DOM
-    element.closest('.file-item').remove();
-
-    // 2. Pašalinti iš uploadedUrls masyvo
-    const index = uploadedUrls.indexOf(url);
-    if (index > -1) {
-        uploadedUrls.splice(index, 1);
-    }
-
-    // 3. Atnaujinti fileInput, kad nebebuvo pasirinktas šis failas (nebūtina, bet gražu)
-    // (neveikia tiesiogiai, bet masyvas išvalytas – to pakanka)
-}
-
-
         fileInput.addEventListener('change', function() {
             Array.from(this.files).forEach(file => {
+                // ✅ Failų dydžio ribojimai
+                const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+                const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
+                const MAX_DOC_SIZE   = 5  * 1024 * 1024;
+
+                let isValid = true;
+                let errorMessage = '';
+
+                if (file.type.startsWith('image/')) {
+                    if (file.size > MAX_IMAGE_SIZE) {
+                        isValid = false;
+                        errorMessage = `${file.name}: Nuotrauka negali būti didesnė nei 10 MB.`;
+                    }
+                } else if (file.type.startsWith('video/')) {
+                    if (file.size > MAX_VIDEO_SIZE) {
+                        isValid = false;
+                        errorMessage = `${file.name}: Video negali būti ilgesnis nei 20 MB.`;
+                    }
+                } else {
+                    if (file.size > MAX_DOC_SIZE) {
+                        isValid = false;
+                        errorMessage = `${file.name}: Dokumentas negali būti didesnis nei 5 MB.`;
+                    }
+                }
+
+                if (!isValid) {
+                    alert(errorMessage);
+                    return;
+                }
+
                 uploadToCloudinary(file, (url) => {
                     uploadedUrls.push(url);
-                    const fileName = file.name;
-                  fileList.innerHTML += `
-<div class="file-item">
-    📎 <a href="${url}" target="_blank">${file.name}</a>
-    <button type="button" onclick="removeFile('${url}', this)" style="color:red; font-size:12px; background:none; border:none; cursor:pointer;">✕</button>
-</div>`;
+                    fileList.innerHTML += `<div class="file-item">📎 <a href="${url}" target="_blank">${file.name}</a> <button type="button" onclick="removeFile('${url}', this)" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
                 }, (err) => {
-                    alert(`❌ Nepavyko įkelti: ${file.name}`);
+                    alert(`Nepavyko įkelti: ${file.name}`);
                 });
             });
         });
 
-        // Pateikti pretenziją
+        function removeFile(url, element) {
+            element.closest('.file-item').remove();
+            const index = uploadedUrls.indexOf(url);
+            if (index > -1) {
+                uploadedUrls.splice(index, 1);
+            }
+        }
+
         document.getElementById('claim-form').addEventListener('submit', function(e) {
             e.preventDefault();
 
             const claim = {
-                id: 'ANON-' + Date.now(),
+                id: 'PRET-' + Date.now(),
                 date: new Date().toISOString(),
                 topic: document.getElementById('topic').value,
-                role: 'customer',
+                role: 'Anoniminis vartotojas',
                 product: document.getElementById('product').value,
                 description: document.getElementById('description').value,
                 request: document.getElementById('request').value,
                 contactMethod: document.getElementById('contact-method').value,
                 preferredTime: document.getElementById('preferred-time').value,
                 contact: {
-                    name: document.getElementById('name').value.trim(),
-                    surname: document.getElementById('surname').value.trim(),
-                    email: document.getElementById('email').value.trim(),
-                    phone: document.getElementById('phone').value.trim()
+                    name: document.getElementById('name').value,
+                    surname: document.getElementById('surname').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    street: document.getElementById('street').value,
+                    city: document.getElementById('city').value,
+                    postal: document.getElementById('postal').value
                 },
                 files: uploadedUrls,
                 status: 'Nauja'
@@ -285,7 +258,25 @@ function removeFile(url, element) {
             claims.push(claim);
             localStorage.setItem('claims', JSON.stringify(claims));
 
-            alert(`Pretenzija sėkmingai pateikta! Jūsų ID: ${claim.id}`);
+            // ✅ Siųsti patvirtinimą klientui
+            fetch('https://pretenzijos-sistema.onrender.com/send-confirmation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: claim.contact.email,
+                    claimId: claim.id,
+                    language: 'lt'
+                })
+            }).then(() => console.log('Patvirtinimo laiškas išsiųstas'));
+
+            // ✅ Pranešti kokybės skyriui
+            fetch('https://pretenzijos-sistema.onrender.com/notify-quality', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ claimId: claim.id })
+            }).then(() => console.log('Pranešta kokybės skyriui'));
+
+            alert('Pretenzija sėkmingai pateikta! Patvirtinimo laiškas išsiųstas į jūsų el. paštą.');
             location.href = 'index.html';
         });
     </script>
