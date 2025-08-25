@@ -36,25 +36,33 @@ transporter.verify((error, success) => {
 
 // === 1. Laiškas klientui – patvirtinimas, kad pretenzija priimta ===
 app.post('/send-confirmation', async (req, res) => {
-    const { email, claimId, language = 'lt' } = req.body;
+    const { email, claimId, language = 'lt', isRegistered = false } = req.body;
 
     const templates = {
         lt: {
-            subject: `Pretenzija #${claimId} priimta`,
-            body: `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nGalite stebėti būseną: https://pretenzijos-sistema.onrender.com/claim-view.html?id=${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
+             subject: `Pretenzija #${claimId} priimta`,
+            body: isRegistered
+                ? `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nPrisijunkite į savo kabinetą, kad stebėtumėte būseną:\nhttps://pretenzijos-sistema.onrender.com/login.html?claim=${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
+                : `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nInformuojame, kad galite pasiteirauti apie būseną pateikdami šį ID: ${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
         },
         en: {
-            subject: `Claim #${claimId} received`,
-            body: `Hello,\n\nYour claim #${claimId} has been received.\nWe will respond within 24 hours.\nTrack status: https://pretenzijos-sistema.onrender.com/claim-view.html?id=${claimId}\n\nBest regards,\nRubineta Quality Team`
+             subject: `Pretenzija #${claimId} priimta`,
+            body: isRegistered
+                ? `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nPrisijunkite į savo kabinetą, kad stebėtumėte būseną:\nhttps://pretenzijos-sistema.onrender.com/login.html?claim=${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
+                : `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nInformuojame, kad galite pasiteirauti apie būseną pateikdami šį ID: ${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
         },
         ru: {
-            subject: `Претензия №${claimId} получена`,
-            body: `Здравствуйте,\n\nВаша претензия №${claimId} получена.\nМы ответим в течение 24 часов.\nСледить за статусом: https://pretenzijos-sistema.onrender.com/claim-view.html?id=${claimId}\n\nС уважением,\nКоманда качества Rubineta`
+             subject: `Pretenzija #${claimId} priimta`,
+            body: isRegistered
+                ? `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nPrisijunkite į savo kabinetą, kad stebėtumėte būseną:\nhttps://pretenzijos-sistema.onrender.com/login.html?claim=${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
+                : `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nInformuojame, kad galite pasiteirauti apie būseną pateikdami šį ID: ${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
         },
         lv: {
-            subject: `Pretendēšana Nr. ${claimId} saņemta`,
-            body: `Sveiki,\n\nJūsu pretendēšana Nr. ${claimId} saņemta.\nAtbildēsim 24 stundu laikā.\nSeko statusam: https://pretenzijos-sistema.onrender.com/claim-view.html?id=${claimId}\n\nAr cieņu,\nRubineta kvalitātes komanda`
-        }
+             subject: `Pretenzija #${claimId} priimta`,
+            body: isRegistered
+                ? `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nPrisijunkite į savo kabinetą, kad stebėtumėte būseną:\nhttps://pretenzijos-sistema.onrender.com/login.html?claim=${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
+                : `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nInformuojame, kad galite pasiteirauti apie būseną pateikdami šį ID: ${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
+        },
     };
 
     const lang = templates[language] ? language : 'lt';
