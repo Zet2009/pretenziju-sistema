@@ -155,13 +155,31 @@
         const fileList = document.getElementById('file-list');
         const uploadedUrls = [];
 
+        
+function removeFile(url, element) {
+    // 1. Pašalinti iš DOM
+    element.closest('.file-item').remove();
+
+    // 2. Pašalinti iš uploadedUrls masyvo
+    const index = uploadedUrls.indexOf(url);
+    if (index > -1) {
+        uploadedUrls.splice(index, 1);
+    }
+
+    // 3. Atnaujinti fileInput, kad nebebuvo pasirinktas šis failas (nebūtina, bet gražu)
+    // (neveikia tiesiogiai, bet masyvas išvalytas – to pakanka)
+}
 
 
         fileInput.addEventListener('change', function() {
             Array.from(this.files).forEach(file => {
                 uploadToCloudinary(file, (url) => {
                     uploadedUrls.push(url);
-                    fileList.innerHTML += `<div class="file-item">📎 <a href="${url}" target="_blank">${file.name}</a></div>`;
+                   fileList.innerHTML += `
+<div class="file-item">
+    📎 <a href="${url}" target="_blank">${file.name}</a>
+    <button type="button" onclick="removeFile('${url}', this)" style="color:red; font-size:12px; background:none; border:none; cursor:pointer;">✕</button>
+</div>`;
                 }, (err) => {
                     alert(`Nepavyko įkelti: ${file.name}`);
                 });
