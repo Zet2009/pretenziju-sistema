@@ -175,16 +175,6 @@ app.post('/notify-resolved', async (req, res) => {
     }
 });
 
-    
-
-
-
-// === Paleidžiame serverį ===
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
-});
-
-
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
