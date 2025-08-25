@@ -216,7 +216,24 @@ function removeFile(url, element) {
             const claims = JSON.parse(localStorage.getItem('claims') || '[]');
             claims.push(claim);
             localStorage.setItem('claims', JSON.stringify(claims));
-
+                // ✅ Siųsti automatinį patvirtinimą klientui
+    fetch('https://pretenzijos-sistema.onrender.com/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: currentUser.email,
+            claimId: claim.id,
+            language: 'lt'  // kol kas tik lietuviškai
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('✅ Patvirtinimo laiškas išsiųstas klientui');
+    })
+    .catch(error => {
+        console.error('❌ Nepavyko išsiųsti patvirtinimo laiško:', error);
+        // Net jei laiškas nepavyksta – pretenzija jau išsaugota
+    });
             alert('Pretenzija sėkmingai pateikta!');
             location.href = 'index.html';
         });
