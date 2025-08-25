@@ -544,7 +544,7 @@ function setModalHeader(title, showViewSeparately = false) {
                     ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">${claim.responsible}</a>`
                     : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">Paskirti atsakingą</a>`;
 
-                const commentCell = claim.qualityInternalComment || 'vidinis komentaras';
+                const commentCell = claim.qualityComment || 'Neaišku kur laša';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -803,17 +803,10 @@ function removeAttachment(index) {
     });
 
     try {
-        const response = await fetch('https://pretenzijos-sistema.onrender.com/send-to-partner', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        claimId: claim.id,
-        partnerEmail: partner.email,
-        partnerContactPerson: partner.contactPerson || 'Meistras',
-        note: note,
-        attachments: allAttachments
-    })
-})
+        const response = await fetch('http://localhost:3000/send-claim-email', {
+            method: 'POST',
+            body: formData
+        });
 
         const result = await response.json();
         if (result.success) {
@@ -854,7 +847,7 @@ async function sendClaimToPartnerViaEmail(claim, partner, note, qualityAttachmen
     });
 
     try {
-        const response = await fetch('https://tavo-serveris.lt/send-to-partner', {
+        const response = await fetch('https://tavo-serveris.lt/send-claim-email', {
             method: 'POST',
             body: formData
         });
@@ -1050,29 +1043,27 @@ function sendEmailToPartner(claim, partner, note, attachments) {
                     </div>
 
                     <div class="modal-section">
-    <h3>Vidinis komentaras (tik kokybės skyriui)</h3>
-    <div class="comment-box">
-        <textarea id="quality-internal-comment-${claim.id}" placeholder="Vidinis komentaras...">${claim.qualityInternalComment || ''}</textarea>
-        <button class="btn-small btn-primary" onclick="saveQualityInternalComment('${claim.id}')">Išsaugoti vidinį komentarą</button>
-    </div>
-</div>
-
-
+                        <h3>Kokybės skyriaus komentaras</h3>
+                        <div class="comment-box">
+                            <textarea id="quality-comment-${claim.id}" placeholder="Įrašykite komentarą...">${claim.qualityComment || ''}</textarea>
+                            <button class="btn-small btn-primary" onclick="saveQualityComment('${claim.id}')">Išsaugoti komentarą</button>
+                        </div>
+                    </div>
                 `;
                 document.getElementById('claimModal').style.display = 'flex';
             }
         }
 
-    function saveQualityInternalComment(id) {
-    const comment = document.getElementById(`quality-internal-comment-${id}`).value.trim();
+        function saveQualityComment(id) {
+    const comment = document.getElementById(`quality-comment-${id}`).value.trim();
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const claimIndex = claims.findIndex(c => c.id === id);
     
     if (claimIndex !== -1) {
-        claims[claimIndex].qualityInternalComment = comment;
-        claims[claimIndex].qualityInternalCommentDate = new Date().toISOString();
+        claims[claimIndex].qualityComment = comment;
+        claims[claimIndex].qualityCommentDate = new Date().toISOString();
         localStorage.setItem('claims', JSON.stringify(claims));
-        alert('Vidinis komentaras išsaugotas!');
+        alert('Komentaras išsaugotas!');
         
         if (currentFilters) {
             applyFilters();
@@ -1342,10 +1333,6 @@ function assignToPartner(id) {
     const selectedPartner = selectElement.value;
     const note = noteElement ? noteElement.value.trim() : '';
 
-
-
-
-    
     if (!selectedPartner) {
         alert('Pasirinkite meistrą.');
         return;
@@ -1382,33 +1369,29 @@ function assignToPartner(id) {
     // Atnaujink duomenis
     claim.assignedPartner = selectedPartner;
     claim.status = 'Perduota servisui';
-    claim.qualityExternalComment = note;
+    claim.qualityComment = note;
     claim.qualityAttachments = [...tempAttachments]; // tik kokybės skyriaus
     localStorage.setItem('claims', JSON.stringify(claims));
 
     // ✅ Siųsk laišką meistrui
-    fetch('https://pretenzijos-sistema.onrender.com/send-to-partner', {
+    fetch('https://pretenziju-sistema.onrender.com/send-to-partner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-    claimId: claim.id,
-    partnerEmail: partner.email,
-    partnerContactPerson: partner.contactPerson || 'Meistras',
-    note: note,
-    attachments: allAttachments,
-    claimLink: `${window.location.origin}/master-view.html?id=${claim.id}`,
-    customer: claim.contact  // ✅ Siunčiame kliento kontaktus
-})
+            claimId: claim.id,
+            partnerEmail: partner.email,
+            partnerContactPerson: partner.contactPerson || 'Meistras',
+            note: note,
+            attachments: allAttachments  // ✅ Dabar veikia – kintamasis apibrėžtas
+        })
     })
     .then(response => response.json())
     .then(data => {
         console.log('✅ Laiškas išsiųstas meistrui:', data);
     })
     .catch(error => {
-    console.error('❌ Klaida siunčiant laišką:', error);
-    // Rodyti vartotojui draugiškesnį pranešimą
-    alert('Nepavyko išsiųsti laiško automatiškai. Prašome patikrinti serverio būseną arba išsiųsti laišką rankiniu būdu.');
-});
+        console.error('❌ Klaida siunčiant laišką:', error);
+    });
 
     alert(`✅ Pretenzija ${id} sėkmingai priskirta meistrui: ${selectedPartner}`);
     tempAttachments = [];
@@ -1726,28 +1709,6 @@ setModalHeader('Vartotojo istorija', false); // ❌ nerodyti mygtuko
             loadClaims();
         });
 
-
-function saveQualityExternalComment(id) {
-    const comment = document.getElementById(`quality-external-comment-${id}`).value.trim();
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const claimIndex = claims.findIndex(c => c.id === id);
-    
-    if (claimIndex !== -1) {
-        claims[claimIndex].qualityExternalComment = comment;
-        claims[claimIndex].qualityExternalCommentDate = new Date().toISOString();
-        localStorage.setItem('claims', JSON.stringify(claims));
-        alert('Rekomendacijos meistrui išsaugotos!');
-        
-        if (currentFilters) {
-            applyFilters();
-        } else {
-            loadClaims();
-        }
-    }
-}
-
-
-
 // === FUNKCIJA: ĮKELTI Į CLOUDINARY ===
 function uploadToCloudinary(file, onSuccess, onError) {
 
@@ -1760,19 +1721,6 @@ function uploadToCloudinary(file, onSuccess, onError) {
     formData.append('file', file);
     formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
     formData.append('cloud_name', 'dtiiwo2bp'); // Sutvarkykite šią reikšmę
-
-fetch('https://pretenzijos-sistema.onrender.com/notify-status-change', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        claimId: claim.id,
-        customerEmail: claim.contact.email,
-        customerName: claim.contact.name,
-        status: claim.status
-    })
-});
-
-
 
     fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', { // Čia taip pat
         method: 'POST',
