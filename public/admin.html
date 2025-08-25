@@ -1396,7 +1396,8 @@ function assignToPartner(id) {
     partnerContactPerson: partner.contactPerson || 'Meistras',
     note: note,
     attachments: allAttachments,
-    claimLink: `${window.location.origin}/master-view.html?id=${claim.id}`
+    claimLink: `${window.location.origin}/master-view.html?id=${claim.id}`,
+    customer: claim.contact  // ✅ Siunčiame kliento kontaktus
 })
     })
     .then(response => response.json())
@@ -1759,6 +1760,19 @@ function uploadToCloudinary(file, onSuccess, onError) {
     formData.append('file', file);
     formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
     formData.append('cloud_name', 'dtiiwo2bp'); // Sutvarkykite šią reikšmę
+
+fetch('https://pretenzijos-sistema.onrender.com/notify-status-change', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        claimId: claim.id,
+        customerEmail: claim.contact.email,
+        customerName: claim.contact.name,
+        status: claim.status
+    })
+});
+
+
 
     fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', { // Čia taip pat
         method: 'POST',
