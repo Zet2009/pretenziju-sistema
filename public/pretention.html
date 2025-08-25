@@ -155,49 +155,7 @@
         const fileList = document.getElementById('file-list');
         const uploadedUrls = [];
 
-fileInput.addEventListener('change', function() {
-    Array.from(this.files).forEach(file => {
-        
-        // ✅ Failų dydžio ribojimai
-        const MAX_IMAGE_SIZE = 10 * 1024 * 1024;  // 10 MB
-        const MAX_VIDEO_SIZE = 20 * 1024 * 1024;  // 20 MB
-        const MAX_DOC_SIZE   = 5  * 1024 * 1024;  // 5 MB
 
-        let isValid = true;
-        let errorMessage = '';
-
-        if (file.type.startsWith('image/')) {
-            if (file.size > MAX_IMAGE_SIZE) {
-                isValid = false;
-                errorMessage = `${file.name}: Nuotrauka negali būti didesnė nei 10 MB.`;
-            }
-        } else if (file.type.startsWith('video/')) {
-            if (file.size > MAX_VIDEO_SIZE) {
-                isValid = false;
-                errorMessage = `${file.name}: Video negali būti ilgesnis nei 20 MB.`;
-            }
-        } else {
-            if (file.size > MAX_DOC_SIZE) {
-                isValid = false;
-                errorMessage = `${file.name}: Dokumentas negali būti didesnis nei 5 MB.`;
-            }
-        }
-
-        // ✅ Jei per didelis – sustabdo įkėlimą
-        if (!isValid) {
-            alert(errorMessage);
-            return; // ❌ Nebegęsti įkelti
-        }
-
-        // ✅ Jei viskas gerai – kelk į Cloudinary
-        uploadToCloudinary(file, (url) => {
-            uploadedUrls.push(url);
-            fileList.innerHTML += `<div class="file-item">📎 <a href="${url}" target="_blank">${file.name}</a></div>`;
-        }, (err) => {
-            alert(`Nepavyko įkelti: ${file.name}`);
-        });
-    });
-});
 
         fileInput.addEventListener('change', function() {
             Array.from(this.files).forEach(file => {
