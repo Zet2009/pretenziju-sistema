@@ -84,13 +84,22 @@ app.post('/send-confirmation', async (req, res) => {
     }
 });
 
-// === 2. Laiškas meistrui (priskiriant pretenziją) ===
+// === 2. Laiškas meistrui – kai priskiriama pretenzija ===
 app.post('/send-to-partner', async (req, res) => {
-    const { claimId, partnerEmail, partnerContactPerson, note, attachments = [], claimLink } = req.body;
+    const { claimId, partnerEmail, partnerContactPerson, note, attachments = [], claimLink, customer } = req.body;
 
     let body = `Sveiki, ${partnerContactPerson},\n\nJums priskirta pretenzija:\n`;
     body += `- ID: ${claimId}\n`;
-    body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n`;
+    body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n\n`;
+
+    // --- Kliento kontaktai ---
+    if (customer) {
+        body += `🔹 **KONTAKTINĖ INFORMACIJA**\n`;
+        body += `- Vardas: ${customer.name} ${customer.surname}\n`;
+        body += `- Telefonas: ${customer.phone}\n`;
+        body += `- El. paštas: ${customer.email}\n`;
+        body += `- Adresas: ${customer.street}, ${customer.city}, ${customer.postal}\n\n`;
+    }
 
     // Prisegti dokumentai
     body += `Prisegti dokumentai:\n`;
@@ -175,7 +184,44 @@ app.post('/notify-resolved', async (req, res) => {
     }
 });
 
-    
+    // === Laiškas klientui – būsenos keitimas ===
+app.post('/notify-status-change', async (req, res) => {
+    const { claimId, customerEmail, customerName, status } = req.body;
+
+    const templates = {
+        'Perduota servisui': {
+            subject: `Pretenzija #${claimId} – perduota servisui`,
+            body: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} buvo perduota serviso partneriui.\nMeistras susisieks su jumis artimiausiu metu.\n\nPagarbiai,\nRubineta kokybės komanda`
+        },
+        'Išspręsta': {
+            subject: `✅ Pretenzija #${claimId} išspręsta`,
+            body: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} yra išspręsta.\nDėkojame, kad pasirinkote Rubineta.\n\nPagarbiai,\nRubineta kokybės komanda`
+        }
+    };
+
+    const template = templates[status] || {
+        subject: `Pretenzija #${claimId} – būsena pasikeitė`,
+        body: `Sveiki, ${customerName},\n\nJūsų pretenzijos #${claimId} būsena pasikeitė į: ${status}.\n\nPagarbiai,\nRubineta kokybės komanda`
+    };
+
+    const mailOptions = {
+        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
+        to: customerEmail,
+        subject: template.subject,
+        text: template.body
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Klaida siunčiant klientui:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
