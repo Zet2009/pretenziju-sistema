@@ -319,13 +319,52 @@ if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
         document.getElementById('claim-status').textContent = claim.status;
 
         // --- Veiksmų istorija ---
-        const timeline = document.getElementById('timeline-container');
-        timeline.innerHTML = '';
-        const historyEvents = [
-            { user: 'Sistema', time: claim.date, action: 'Pretenzija pateikta' },
-            { user: claim.responsible || 'Kokybės skyrius', time: claim.date, action: `Būsena: ${claim.status}` },
-            { user: claim.assignedPartner || 'Sistema', time: claim.date, action: claim.assignedPartner ? `Priskirta partneriui` : 'Laukia priskyrimo' }
-        ];
+// --- Veiksmų istorija ---
+const timeline = document.getElementById('timeline-container');
+timeline.innerHTML = '';
+
+// Pagrindiniai įvykiai
+const baseHistory = [
+    { user: 'Sistema', time: claim.date, action: 'Pretenzija pateikta' }
+];
+
+if (claim.status !== 'Nauja') {
+    baseHistory.push({
+        user: claim.responsible || 'Kokybės skyrius',
+        time: claim.date,
+        action: `Būsena: ${claim.status}`
+    });
+}
+
+if (claim.assignedPartner) {
+    baseHistory.push({
+        user: claim.assignedPartner,
+        time: claim.date,
+        action: 'Priskirta serviso partneriui'
+    });
+}
+
+// Pridėk istoriją iš localStorage (jei yra)
+const fullHistory = [...baseHistory];
+
+if (Array.isArray(claim.history)) {
+    fullHistory.push(...claim.history);
+}
+
+// Rūšiuok chronologiškai
+fullHistory.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+// Atvaizduok
+fullHistory.forEach(event => {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `
+        <strong>${event.user}</strong>
+        <small>${new Date(event.time).toLocaleString('lt-LT')}</small>
+        <div>${event.action}</div>
+    `;
+    timeline.appendChild(item);
+});
         historyEvents.forEach(event => {
             const item = document.createElement('div');
             item.className = 'timeline-item';
@@ -336,6 +375,9 @@ if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
             `;
             timeline.appendChild(item);
         });
+
+
+        
     </script>
 </body>
 </html>
