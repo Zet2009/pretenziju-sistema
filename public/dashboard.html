@@ -2,23 +2,159 @@
 <html lang="lt">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mano kabinetas – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2D2D2D; --light: #F5F5F5; }
-        body { font-family: 'Roboto', sans-serif; background: var(--light); padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: var(--primary); color: white; }
-        .btn { padding: 5px 10px; background: #007BFF; color: white; text-decoration: none; border-radius: 4px; }
+        :root {
+            --primary: #2D2D2D;
+            --accent: #d44646;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+            --gray: #75757d;
+            --font: 'Roboto', sans-serif;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat {
+            padding: 10px 15px;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        .stat strong {
+            color: var(--accent);
+            font-size: 18px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 500;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        .btn {
+            padding: 6px 12px;
+            background: var(--accent);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .file-item {
+            font-size: 12px;
+            margin: 4px 0;
+            word-break: break-all;
+        }
+        .file-item a {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+        .file-item a:hover {
+            text-decoration: underline;
+        }
+        /* Modal langas dokumentų įkėlimui */
+        #add-file-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--white);
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        .modal-actions {
+            text-align: right;
+            margin-top: 15px;
+        }
+        .modal-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .modal-actions .cancel {
+            background: #6c757d;
+            color: white;
+        }
+        .modal-actions .upload {
+            background: #28a745;
+            color: white;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: var(--gray);
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
-    <h1>Sveiki, <span id="user-name"></span>!</h1>
-    <div class="stats" style="display:flex; gap: 20px; margin: 20px 0;">
-        <div>Viso: <strong id="total-claims">0</strong></div>
-        <div>Atviros: <strong id="open-claims">0</strong></div>
-        <div>Išspręstos: <strong id="resolved-claims">0</strong></div>
+    <h1>Sveiki, <span id="user-name">Vartotojau</span>!</h1>
+
+    <div class="stats">
+        <div class="stat">Viso pretenzijų: <strong id="total-claims">0</strong></div>
+        <div class="stat">Atviros: <strong id="open-claims">0</strong></div>
+        <div class="stat">Išspręstos: <strong id="resolved-claims">0</strong></div>
     </div>
 
     <h2>Jūsų pretenzijos</h2>
@@ -30,26 +166,120 @@
                 <th>Būsena</th>
                 <th>Data</th>
                 <th>Veiksmas</th>
+                <th>Papildomi dokumentai</th>
             </tr>
         </thead>
         <tbody id="claims-body">
-            <tr><td colspan="5" style="text-align: center;">Kraunama...</td></tr>
+            <tr><td colspan="6" style="text-align: center;">Kraunama...</td></tr>
         </tbody>
     </table>
 
+    <!-- Modal langas naujam failui įkelti -->
+    <div id="add-file-modal">
+        <div class="modal-content">
+            <h3>Pridėti dokumentą prie pretenzijos</h3>
+            <input type="file" id="new-file" accept="image/*,video/*,.pdf" style="width:100%;">
+            <div class="modal-actions">
+                <button onclick="closeAddFileModal()" class="cancel">Atšaukti</button>
+                <button onclick="uploadNewFile()" class="upload">Įkelti</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
     <script>
+        // Tikriname, ar vartotojas prisijungęs
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            // Nurodome, kad grįžtume į dashboard po prisijungimo
+            localStorage.setItem('redirectUrl', 'dashboard.html');
+            alert('Prisijunkite, kad peržiūrėti kabinetą.');
+            location.href = 'login.html';
+        }
 
-// dashboard.html
-const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-if (!currentUser) {
-    // Nustatyti, kad po prisijungimo grįžtume čia
-    localStorage.setItem('redirectUrl', 'dashboard.html');
-    alert('Prisijunkite, kad peržiūrėti kabinetą.');
-    location.href = 'login.html';
-}
+        // Rodyti vartotojo vardą
         document.getElementById('user-name').textContent = currentUser.name;
 
+        let currentClaimId = null;
+
+        // --- Cloudinary įkėlimas ---
+        function uploadToCloudinary(file, onSuccess, onError) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'r6wao0fr'); // Keisk į savo
+
+            let uploadUrl;
+            if (file.type.startsWith('image/')) {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
+            } else if (file.type.startsWith('video/')) {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
+            } else {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
+            }
+
+            fetch(uploadUrl, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.secure_url) {
+                        onSuccess(data.secure_url);
+                    } else {
+                        onError(new Error('Nepavyko gauti URL'));
+                    }
+                })
+                .catch(onError);
+        }
+
+        // --- Atidaryti modalą ---
+        function openAddFileModal(claimId) {
+            currentClaimId = claimId;
+            document.getElementById('add-file-modal').style.display = 'flex';
+        }
+
+        // --- Uždaryti modalą ---
+        function closeAddFileModal() {
+            document.getElementById('add-file-modal').style.display = 'none';
+            document.getElementById('new-file').value = '';
+            currentClaimId = null;
+        }
+
+        // --- Įkelti naują failą ---
+        function uploadNewFile() {
+            const fileInput = document.getElementById('new-file');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Pasirinkite failą');
+                return;
+            }
+
+            const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+            if (file.size > MAX_SIZE) {
+                alert('Failas negali būti didesnis nei 10 MB.');
+                return;
+            }
+
+            uploadToCloudinary(file, (url) => {
+                const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+                const claim = claims.find(c => c.id === currentClaimId);
+                if (claim) {
+                    if (!claim.additionalFiles) claim.additionalFiles = [];
+                    claim.additionalFiles.push({
+                        name: file.name,
+                        url: url,
+                        uploadedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('claims', JSON.stringify(claims));
+                    alert('Failas sėkmingai įkeltas!');
+                    closeAddFileModal();
+                    loadUserClaims(); // Atnaujiname lentelę
+                }
+            }, (err) => {
+                alert('Nepavyko įkelti failo. Bandykite dar kartą.');
+                console.error(err);
+            });
+        }
+
+        // --- Užkrauti vartotojo pretenzijas ---
         function loadUserClaims() {
             const claims = JSON.parse(localStorage.getItem('claims') || '[]');
             const userClaims = claims.filter(c => c.userId === currentUser.id);
@@ -60,16 +290,18 @@ if (!currentUser) {
             let openCount = 0, resolvedCount = 0;
 
             if (userClaims.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
             } else {
                 userClaims.forEach(claim => {
                     const tr = document.createElement('tr');
+                    const statusClass = claim.status === 'Išspręsta' ? 'style="color: green;"' : '';
                     tr.innerHTML = `
                         <td>${claim.id}</td>
                         <td>${claim.product}</td>
-                        <td>${claim.status}</td>
+                        <td ${statusClass}>${claim.status}</td>
                         <td>${new Date(claim.date).toLocaleDateString('lt-LT')}</td>
                         <td><a href="claim-view.html?id=${claim.id}&role=customer" class="btn">Peržiūrėti</a></td>
+                        <td><button onclick="openAddFileModal('${claim.id}')" class="btn btn-secondary">➕ Pridėti</button></td>
                     `;
                     tbody.appendChild(tr);
 
@@ -83,6 +315,7 @@ if (!currentUser) {
             document.getElementById('resolved-claims').textContent = resolvedCount;
         }
 
+        // --- Paleidžiame kai puslapis užsikrauna ---
         loadUserClaims();
     </script>
 </body>
