@@ -150,28 +150,41 @@
     </footer>
 
     <script>
-        function login(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+   function login(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            const user = users.find(u => u.email === email && u.password === password);
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.email === email && u.password === password);
 
-            if (user) {
-                user.lastLogin = new Date().toISOString();
-                localStorage.setItem('users', JSON.stringify(users));
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                alert('Sėkmingai prisijungta!');
-                if (['admin', 'quality'].includes(user.role)) {
-                    location.href = 'admin.html';
-                } else {
-                    location.href = 'pretention.html';
-                }
-            } else {
-                alert('Neteisingas el. paštas arba slaptažodis.');
-            }
+    if (user) {
+        // Atnaujinti paskutinį prisijungimą
+        user.lastLogin = new Date().toISOString();
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Patikrinti, į kurią vietą vartotojas bandė eiti
+        const redirectUrl = localStorage.getItem('redirectUrl');
+        localStorage.removeItem('redirectUrl'); // Išvalyti, kad neveiktų kitą kartą
+
+        // Nustatyti numatytąjį maršrutą
+        let nextUrl = 'pretention.html';
+        if (['admin', 'quality'].includes(user.role)) {
+            nextUrl = 'admin.html';
         }
+
+        // Jei buvo nurodytas redirect, naudoti jį
+        if (redirectUrl && redirectUrl !== 'login.html' && redirectUrl !== 'index.html') {
+            nextUrl = redirectUrl;
+        }
+
+        alert('Sėkmingai prisijungta!');
+        location.href = nextUrl;
+    } else {
+        alert('Neteisingas el. paštas arba slaptažodis.');
+    }
+}
     </script>
 </body>
 </html>
