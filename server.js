@@ -135,8 +135,39 @@ app.post('/notify-quality', async (req, res) => {
         console.error('Klaida siunčiant kokybės darbuotojui:', error);
         res.status(500).json({ success: false, error: error.message });
     }
+});-
+
+    // === 4. Laiškas klientui ir kokybės darbuotojui – kai meistras pažymi kaip išspręstą ===
+app.post('/notify-resolved', async (req, res) => {
+    const { claimId, customerEmail, customerName, productName } = req.body;
+
+    // 1. Laiškas klientui
+    const customerMail = {
+        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
+        to: customerEmail,
+        subject: `✅ Jūsų pretenzija #${claimId} išspręsta`,
+        text: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} (produktas: ${productName}) yra išspręsta.\nDėkojame, kad pasirinkote Rubineta.\n\nPagarbiai,\nRubineta kokybės komanda\ninfo@rubineta.lt\n+370 612 34567`
+    };
+
+    // 2. Laiškas kokybės darbuotojui
+    const qualityMail = {
+        from: `"Meistras" <${process.env.EMAIL_USER}>`,
+        to: process.env.QUALITY_EMAIL,
+        subject: `🔧 Meistras išsprendė pretenziją #${claimId}`,
+        text: `Meistras pranešė, kad pretenzija #${claimId} (produktas: ${productName}) yra išspręsta.\nPrašome patikrinti ir uždaryti užduotį sistemoje.\n\nPeržiūrėti: https://pretenzijos-sistema.onrender.com/claim-view.html?id=${claimId}`
+    };
+
+    try {
+        await transporter.sendMail(customerMail);
+        await transporter.sendMail(qualityMail);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Klaida siunčiant pranešimą:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
+    
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
