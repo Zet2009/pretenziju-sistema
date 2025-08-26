@@ -168,9 +168,8 @@ app.post('/notify-quality', async (req, res) => {
 
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
-    const { email, claimId, feedbackLink } = req.body;
+    const { email, claimId, feedbackLink } = req.body; // Pakeista iš customerEmail į email
 
-    // Patikrinimas
     if (!email || !claimId || !feedbackLink) {
         return res.status(400).json({ 
             success: false, 
@@ -180,7 +179,7 @@ app.post('/send-feedback-survey', async (req, res) => {
 
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
-        to: expressmail,
+        to: email, // Pakeista iš customerEmail į email
         subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
         text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
     };
@@ -194,6 +193,9 @@ app.post('/send-feedback-survey', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
+
     // === 4. Laiškas klientui ir kokybės darbuotojui – kai meistras pažymi kaip išspręstą ===
 app.post('/notify-resolved', async (req, res) => {
     const { claimId, customerEmail, customerName, productName } = req.body;
