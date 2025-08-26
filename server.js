@@ -219,8 +219,8 @@ app.post('/notify-status-change', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
 });
-
