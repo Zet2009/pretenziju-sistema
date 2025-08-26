@@ -49,30 +49,58 @@
             display: inline-block;
             min-width: 140px;
         }
-     .attachments-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 10px;
-}
-.file-item {
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 8px;
-    background: #f9f9f9;
-    max-width: 320px;
-    text-align: center;
-}
-.file-item img, .file-item video {
-    max-width: 100%;
-    height: auto;
-    border-radius: 6px;
-}
+        .attachments-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .file-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            max-width: 320px;
+            text-align: center;
+        }
+        .file-item img, .file-item video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+        }
         footer {
             text-align: center;
             margin-top: 50px;
             color: var(--gray);
             font-size: 12px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            display: none;
+        }
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
         }
     </style>
 </head>
@@ -91,11 +119,11 @@
             <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status"></span></div>
         </div>
 
-      <!-- Vartotojo dokumentai -->
-<div class="section">
-    <h2>2. Vartotojo prisegti dokumentai</h2>
-    <div id="user-files" class="attachments-list"></div>
-</div>
+        <!-- Vartotojo dokumentai -->
+        <div class="section">
+            <h2>2. Vartotojo prisegti dokumentai</h2>
+            <div id="user-files" class="attachments-list"></div>
+        </div>
 
         <!-- Kokybės skyriaus komentarai -->
         <div class="section">
@@ -103,129 +131,63 @@
             <p id="quality-note">Nėra papildomų pastabų.</p>
         </div>
 
-       <!-- Prisegti dokumentai nuo kokybės -->
-<div class="section">
-    <h2>4. Prisegti dokumentai nuo kokybės skyriaus</h2>
-    <div id="quality-attachments" class="attachments-list"></div>
-</div>
+        <!-- Prisegti dokumentai nuo kokybės -->
+        <div class="section">
+            <h2>4. Prisegti dokumentai nuo kokybės skyriaus</h2>
+            <div id="quality-attachments" class="attachments-list"></div>
+        </div>
 
-<div style="margin-top: 20px; text-align: center;">
-    <button id="markAsResolved" onclick="markAsResolved()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
-        ✅ Išsprendžiau
-    </button>
+        <!-- Įspėjimų konteineris -->
+        <div id="alert-container"></div>
 
-   <button id="sendFeedback" onclick="sendFeedbackSurvey()" style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">
-        📝 Išsiųsti apklausą
-    </button>
-</div>
+        <div style="margin-top: 20px; text-align: center;">
+            <button id="markAsResolved" onclick="markAsResolved()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                ✅ Išsprendžiau
+            </button>
+
+            <button id="sendFeedback" onclick="sendFeedbackSurvey()" style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">
+                📝 Išsiųsti apklausą
+            </button>
+        </div>
+    </div>
 
     <footer>© 2025 Rubineta. Visos teisės saugomos.</footer>
 
-    
     <script>
+        // Klaidų rodymo funkcija
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertContainer.appendChild(alertDiv);
+            alertDiv.style.display = 'block';
+            
+            // Automatiškai pašalinti po 5 sekundžių
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
 
-function sendFeedbackSurvey() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const claimId = urlParams.get('id');
+        // Įkėlimo indikatoriaus valdymas
+        function setLoading(button, isLoading) {
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = `<span class="loading"></span> Siunčiama...`;
+            } else {
+                button.disabled = false;
+                button.innerHTML = `📝 Išsiųsti apklausą`;
+            }
+        }
 
-    if (!claimId) {
-        alert('Nenurodytas pretenzijos ID.');
-        return;
-    }
-
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const claim = claims.find(c => c.id === claimId);
-
-    if (!claim) {
-        alert('Pretenzija nerasta.');
-        return;
-    }
-
-    const feedbackLink = `https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}`;
-
-    fetch('https://pretenzijos-sistema.onrender.com/send-feedback-survey', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            email: claim.contact.email,
-            claimId: claim.id,
-            feedbackLink: feedbackLink
-        })
-    })
-    .then(() => {
-        alert('Apklausos nuoroda išsiųsta klientui.');
-    })
-    .catch(err => {
-        console.error('Klaida siunčiant apklausą:', err);
-        alert('Nepavyko išsiųsti apklausos.');
-    });
-}
-
-
-// === FUNKCIJA: Pažymėti kaip išspręstą ===
-async function markAsResolved() {
-    if (!confirm('Ar tikrai pažymėti pretenziją kaip išspręstą?')) return;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const claimId = urlParams.get('id');
-
-    if (!claimId) {
-        alert('Nenurodytas pretenzijos ID.');
-        return;
-    }
-
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const claim = claims.find(c => c.id === claimId);
-
-    if (!claim) {
-        alert('Pretenzija nerasta.');
-        return;
-    }
-
-    // Atnaujink būseną ir pridėk istorijos įrašą
-    claim.status = 'Išspręsta';
-    claim.resolvedAt = new Date().toISOString();
-
-    // Pridėk į veiksmų istoriją
-    if (!claim.history) claim.history = [];
-    claim.history.push({
-        action: 'Išspręsta',
-        user: 'Meistras',
-        time: claim.resolvedAt,
-        note: 'Meistras pažymėjo, kad problema išspręsta.'
-    });
-
-    localStorage.setItem('claims', JSON.stringify(claims));
-
-    try {
-await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        claimId: claim.id,
-        customerEmail: claim.contact.email,
-        customerName: claim.contact.name,
-        productName: claim.product
-    })
-});
-
-        alert('✅ Pretenzija pažymėta kaip išspręsta. Klientas ir kokybės komanda informuoti.');
-        document.getElementById('markAsResolved').disabled = true;
-    } catch (error) {
-        alert('⚠️ Pretenzija pažymėta, bet nepavyko išsiųsti pranešimo.');
-        console.error('Klaida siunčiant pranešimą:', error);
-    }
-}
-
-
-
-
-        document.addEventListener('DOMContentLoaded', () => {
+        // Funkcija apklausos siuntimui
+        async function sendFeedbackSurvey() {
             const urlParams = new URLSearchParams(window.location.search);
             const claimId = urlParams.get('id');
+            const sendButton = document.getElementById('sendFeedback');
 
             if (!claimId) {
-                alert('Nenurodytas pretenzijos ID.');
+                showAlert('Nenurodytas pretenzijos ID.', 'error');
                 return;
             }
 
@@ -233,7 +195,122 @@ await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
             const claim = claims.find(c => c.id === claimId);
 
             if (!claim) {
-                alert('Pretenzija nerasta.');
+                showAlert('Pretenzija nerasta.', 'error');
+                return;
+            }
+
+            // Patikrinti, ar klientas turi el. paštą
+            if (!claim.contact || !claim.contact.email) {
+                showAlert('Klientas neturi el. pašto adreso. Apklausos išsiųsti negalima.', 'error');
+                return;
+            }
+
+            const feedbackLink = `https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}`;
+            
+            // Rodyti įkėlimo indikatorių
+            setLoading(sendButton, true);
+
+            try {
+                const response = await fetch('https://pretenzijos-sistema.onrender.com/send-feedback-survey', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: claim.contact.email,
+                        claimId: claim.id,
+                        feedbackLink: feedbackLink
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Serveris grąžino klaidą: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Apklausos nuoroda sėkmingai išsiųsta klientui.', 'success');
+                } else {
+                    throw new Error(result.error || 'Nežinoma serverio klaida');
+                }
+            } catch (err) {
+                console.error('Klaida siunčiant apklausą:', err);
+                showAlert(`Nepavyko išsiųsti apklausos: ${err.message}`, 'error');
+            } finally {
+                // Atstatyti mygtuką
+                setLoading(sendButton, false);
+            }
+        }
+
+        // === FUNKCIJA: Pažymėti kaip išspręstą ===
+        async function markAsResolved() {
+            if (!confirm('Ar tikrai pažymėti pretenziją kaip išspręstą?')) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const claimId = urlParams.get('id');
+
+            if (!claimId) {
+                showAlert('Nenurodytas pretenzijos ID.', 'error');
+                return;
+            }
+
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const claim = claims.find(c => c.id === claimId);
+
+            if (!claim) {
+                showAlert('Pretenzija nerasta.', 'error');
+                return;
+            }
+
+            // Atnaujink būseną ir pridėk istorijos įrašą
+            claim.status = 'Išspręsta';
+            claim.resolvedAt = new Date().toISOString();
+
+            // Pridėk į veiksmų istoriją
+            if (!claim.history) claim.history = [];
+            claim.history.push({
+                action: 'Išspręsta',
+                user: 'Meistras',
+                time: claim.resolvedAt,
+                note: 'Meistras pažymėjo, kad problema išspręsta.'
+            });
+
+            localStorage.setItem('claims', JSON.stringify(claims));
+
+            try {
+                await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        claimId: claim.id,
+                        customerEmail: claim.contact.email,
+                        customerName: claim.contact.name,
+                        productName: claim.product
+                    })
+                });
+
+                showAlert('✅ Pretenzija pažymėta kaip išspręsta. Klientas ir kokybės komanda informuoti.', 'success');
+                document.getElementById('markAsResolved').disabled = true;
+            } catch (error) {
+                console.error('Klaida siunčiant pranešimą:', error);
+                showAlert('⚠️ Pretenzija pažymėta, bet nepavyko išsiųsti pranešimo.', 'error');
+            }
+        }
+
+        // Puslapio užkrovimo logika
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const claimId = urlParams.get('id');
+
+            if (!claimId) {
+                showAlert('Nenurodytas pretenzijos ID.', 'error');
+                return;
+            }
+
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const claim = claims.find(c => c.id === claimId);
+
+            if (!claim) {
+                showAlert('Pretenzija nerasta.', 'error');
                 return;
             }
 
@@ -249,58 +326,54 @@ await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
             document.getElementById('quality-note').textContent = claim.qualityExternalComment || 'Nėra papildomų pastabų.';
 
             // Vartotojo dokumentai
-const userFilesContainer = document.getElementById('user-files');
-if (claim.files && claim.files.length > 0) {
-    claim.files.forEach(url => {
-        const item = document.createElement('div');
-        item.className = 'file-item';
+            const userFilesContainer = document.getElementById('user-files');
+            if (claim.files && claim.files.length > 0) {
+                claim.files.forEach(url => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
 
-        if (url.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
-            // Nuotrauka
-            item.innerHTML = `<img src="${url}" alt="Nuotrauka" style="max-width:300px; border-radius:8px;">`;
-        } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-            // Video
-            item.innerHTML = `<video controls style="max-width:300px;"><source src="${url}" type="video/mp4">Jūsų naršyklė nepalaiko video.</video>`;
-        } else if (url.match(/\.(pdf)$/i)) {
-            // PDF – rodyti kaip nuorodą su ikona
-            item.innerHTML = `<a href="${url}" target="_blank" style="color:#d44646;">📄 Atidaryti PDF</a>`;
-        } else {
-            // Kiti failai
-            item.innerHTML = `<a href="${url}" target="_blank">📎 Atsisiųsti dokumentą</a>`;
-        }
+                    if (url.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                        item.innerHTML = `<img src="${url}" alt="Nuotrauka" style="max-width:300px; border-radius:8px;">`;
+                    } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+                        item.innerHTML = `<video controls style="max-width:300px;"><source src="${url}" type="video/mp4">Jūsų naršyklė nepalaiko video.</video>`;
+                    } else if (url.match(/\.(pdf)$/i)) {
+                        item.innerHTML = `<a href="${url}" target="_blank" style="color:#d44646;">📄 Atidaryti PDF</a>`;
+                    } else {
+                        item.innerHTML = `<a href="${url}" target="_blank">📎 Atsisiųsti dokumentą</a>`;
+                    }
 
-        userFilesContainer.appendChild(item);
-    });
-} else {
-    userFilesContainer.innerHTML = '<p>Nėra prisegtų dokumentų.</p>';
-}
+                    userFilesContainer.appendChild(item);
+                });
+            } else {
+                userFilesContainer.innerHTML = '<p>Nėra prisegtų dokumentų.</p>';
+            }
 
-// Kokybės skyriaus dokumentai
-const qualityAttachmentsContainer = document.getElementById('quality-attachments');
-if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
-    claim.qualityAttachments.forEach(att => {
-        const item = document.createElement('div');
-        item.className = 'file-item';
+            // Kokybės skyriaus dokumentai
+            const qualityAttachmentsContainer = document.getElementById('quality-attachments');
+            if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
+                claim.qualityAttachments.forEach(att => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
 
-        if (att.type === 'file' && att.url.match(/\.(jpg|jpeg|png|webp)$/i)) {
-            item.innerHTML = `<img src="${att.url}" alt="${att.name}" style="max-width:300px; border-radius:8px;">`;
-        } else if (att.type === 'file' && att.url.match(/\.(mp4|webm)$/i)) {
-            item.innerHTML = `<video controls style="max-width:300px;"><source src="${att.url}" type="video/mp4">Jūsų naršyklė nepalaiko video.</video>`;
-        } else if (att.type === 'file' && att.url.match(/\.(pdf)$/i)) {
-            item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#d44646;">📄 ${att.name}</a>`;
-        } else if (att.type === 'video') {
-            item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🎬 ${att.name}</a>`;
-        } else if (att.type === 'link') {
-            item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🔗 ${att.name}</a>`;
-        } else {
-            item.innerHTML = `<a href="${att.url}" target="_blank">📎 ${att.name}</a>`;
-        }
+                    if (att.type === 'file' && att.url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+                        item.innerHTML = `<img src="${att.url}" alt="${att.name}" style="max-width:300px; border-radius:8px;">`;
+                    } else if (att.type === 'file' && att.url.match(/\.(mp4|webm)$/i)) {
+                        item.innerHTML = `<video controls style="max-width:300px;"><source src="${att.url}" type="video/mp4">Jūsų naršyklė nepalaiko video.</video>`;
+                    } else if (att.type === 'file' && att.url.match(/\.(pdf)$/i)) {
+                        item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#d44646;">📄 ${att.name}</a>`;
+                    } else if (att.type === 'video') {
+                        item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🎬 ${att.name}</a>`;
+                    } else if (att.type === 'link') {
+                        item.innerHTML = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🔗 ${att.name}</a>`;
+                    } else {
+                        item.innerHTML = `<a href="${att.url}" target="_blank">📎 ${att.name}</a>`;
+                    }
 
-        qualityAttachmentsContainer.appendChild(item);
-    });
-} else {
-    qualityAttachmentsContainer.innerHTML = '<p>Nėra papildomų dokumentų.</p>';
-}
+                    qualityAttachmentsContainer.appendChild(item);
+                });
+            } else {
+                qualityAttachmentsContainer.innerHTML = '<p>Nėra papildomų dokumentų.</p>';
+            }
         });
     </script>
 </body>
