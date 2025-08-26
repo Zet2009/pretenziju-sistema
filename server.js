@@ -145,7 +145,34 @@ app.post('/send-to-partner', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+// === Laiškas klientui – išsiųsti apklausos nuorodą ===
+app.post('/send-feedback-survey', async (req, res) => {
+    const { email, claimId, feedbackLink } = req.body;
 
+    // Patikrinimas
+    if (!email || !claimId || !feedbackLink) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'Trūksta būtinų duomenų: email, claimId arba feedbackLink' 
+        });
+    }
+
+    const mailOptions = {
+        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
+        text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Apklausos laiškas išsiųstas klientui:', email);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Klaida siunčiant apklausą:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 // === 3. Laiškas kokybės darbuotojui – kai ateina nauja pretenzija ===
 app.post('/notify-quality', async (req, res) => {
     const { claimId } = req.body;
@@ -232,25 +259,6 @@ app.post('/notify-status-change', async (req, res) => {
     }
 });
 
-// === Laiškas klientui – apklausa po išsprendimo ===
-app.post('/send-feedback-survey', async (req, res) => {
-    const { email, claimId, feedbackLink } = req.body;
-
-    const mailOptions = {
-        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
-        text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Klaida siunčiant apklausą:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
 
 
 // === Paleidžiame serverį ===
