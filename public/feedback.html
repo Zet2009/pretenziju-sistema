@@ -73,6 +73,7 @@
             display: flex;
             justify-content: space-between;
             gap: 10px;
+            margin-bottom: 10px;
         }
         .rating-item {
             flex: 1;
@@ -83,9 +84,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .rating-item:hover {
             background: #e9ecef;
+            transform: translateY(-2px);
         }
         .rating-item.selected {
             background: var(--primary-light);
@@ -95,7 +100,12 @@
         }
         .rating-item span {
             font-size: 14px;
-            color: var(--gray);
+            margin-top: 5px;
+        }
+        .rating-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
         textarea {
             width: 100%;
@@ -105,6 +115,11 @@
             font-size: 16px;
             min-height: 100px;
             resize: vertical;
+            transition: border-color 0.3s;
+        }
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
         }
         .btn {
             width: 100%;
@@ -118,11 +133,20 @@
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .btn:hover {
             background: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .success-message {
             text-align: center;
@@ -142,12 +166,47 @@
             border-top: 1px solid #dee2e6;
             background: var(--secondary);
         }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            display: none;
+        }
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
         @media (max-width: 600px) {
             .rating {
-                flex-direction: column;
+                flex-wrap: wrap;
             }
             .rating-item {
+                flex-basis: calc(50% - 10px);
                 margin-bottom: 10px;
+            }
+            header {
+                flex-direction: column;
+                padding: 15px 20px;
+            }
+            nav {
+                margin-top: 15px;
+            }
+            nav a {
+                margin: 0 8px;
             }
         }
     </style>
@@ -166,56 +225,121 @@
         <h1>Ačiū, kad naudojatės mūsų paslaugomis</h1>
         <p class="subtitle">Prašome įvertinti aptarnavimą, kad galėtume tobulėti.</p>
 
-        <form id="feedback-form" onsubmit="submitFeedback(event)">
+        <div id="alert-container"></div>
+
+        <form id="feedback-form">
             <input type="hidden" id="claim-id" value="">
 
             <div class="form-group">
                 <label>1. Aptarnavimo greitis</label>
                 <div class="rating" id="rating-speed">
-                    <div class="rating-item" data-value="1"><strong>1</strong><span>Labai lėtai</span></div>
-                    <div class="rating-item" data-value="2"><strong>2</strong></div>
-                    <div class="rating-item" data-value="3"><strong>3</strong><span>Normaliai</span></div>
-                    <div class="rating-item" data-value="4"><strong>4</strong></div>
-                    <div class="rating-item" data-value="5"><strong>5</strong><span>Labai greitai</span></div>
+                    <div class="rating-item" data-value="1">
+                        <div class="rating-value">1</div>
+                        <span>Labai lėtai</span>
+                    </div>
+                    <div class="rating-item" data-value="2">
+                        <div class="rating-value">2</div>
+                    </div>
+                    <div class="rating-item" data-value="3">
+                        <div class="rating-value">3</div>
+                        <span>Normaliai</span>
+                    </div>
+                    <div class="rating-item" data-value="4">
+                        <div class="rating-value">4</div>
+                    </div>
+                    <div class="rating-item" data-value="5">
+                        <div class="rating-value">5</div>
+                        <span>Labai greitai</span>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>2. Remonto kokybė</label>
                 <div class="rating" id="rating-quality">
-                    <div class="rating-item" data-value="1"><strong>1</strong><span>Bloga</span></div>
-                    <div class="rating-item" data-value="2"><strong>2</strong></div>
-                    <div class="rating-item" data-value="3"><strong>3</strong><span>Patenkinama</span></div>
-                    <div class="rating-item" data-value="4"><strong>4</strong></div>
-                    <div class="rating-item" data-value="5"><strong>5</strong><span>Puiki</span></div>
+                    <div class="rating-item" data-value="1">
+                        <div class="rating-value">1</div>
+                        <span>Bloga</span>
+                    </div>
+                    <div class="rating-item" data-value="2">
+                        <div class="rating-value">2</div>
+                    </div>
+                    <div class="rating-item" data-value="3">
+                        <div class="rating-value">3</div>
+                        <span>Patenkinama</span>
+                    </div>
+                    <div class="rating-item" data-value="4">
+                        <div class="rating-value">4</div>
+                    </div>
+                    <div class="rating-item" data-value="5">
+                        <div class="rating-value">5</div>
+                        <span>Puiki</span>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>3. Personalo mandagumas</label>
                 <div class="rating" id="rating-politeness">
-                    <div class="rating-item" data-value="1"><strong>1</strong><span>Nemandagus</span></div>
-                    <div class="rating-item" data-value="2"><strong>2</strong></div>
-                    <div class="rating-item" data-value="3"><strong>3</strong><span>Neutralus</span></div>
-                    <div class="rating-item" data-value="4"><strong>4</strong></div>
-                    <div class="rating-item" data-value="5"><strong>5</strong><span>Labai mandagus</span></div>
+                    <div class="rating-item" data-value="1">
+                        <div class="rating-value">1</div>
+                        <span>Nemandagus</span>
+                    </div>
+                    <div class="rating-item" data-value="2">
+                        <div class="rating-value">2</div>
+                    </div>
+                    <div class="rating-item" data-value="3">
+                        <div class="rating-value">3</div>
+                        <span>Neutralus</span>
+                    </div>
+                    <div class="rating-item" data-value="4">
+                        <div class="rating-value">4</div>
+                    </div>
+                    <div class="rating-item" data-value="5">
+                        <div class="rating-value">5</div>
+                        <span>Labai mandagus</span>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>4. Kiek tikėtina, kad rekomenduotumėte mus kitiems? (NPS 0–10)</label>
                 <div class="rating" id="rating-nps">
-                    <div class="rating-item" data-value="0"><strong>0</strong><span>Nevertinu</span></div>
-                    <div class="rating-item" data-value="1"><strong>1</strong></div>
-                    <div class="rating-item" data-value="2"><strong>2</strong></div>
-                    <div class="rating-item" data-value="3"><strong>3</strong></div>
-                    <div class="rating-item" data-value="4"><strong>4</strong></div>
-                    <div class="rating-item" data-value="5"><strong>5</strong></div>
-                    <div class="rating-item" data-value="6"><strong>6</strong></div>
-                    <div class="rating-item" data-value="7"><strong>7</strong></div>
-                    <div class="rating-item" data-value="8"><strong>8</strong></div>
-                    <div class="rating-item" data-value="9"><strong>9</strong></div>
-                    <div class="rating-item" data-value="10"><strong>10</strong><span>Labai tikėtina</span></div>
+                    <div class="rating-item" data-value="0">
+                        <div class="rating-value">0</div>
+                        <span>Nevertinu</span>
+                    </div>
+                    <div class="rating-item" data-value="1">
+                        <div class="rating-value">1</div>
+                    </div>
+                    <div class="rating-item" data-value="2">
+                        <div class="rating-value">2</div>
+                    </div>
+                    <div class="rating-item" data-value="3">
+                        <div class="rating-value">3</div>
+                    </div>
+                    <div class="rating-item" data-value="4">
+                        <div class="rating-value">4</div>
+                    </div>
+                    <div class="rating-item" data-value="5">
+                        <div class="rating-value">5</div>
+                    </div>
+                    <div class="rating-item" data-value="6">
+                        <div class="rating-value">6</div>
+                    </div>
+                    <div class="rating-item" data-value="7">
+                        <div class="rating-value">7</div>
+                    </div>
+                    <div class="rating-item" data-value="8">
+                        <div class="rating-value">8</div>
+                    </div>
+                    <div class="rating-item" data-value="9">
+                        <div class="rating-value">9</div>
+                    </div>
+                    <div class="rating-item" data-value="10">
+                        <div class="rating-value">10</div>
+                        <span>Labai tikėtina</span>
+                    </div>
                 </div>
             </div>
 
@@ -224,7 +348,7 @@
                 <textarea id="comments" placeholder="Ar galite papasakoti, kas patiko ar nepatiko?"></textarea>
             </div>
 
-            <button type="submit" class="btn">Pateikti atsiliepimą</button>
+            <button type="submit" class="btn" id="submit-btn">Pateikti atsiliepimą</button>
         </form>
 
         <div class="success-message" id="success-message">
@@ -237,13 +361,39 @@
     <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
 
     <script>
+        // Klaidų rodymo funkcija
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertContainer.appendChild(alertDiv);
+            alertDiv.style.display = 'block';
+            
+            // Automatiškai pašalinti po 5 sekundžių
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Įkėlimo indikatoriaus valdymas
+        function setLoading(isLoading) {
+            const submitBtn = document.getElementById('submit-btn');
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="loading"></span> Siunčiama...`;
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `Pateikti atsiliepimą`;
+            }
+        }
+
         // Gauname pretenzijos ID iš URL
         const urlParams = new URLSearchParams(window.location.search);
         const claimId = urlParams.get('claimId') || urlParams.get('id');
 
         if (!claimId) {
-            alert('Nenurodyta pretenzijos ID.');
-            location.href = 'index.html';
+            showAlert('Nenurodyta pretenzijos ID.', 'error');
         } else {
             document.getElementById('claim-id').value = claimId;
         }
@@ -265,26 +415,23 @@
         setupRatings('rating-politeness');
         setupRatings('rating-nps');
 
-// `window.onload` arba po `setupRatings()`
-const temp = JSON.parse(localStorage.getItem('tempFeedback') || '{}');
-Object.keys(temp).forEach(key => {
-    const item = document.querySelector(`#rating-${key} .rating-item[data-value="${temp[key]}"]`);
-    if (item) item.classList.add('selected');
-});
-
-
         // Pateikti atsiliepimą
-        function submitFeedback(event) {
+        document.getElementById('feedback-form').addEventListener('submit', function(event) {
             event.preventDefault();
+            submitFeedback();
+        });
 
+        function submitFeedback() {
             const speed = getSelectedValue('rating-speed');
             const quality = getSelectedValue('rating-quality');
             const politeness = getSelectedValue('rating-politeness');
             const nps = getSelectedValue('rating-nps');
             const comments = document.getElementById('comments').value.trim();
 
+            // Tikriname, ar visi įvertinimai pasirinkti
             if (!speed || !quality || !politeness || !nps) {
-                alert('Prašome įvertinti visus kriterijus.');
+                highlightMissingRatings();
+                showAlert('Prašome įvertinti visus kriterijus.', 'error');
                 return;
             }
 
@@ -301,15 +448,22 @@ Object.keys(temp).forEach(key => {
                 comments: comments
             };
 
-            const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
-            feedbacks.push(feedback);
-            localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+            // Rodyti įkėlimo indikatorių
+            setLoading(true);
 
-            // Rodyti sėkmės pranešimą
-            document.getElementById('feedback-form').style.display = 'none';
-            document.getElementById('success-message').style.display = 'block';
+            // Simuliuojame serverio užklausą (realioje situacijoje siųstumėte į serverį)
+            setTimeout(() => {
+                const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+                feedbacks.push(feedback);
+                localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
 
-            console.log('Atsiliepimas išsaugotas:', feedback);
+                // Rodyti sėkmės pranešimą
+                document.getElementById('feedback-form').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+                
+                console.log('Atsiliepimas išsaugotas:', feedback);
+                setLoading(false);
+            }, 1500);
         }
 
         function getSelectedValue(containerId) {
@@ -317,41 +471,26 @@ Object.keys(temp).forEach(key => {
             return selected ? selected.getAttribute('data-value') : null;
         }
 
-
-function highlightMissingRatings() {
-    const containers = ['rating-speed', 'rating-quality', 'rating-politeness', 'rating-nps'];
-    containers.forEach(id => {
-        const selected = document.querySelector(`#${id} .rating-item.selected`);
-        const container = document.getElementById(id);
-        if (!selected) {
-            container.style.border = '2px solid #dc3545';
-            container.style.borderRadius = '8px';
-        } else {
-            container.style.border = '';
+        function highlightMissingRatings() {
+            const containers = ['rating-speed', 'rating-quality', 'rating-politeness', 'rating-nps'];
+            containers.forEach(id => {
+                const selected = document.querySelector(`#${id} .rating-item.selected`);
+                const container = document.getElementById(id);
+                if (!selected) {
+                    container.style.border = '2px solid #dc3545';
+                    container.style.borderRadius = '8px';
+                    container.style.padding = '5px';
+                } else {
+                    container.style.border = '';
+                    container.style.padding = '';
+                }
+            });
         }
-    });
-}
-if (!speed || !quality || !politeness || !nps) {
-    highlightMissingRatings();
-    alert('Prašome įvertinti visus kriterijus.');
-    return;
-}
 
-// Pridėk šią funkciją į `submitFeedback` pabaigą, jei forma nepavyksta
-function saveTempSelections() {
-    const temp = {};
-    ['speed', 'quality', 'politeness', 'nps'].forEach(key => {
-        const selected = document.querySelector(`#rating-${key} .rating-item.selected`);
-        if (selected) {
-            temp[key] = selected.getAttribute('data-value');
-        }
-    });
-    localStorage.setItem('tempFeedback', JSON.stringify(temp));
-}
-
-
-
-
+        // Išvalome laikinąją atmintį, kai puslapis užsikrauna
+        window.addEventListener('load', function() {
+            localStorage.removeItem('tempFeedback');
+        });
     </script>
 </body>
 </html>
