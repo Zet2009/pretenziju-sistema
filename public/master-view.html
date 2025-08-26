@@ -147,7 +147,7 @@ function sendFeedbackSurvey() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            email: claim.contact.email,
+            customerEmail: claim.contact.email,
             claimId: claim.id,
             feedbackLink: feedbackLink
         })
