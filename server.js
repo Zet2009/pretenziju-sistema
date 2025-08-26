@@ -145,6 +145,27 @@ app.post('/send-to-partner', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// === 3. Laiškas kokybės darbuotojui – kai ateina nauja pretenzija ===
+app.post('/notify-quality', async (req, res) => {
+    const { claimId } = req.body;
+
+    const mailOptions = {
+        from: `"Sistema" <${process.env.EMAIL_USER}>`,
+        to: process.env.QUALITY_EMAIL,
+        subject: `🔔 Nauja pretenzija #${claimId}`,
+        text: `Sveiki,\n\nSistema gavo naują pretenziją: #${claimId}\nPrašome peržiūrėti administratoriaus zonoje: https://pretenzijos-sistema.onrender.com/admin.html`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true, message: 'Pranešimas išsiųstas kokybės darbuotojui' });
+    } catch (error) {
+        console.error('Klaida siunčiant kokybės darbuotojui:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});-
+
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
     const { email, claimId, feedbackLink } = req.body;
@@ -173,26 +194,6 @@ app.post('/send-feedback-survey', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-// === 3. Laiškas kokybės darbuotojui – kai ateina nauja pretenzija ===
-app.post('/notify-quality', async (req, res) => {
-    const { claimId } = req.body;
-
-    const mailOptions = {
-        from: `"Sistema" <${process.env.EMAIL_USER}>`,
-        to: process.env.QUALITY_EMAIL,
-        subject: `🔔 Nauja pretenzija #${claimId}`,
-        text: `Sveiki,\n\nSistema gavo naują pretenziją: #${claimId}\nPrašome peržiūrėti administratoriaus zonoje: https://pretenzijos-sistema.onrender.com/admin.html`
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true, message: 'Pranešimas išsiųstas kokybės darbuotojui' });
-    } catch (error) {
-        console.error('Klaida siunčiant kokybės darbuotojui:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});-
-
     // === 4. Laiškas klientui ir kokybės darbuotojui – kai meistras pažymi kaip išspręstą ===
 app.post('/notify-resolved', async (req, res) => {
     const { claimId, customerEmail, customerName, productName } = req.body;
