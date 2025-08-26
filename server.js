@@ -168,7 +168,7 @@ app.post('/notify-quality', async (req, res) => {
 
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
-    const { email, claimId, feedbackLink } = req.body;
+    const { customerEmail, claimId, feedbackLink } = req.body;
 
     // Patikrinimas
     if (!email || !claimId || !feedbackLink) {
@@ -180,7 +180,7 @@ app.post('/send-feedback-survey', async (req, res) => {
 
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
-        to: email,
+        to: customerEmail,
         subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
         text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
     };
