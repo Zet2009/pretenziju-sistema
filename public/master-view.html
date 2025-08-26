@@ -143,7 +143,7 @@ function sendFeedbackSurvey() {
 
     const feedbackLink = `https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}`;
 
-    fetch('https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}', {
+    fetch('https://pretenzijos-sistema.onrender.com/send-feedback-survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
