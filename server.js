@@ -7,12 +7,24 @@ require('dotenv').config();
 
 const app = express();
 
-// Naudoti PORT iš aplinkos arba 3000 (vietiniam testavimui)
-const PORT = process.env.PORT || 3000;
+// Išsamiau sukonfigūruokite CORS
+const corsOptions = {
+  origin: [
+    'https://pretenzijos-sistema.onrender.com',
+   // 'https://pretenziju-sistema.onrender.com',
+    'http://localhost:3000' // lokaliam testavimui
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
-app.use(express.static('public')); // ✅ Čia – kad rodytų HTML failus
+app.use(express.static('public'));
+
+// Įtraukite OPTIONS užklausų apdorojimą (svarbu CORS preflight užklausoms)
+app.options('*', cors(corsOptions));
 
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
@@ -219,6 +231,27 @@ app.post('/notify-status-change', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// === Laiškas klientui – apklausa po išsprendimo ===
+app.post('/send-feedback-survey', async (req, res) => {
+    const { email, claimId, feedbackLink } = req.body;
+
+    const mailOptions = {
+        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
+        text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Klaida siunčiant apklausą:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
