@@ -1194,42 +1194,30 @@ function deletePartner(id) {
         // -----------------------------
         // KITŲ SKIRTUKŲ LOGIKA
         // -----------------------------
-        function loadFeedback() {
-            const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
-            const content = `
-                <h2>Klientų atsiliepimai</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Pretenzijos ID</th>
-                            <th>Data</th>
-                            <th>Greitis</th>
-                            <th>Kokybė</th>
-                            <th>Mandagumas</th>
-                            <th>NPS</th>
-                            <th>Komentaras</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${feedbacks.length === 0 
-                            ? '<tr><td colspan="7" style="text-align: center;">Nėra atsiliepimų.</td></tr>'
-                            : feedbacks.map(f => `
-                                <tr>
-                                    <td>${f.claimId}</td>
-                                    <td>${new Date(f.date).toLocaleDateString('lt-LT')}</td>
-                                    <td>${f.ratings.speed}</td>
-                                    <td>${f.ratings.quality}</td>
-                                    <td>${f.ratings.politeness}</td>
-                                    <td>${f.ratings.nps}</td>
-                                    <td>${f.comments}</td>
-                                </tr>
-                            `).join('')
-                        }
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('feedback').innerHTML = content;
-        }
+       function loadFeedback() {
+    const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+    const tbody = document.getElementById('feedback-body');
+    tbody.innerHTML = '';
+
+    if (feedbacks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nėra atsiliepimų.</td></tr>';
+        return;
+    }
+
+    feedbacks.forEach(f => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${f.claimId}</td>
+            <td>${new Date(f.date).toLocaleDateString('lt-LT')}</td>
+            <td>${f.ratings.speed}</td>
+            <td>${f.ratings.quality}</td>
+            <td>${f.ratings.politeness}</td>
+            <td>${f.ratings.nps}</td>
+            <td>${f.comments || '–'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 
         function loadUsers(usersToShow = null) {
             const users = usersToShow || JSON.parse(localStorage.getItem('users') || '[]');
