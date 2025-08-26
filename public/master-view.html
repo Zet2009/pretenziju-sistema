@@ -141,11 +141,9 @@ function sendFeedbackSurvey() {
         return;
     }
 
-    // ✅ Teisinga nuoroda
     const feedbackLink = `https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}`;
 
-    // ✅ Pašalinti tarpai
-    fetch('https://pretenzijos-sistema.onrender.com/send-feedback-survey', {
+    fetch('https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
