@@ -141,9 +141,10 @@ function sendFeedbackSurvey() {
         return;
     }
 
-    const feedbackLink = `${window.location.origin}/feedback.html?claimId=${claimId}`;
+    // ✅ Teisinga nuoroda
+    const feedbackLink = `https://pretenzijos-sistema.onrender.com/feedback.html?id=${claimId}`;
 
-    // Siųsk laišką klientui
+    // ✅ Pašalinti tarpai
     fetch('https://pretenzijos-sistema.onrender.com/send-feedback-survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -199,16 +200,16 @@ async function markAsResolved() {
     localStorage.setItem('claims', JSON.stringify(claims));
 
     try {
-        await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                claimId: claim.id,
-                customerEmail: claim.contact.email,
-                customerName: claim.contact.name,
-                productName: claim.product
-            })
-        });
+await fetch('https://pretenzijos-sistema.onrender.com/notify-resolved', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        claimId: claim.id,
+        customerEmail: claim.contact.email,
+        customerName: claim.contact.name,
+        productName: claim.product
+    })
+});
 
         alert('✅ Pretenzija pažymėta kaip išspręsta. Klientas ir kokybės komanda informuoti.');
         document.getElementById('markAsResolved').disabled = true;
