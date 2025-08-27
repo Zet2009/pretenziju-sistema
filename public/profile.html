@@ -503,4 +503,509 @@
         };
     </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilis – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+            --dark: #212529;
+            --gray: #75757d;
+            --font: 'Roboto', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.3;
+            font-size: 12px;
+        }
+        header {
+            background: var(--white);
+            padding: 10px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { height: 50px; cursor: pointer; }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 200;
+            font-size: 14px;
+        }
+        main {
+            max-width: 1200px;
+            margin: 10px auto;
+            padding: 10px;
+            width: 60%;
+        }
+        h1 { color: var(--primary); margin-bottom: 15px; font-size: 16px; text-align: center; }
+
+        /* Skirtukai */
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 8px 16px;
+            background: #e9ecef;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .tab:hover { background: #dee2e6; }
+        .tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Statistika */
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 11px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 120px;
+            text-align: center;
+        }
+        .stat-item .label {
+            color: var(--gray);
+            font-weight: 500;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+        .stat-item .value {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* Lentelė */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            table-layout: fixed;
+            font-size: 11px;
+        }
+        th, td {
+            padding: 6px 8px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+            word-wrap: break-word;
+        }
+        th {
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 500;
+            font-size: 10px;
+        }
+        tr:hover { background: #f8f9fa; }
+
+        /* Spalvotas būsenos dropdown'as */
+        .status-dropdown {
+            width: 100%;
+            padding: 4px;
+            font-size: 11px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .status-dropdown.status-new {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f1b0b7;
+        }
+        .status-dropdown.status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffeaa7;
+        }
+        .status-dropdown.status-approved {
+            background: #d4edff;
+            color: #004085;
+            border-color: #b8daff;
+        }
+        .status-dropdown.status-sent {
+            background: #17a2b8;
+            color: white;
+            border-color: #138496;
+        }
+        .status-dropdown.status-resolved {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .status-dropdown.status-rejected {
+            background: #e9ecef;
+            color: #495057;
+            border-color: #ced4da;
+        }
+
+        /* Asmeninė informacija – senas dizainas */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary);
+            font-size: 12px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1a1a1a;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        /* Montuotojo statusas */
+        .installer-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+            background: var(--secondary);
+        }
+        @media (max-width: 1200px) {
+            main {
+                width: 80%;
+            }
+        }
+        @media (max-width: 768px) {
+            main {
+                width: 95%;
+            }
+            .stats-bar { flex-direction: column; gap: 6px; }
+            th, td { padding: 4px 6px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html">Pagrindinis</a>
+            <a href="duku.html">DUK</a>
+            <a href="pretention.html">Pateikti pretenziją</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Mano profilis</h1>
+
+        <!-- Skirtukai -->
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('profile')">Profilis</div>
+            <div class="tab" onclick="openTab('claims')">Pretenzijos</div>
+        </div>
+
+        <!-- Skirtukas: Profilis -->
+        <div id="profile" class="tab-content active">
+            <div style="background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                <h2>Asmeninė informacija</h2>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label>Vardas *</label>
+                        <input type="text" id="profile-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pavardė *</label>
+                        <input type="text" id="profile-surname" required>
+                    </div>
+                    <div class="form-group">
+                        <label>El. paštas *</label>
+                        <input type="email" id="profile-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefonas *</label>
+                        <input type="tel" id="profile-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Adresas (gatvė, namo nr., butas) *</label>
+                        <input type="text" id="profile-street" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Miestas *</label>
+                        <input type="text" id="profile-city" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pašto kodas *</label>
+                        <input type="text" id="profile-postal" required>
+                    </div>
+                    <button type="button" onclick="saveProfile()">Išsaugoti pakeitimus</button>
+                </form>
+            </div>
+
+            <!-- Montuotojo statusas -->
+            <div id="installer-status" style="display: none; background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 15px;">
+                <h2>Montuotojo statusas</h2>
+                <p><strong>Tipas:</strong> Montuotojas <span class="installer-badge">MONTUOTOJAS</span></p>
+                <p><strong>Statusas:</strong> <span id="installer-status-text">Kraunama...</span></p>
+                <p id="installer-status-desc"></p>
+            </div>
+
+            <!-- Specializuota DUK nuoroda -->
+            <div id="duku-link" style="display: none; background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 15px;">
+                <h2>Specializuota DUK</h2>
+                <p>Jūs esate patvirtintas montuotojas. Galite peržiūrėti techninę informaciją.</p>
+                <a href="duku-montuotojams.html" class="btn">Eiti į DUK montuotojams</a>
+            </div>
+        </div>
+
+        <!-- Skirtukas: Pretenzijos -->
+        <div id="claims" class="tab-content">
+            <!-- Statistika -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="label">Viso pretenzijų</span>
+                    <span class="value" id="total-claims">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Atviros</span>
+                    <span class="value" id="open-claims">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Išspręstos</span>
+                    <span class="value" id="resolved-claims">0</span>
+                </div>
+            </div>
+
+            <!-- Pretenzijų lentelė -->
+            <table id="claims-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Produktas</th>
+                        <th>Tema</th>
+                        <th>Būsena</th>
+                        <th>Veiksmas</th>
+                    </tr>
+                </thead>
+                <tbody id="claims-body">
+                    <tr><td colspan="6" style="text-align: center;">Kraunama...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            alert('Prisijunkite, kad peržiūrėtumėte profilį.');
+            location.href = 'login.html';
+        }
+
+        // --- Užpildyti profilį (senas dizainas) ---
+        document.getElementById('profile-name').value = currentUser.name || '';
+        document.getElementById('profile-surname').value = currentUser.surname || '';
+        document.getElementById('profile-email').value = currentUser.email || '';
+        document.getElementById('profile-phone').value = currentUser.phone || '';
+        document.getElementById('profile-street').value = currentUser.street || '';
+        document.getElementById('profile-city').value = currentUser.city || '';
+        document.getElementById('profile-postal').value = currentUser.postal || '';
+
+        // --- Išsaugoti profilį ---
+        function saveProfile() {
+            // Gauname visus vartotojus
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            // Randame vartotojo indeksą
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            
+            if (userIndex !== -1) {
+                // Atnaujiname vartotojo duomenis masyve
+                users[userIndex].name = document.getElementById('profile-name').value;
+                users[userIndex].surname = document.getElementById('profile-surname').value;
+                users[userIndex].email = document.getElementById('profile-email').value;
+                users[userIndex].phone = document.getElementById('profile-phone').value;
+                users[userIndex].street = document.getElementById('profile-street').value;
+                users[userIndex].city = document.getElementById('profile-city').value;
+                users[userIndex].postal = document.getElementById('profile-postal').value;
+                
+                // Išsaugome atnaujintą vartotojų masyvą
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Atnaujiname currentUser objektą
+                const updatedUser = users[userIndex];
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                
+                alert('Profilis atnaujintas!');
+            } else {
+                // Jei vartotojas nerastas users masyve, sukuriame naują įrašą
+                const updatedUser = {
+                    ...currentUser,
+                    name: document.getElementById('profile-name').value,
+                    surname: document.getElementById('profile-surname').value,
+                    email: document.getElementById('profile-email').value,
+                    phone: document.getElementById('profile-phone').value,
+                    street: document.getElementById('profile-street').value,
+                    city: document.getElementById('profile-city').value,
+                    postal: document.getElementById('profile-postal').value
+                };
+                
+                // Pridedame prie users masyvo
+                users.push(updatedUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Atnaujiname currentUser
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                
+                alert('Profilis atnaujintas ir pridėtas prie vartotojų sąrašo!');
+            }
+        }
+
+        // --- Rodyti montuotojo statusą ---
+        if (currentUser.role === 'installer') {
+            document.getElementById('installer-status').style.display = 'block';
+            const statusText = document.getElementById('installer-status-text');
+            const statusDesc = document.getElementById('installer-status-desc');
+
+            if (currentUser.status === 'pending') {
+                statusText.textContent = 'Laukia patvirtinimo';
+                statusText.className = 'status status-pending';
+                statusDesc.textContent = 'Jūsų dokumentai perduoti kokybės komandai. Atsakymas bus išsiųstas per 5 darbo dienas.';
+            } else if (currentUser.status === 'active') {
+                statusText.textContent = 'Patvirtintas';
+                statusText.className = 'status status-active';
+                statusDesc.innerHTML = 'Sveikiname! Jūs esate oficialus „Rubineta“ montuotojas.<br><strong>Privalumai:</strong> prieiga prie techninių vadovų, specializuotos DUK, prioritetas aptarnavime.';
+                document.getElementById('duku-link').style.display = 'block';
+            } else if (currentUser.status === 'rejected') {
+                statusText.textContent = 'Atmestas';
+                statusText.className = 'status status-rejected';
+                statusDesc.textContent = 'Registracija atmesta. Jei norite sužinoti priežastį, susisiekite su info@rubineta.lt';
+            }
+        }
+
+        // --- Užkrauti pretenzijų istoriją ---
+        function loadClaimsHistory() {
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const userClaims = claims.filter(c => c.userId === currentUser.id);
+            const tbody = document.getElementById('claims-body');
+            tbody.innerHTML = '';
+
+            let openCount = 0, resolvedCount = 0;
+
+            if (userClaims.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
+            } else {
+                userClaims.forEach(claim => {
+                    const tr = document.createElement('tr');
+                    const statusClass = claim.status === 'Išspręsta' ? 'status-resolved' :
+                                       claim.status === 'Nauja' ? 'status-new' :
+                                       claim.status === 'Perduota servisui' ? 'status-sent' : 'status-pending';
+
+                    tr.innerHTML = `
+                        <td>${claim.id}</td>
+                        <td>${new Date(claim.date).toLocaleDateString('lt-LT')}</td>
+                        <td>${claim.product}</td>
+                        <td>${claim.topic}</td>
+                        <td><span class="status-dropdown ${statusClass}">${claim.status}</span></td>
+                        <td><a href="claim-user.html?id=${claim.id}" class="btn" style="padding:4px 8px; font-size:10px;">Peržiūrėti</a></td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    if (claim.status === 'Išspręsta') resolvedCount++;
+                    else openCount++;
+                });
+            }
+
+            document.getElementById('total-claims').textContent = userClaims.length;
+            document.getElementById('open-claims').textContent = openCount;
+            document.getElementById('resolved-claims').textContent = resolvedCount;
+        }
+
+        // --- Skirtukų perjungimas ---
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tab');
+            const tabContents = document.getElementsByClassName('tab-content');
+
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+                tabContents[i].classList.remove('active');
+            }
+
+            document.querySelector(`[onclick="openTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'claims') {
+                loadClaimsHistory();
+            }
+        }
+
+        // --- Paleidžiama puslapio užkrovimo metu ---
+        window.onload = function() {
+            if (document.getElementById('claims').classList.contains('active')) {
+                loadClaimsHistory();
+            }
+        };
+    </script>
+</body>
 </html>
