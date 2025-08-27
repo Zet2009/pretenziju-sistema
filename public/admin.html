@@ -1576,7 +1576,7 @@ function closePartnerModal() {
             }
         }
 
-       function showUserHistory(id) {
+    function viewUserHistory(id) {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const user = users.find(u => u.id === id);
 
@@ -1585,9 +1585,10 @@ function closePartnerModal() {
         return;
     }
 
-    // Nustatome modalo antraštę be „Peržiūrėti atskirai“ mygtuko
+    // Nustatome antraštę be „Peržiūrėti atskirai“ mygtuko
     setModalHeader('Vartotojo istorija', false);
 
+    // Dokumentų nuorodos
     let docsHtml = '';
     if (user.documents && user.documents.length > 0) {
         docsHtml = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">';
@@ -1625,7 +1626,6 @@ function closePartnerModal() {
 
     document.getElementById('claimModal').style.display = 'flex';
 }
-
         // -----------------------------
         // UŽKRAUTI DUOMENIS
         // -----------------------------
