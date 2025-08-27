@@ -47,10 +47,7 @@
             margin: 5px 0;
             word-break: break-all;
         }
-        .file-item a {
-            color: #17a2b8;
-            text-decoration: none;
-        }
+
         .status {
             font-weight: bold;
             color: #d44646;
@@ -66,6 +63,25 @@
             padding: 20px;
             border-top: 1px solid #ddd;
         }
+        .file-item a {
+    color: #17a2b8;
+    text-decoration: none;
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    background: #f8f9fa;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.file-item a:hover {
+    background: #e9ecef;
+    border-color: #17a2b8;
+    transform: translateY(-1px);
+}
+
+
     </style>
 </head>
 <body>
@@ -82,6 +98,9 @@
 
         <h2>Vartotojo dokumentai</h2>
         <div id="user-files"></div>
+
+        <h2>Pirkimo dokumentas</h2>
+        <div id="purchase-document"></div>
 
         <h2>Papildomi dokumentai</h2>
         <div id="additional-files"></div>
@@ -132,6 +151,28 @@
         } else {
             userFilesContainer.innerHTML = '<div class="file-item">Nėra įkeltų failų</div>';
         }
+
+        // --- Pirkimo dokumentas ---
+const purchaseDocContainer = document.getElementById('purchase-document');
+if (claim.purchaseDocument) {
+    const url = claim.purchaseDocument;
+    const fileName = url.split('/').pop();
+
+    let link = '';
+    if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+        link = `<a href="${url}" target="_blank">📷 Peržiūrėti nuotrauką</a>`;
+    } else if (url.match(/\.(mp4|webm)$/i)) {
+        link = `<a href="${url}" target="_blank">🎥 Peržiūrėti video</a>`;
+    } else if (url.match(/\.(pdf)$/i)) {
+        link = `<a href="${url}" target="_blank">📄 Atidaryti PDF</a>`;
+    } else {
+        link = `<a href="${url}" target="_blank">📎 Atsisiųsti dokumentą</a>`;
+    }
+
+    purchaseDocContainer.innerHTML = link;
+} else {
+    purchaseDocContainer.innerHTML = '<div class="file-item" style="color:#dc3545;">Pirkimo dokumentas nerastas.</div>';
+}
 
         // --- Papildomi dokumentai ---
         const additionalFilesContainer = document.getElementById('additional-files');
