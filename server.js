@@ -46,6 +46,28 @@ transporter.verify((error, success) => {
     }
 });
 
+
+// === Siųsti slaptažodžio atkūrimo laišką ===
+app.post('/send-password-reset', async (req, res) => {
+    const { email, resetLink } = req.body;
+
+    const mailOptions = {
+        from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Atkurti slaptažodį – Rubineta',
+        text: `Sveiki,\n\nJūs paprašėte atkurti slaptažodį.\n\nSpauskite nuorodą, kad nustatytumėte naują:\n${resetLink}\n\nNuoroda galioja 1 valandą.\n\nJei to nedarėte – galite ignoruoti šį laišką.\n\nPagarbiai,\nRubineta komanda`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Klaida siunčiant slaptažodžio atkūrimo laišką:', error);
+        res.status(500).json({ success: false, error: 'Nepavyko išsiųsti laiško' });
+    }
+});
+
+
 // === 1. Laiškas klientui – patvirtinimas, kad pretenzija priimta ===
 app.post('/send-confirmation', async (req, res) => {
     const { email, claimId, language = 'lt', isRegistered = false } = req.body;
