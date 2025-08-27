@@ -163,24 +163,22 @@
                 <label for="document">Įkelkite dokumentą (PDF, nuotrauka)</label>
                 <input type="file" id="document" accept=".pdf,image/*">
             </div>
-<div class="form-group">
-    <label for="phone">Telefonas *</label>
-    <input type="tel" id="phone" required>
-</div>
-<div class="form-group">
-    <label for="street">Adresas (gatvė, namas, butas) *</label>
-    <input type="text" id="street" required>
-</div>
-<div class="form-group">
-    <label for="city">Miestas *</label>
-    <input type="text" id="city" required>
-</div>
-<div class="form-group">
-    <label for="postal">Pašto kodas *</label>
-    <input type="text" id="postal" required>
-</div>
-
-
+            <div class="form-group">
+                <label for="phone">Telefonas *</label>
+                <input type="tel" id="phone" required>
+            </div>
+            <div class="form-group">
+                <label for="street">Adresas (gatvė, namas, butas) *</label>
+                <input type="text" id="street" required>
+            </div>
+            <div class="form-group">
+                <label for="city">Miestas *</label>
+                <input type="text" id="city" required>
+            </div>
+            <div class="form-group">
+                <label for="postal">Pašto kodas *</label>
+                <input type="text" id="postal" required>
+            </div>
             <button type="submit" class="btn">Registruotis</button>
         </form>
         <div class="links">
@@ -193,85 +191,95 @@
     </footer>
 
     <script>
+        // Perjungti dokumento lauką pagal vaidmenį
         function toggleDocumentField() {
             const role = document.getElementById('role').value;
             document.getElementById('document-field').style.display = role === 'installer' ? 'block' : 'none';
         }
 
+        // Įkelti failą į Cloudinary
+        function uploadToCloudinary(file, onSuccess, onError) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'r6wao0fr'); // Keisk į savo
+
+            let uploadUrl;
+            if (file.type.startsWith('image/')) {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
+            } else if (file.type.startsWith('video/')) {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
+            } else {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
+            }
+
+            fetch(uploadUrl, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.secure_url) {
+                        onSuccess(data.secure_url);
+                    } else {
+                        onError(new Error('Nepavyko gauti URL'));
+                    }
+                })
+                .catch(onError);
+        }
+
+        // Registracijos funkcija
         function register(event) {
             event.preventDefault();
+
             const name = document.getElementById('name').value.trim();
             const surname = document.getElementById('surname').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const role = document.getElementById('role').value;
- const phone = document.getElementById('phone').value.trim();
-    const street = document.getElementById('street').value.trim();
-    const city = document.getElementById('city').value.trim();
-    const postal = document.getElementById('postal').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const street = document.getElementById('street').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const postal = document.getElementById('postal').value.trim();
 
-
-
-
-            // Patikriname, ar toks el. paštas jau egzistuoja
-            const users = JSON.parse(localStorage.getItem('users')) || [];
+            // Patikrinti, ar toks el. paštas jau egzistuoja
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (users.some(u => u.email === email)) {
                 alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
                 return;
             }
 
-            // Sukuriame naują vartotoją
-           const newUser = {
-    id: Date.now().toString(),
-    name,
-    surname,
-    email,
-    password,
-    role,
-    status: role === 'installer' ? 'pending' : 'active',
-    createdAt: new Date().toISOString(),
-    // Papildomi duomenys
-    phone,
-    street,
-    city,
-    postal
-};
+            // Sukurti naują vartotoją
+            const newUser = {
+                id: 'USR-' + Date.now(),
+                name,
+                surname,
+                email,
+                password,
+                role,
+                status: role === 'installer' ? 'pending' : 'active',
+                createdAt: new Date().toISOString(),
+                phone,
+                street,
+                city,
+                postal,
+                document: null // Bus papildytas po įkėlimo
+            };
 
-            users.push(newUser);
-            localStorage.setItem('users', JSON.stringify(users));
-
-            // Įkeliame dokumentą, jei vartotojas yra montuotojas
             const fileInput = document.getElementById('document');
-            if (fileInput.files.length > 0 && role === 'installer') {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const docs = JSON.parse(localStorage.getItem('installerDocs') || '[]');
-                    docs.push({
-                        userId: newUser.id,
-                        fileName: file.name,
-                        fileData: e.target.result
-                    });
-                    localStorage.setItem('installerDocs', JSON.stringify(docs));
-   // ✅ Išsaugome prisijungusį vartotoją su visais duomenimis
-localStorage.setItem('currentUser', JSON.stringify({
-    id: newUser.id,
-    name: newUser.name,
-    surname: newUser.surname,
-    email: newUser.email,
-    role: newUser.role,
-    phone: newUser.phone,
-    street: newUser.street,
-    city: newUser.city,
-    postal: newUser.postal
-}));
+            const file = fileInput.files[0];
 
-// ✅ Nukreipiame į pagrindinį puslapį
-alert('Registracija sėkminga! Jūs automatiškai prisijungėte.');
-location.href = 'index.html';
-                };
-                reader.readAsDataURL(file);
+            // Jei montuotojas ir įkeltas dokumentas – įkelk į Cloudinary
+            if (role === 'installer' && file) {
+                uploadToCloudinary(file, (url) => {
+                    newUser.document = url;
+                    users.push(newUser);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    alert('Registracija sėkminga! Laukite patvirtinimo.');
+                    location.href = 'login.html';
+                }, (err) => {
+                    alert('Nepavyko įkelti dokumento. Bandykite dar kartą.');
+                });
             } else {
+                // Ne montuotojas arba dokumentas neprivalomas
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
                 alert('Registracija sėkminga!');
                 location.href = 'login.html';
             }
