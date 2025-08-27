@@ -48,6 +48,7 @@
             max-width: 1600px;
             margin: 10px auto;
             padding: 10px;
+            width: 100%;
         }
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 16px; text-align: center; }
 
@@ -515,7 +516,7 @@
                             <button onclick="applyFilters()" class="btn btn-primary">Filtruoti</button>
                             <button onclick="clearStatusFilters()" class="btn">Išvalyti</button>
                         </div>
-                    </div>
+                        </div>
                 </div>
 
                 <input type="text" id="filter-product" placeholder="Produkto pavadinimas">
@@ -890,7 +891,7 @@
                             </tr>
                             <tr>
                                 <td><strong>Personalo mandagumas:</strong></td>
-                                <td><span class="rating-badge rating-${feedback.ratings.politeness}">${feedback.ratings.politeness}</span></td>
+                                                                <td><span class="rating-badge rating-${feedback.ratings.politeness}">${feedback.ratings.politeness}</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Rekomendacijos įvertinimas (NPS):</strong></td>
@@ -1585,6 +1586,63 @@
         });
     }
 
+function viewInstallerDocs(id) {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.id === id);
+
+    if (!user) {
+        alert('Vartotojas nerastas.');
+        return;
+    }
+
+    // Patikriname, ar yra dokumentų
+    if (!user.document && (!user.documents || user.documents.length === 0)) {
+        alert('Nėra įkeltų dokumentų.');
+        return;
+    }
+
+    // Sukuriame modalinį langą
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style = `
+        display: flex;
+        position: fixed;
+        z-index: 1000;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        align-items: center;
+        justify-content: center;
+    `;
+
+    let docsHtml = '<div class="modal-content" style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 600px; font-size: 14px;">';
+    docsHtml += `<h3>Dokumentai – ${user.name} ${user.surname}</h3>`;
+
+    // Atvaizduoti pagrindinį dokumentą (senoji versija)
+    if (user.document) {
+        docsHtml += `<div class="file-item" style="margin: 10px 0;">
+                        <a href="${user.document}" target="_blank" style="color: #17a2b8;">📎 Dokumentas</a>
+                     </div>`;
+    }
+
+    // Arba keli dokumentai (naujoji versija)
+    if (user.documents && user.documents.length > 0) {
+        user.documents.forEach(doc => {
+            docsHtml += `<div class="file-item" style="margin: 10px 0;">
+                            <a href="${doc.url}" target="_blank" style="color: #17a2b8;">📎 ${doc.name || 'Dokumentas'}</a>
+                         </div>`;
+        });
+    }
+
+    docsHtml += `<button onclick="this.closest('.modal').remove()" style="margin-top: 20px; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    Uždaryti
+                </button>`;
+    docsHtml += '</div>';
+
+    modal.innerHTML = docsHtml;
+    document.body.appendChild(modal);
+}
+
     function getActionsForUser(user) {
         if (user.role === 'installer' && user.status === 'pending') {
             return `
@@ -1921,5 +1979,4 @@
         loadClaims();
     });
 </script>
-</body> </html> ```
-
+</body> </html>
