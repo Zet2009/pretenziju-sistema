@@ -544,7 +544,7 @@ function setModalHeader(title, showViewSeparately = false) {
                     ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">${claim.responsible}</a>`
                     : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">Paskirti atsakingą</a>`;
 
-                const commentCell = claim.qualityComment || 'Neaišku kur laša';
+                const commentCell = claim.qualityComment || '-------';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
