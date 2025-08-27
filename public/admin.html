@@ -45,10 +45,9 @@
             font-size: 14px;
         }
         main {
-            max-width: 1600px;
+            max-width: 2000px;
             margin: 10px auto;
             padding: 10px;
-            width: 100%;
         }
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 16px; text-align: center; }
 
@@ -516,7 +515,7 @@
                             <button onclick="applyFilters()" class="btn btn-primary">Filtruoti</button>
                             <button onclick="clearStatusFilters()" class="btn">Išvalyti</button>
                         </div>
-                        </div>
+                    </div>
                 </div>
 
                 <input type="text" id="filter-product" placeholder="Produkto pavadinimas">
@@ -891,7 +890,7 @@
                             </tr>
                             <tr>
                                 <td><strong>Personalo mandagumas:</strong></td>
-                                                                <td><span class="rating-badge rating-${feedback.ratings.politeness}">${feedback.ratings.politeness}</span></td>
+                                <td><span class="rating-badge rating-${feedback.ratings.politeness}">${feedback.ratings.politeness}</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Rekomendacijos įvertinimas (NPS):</strong></td>
@@ -1922,4 +1921,5 @@
         loadClaims();
     });
 </script>
-</body> </html>
+</body> </html> ```
+
