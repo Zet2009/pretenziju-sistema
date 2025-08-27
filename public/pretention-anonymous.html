@@ -68,24 +68,88 @@
         }
         .file-list {
             margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
         }
         .file-item {
-            margin: 5px 0;
-            word-break: break-all;
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .file-item:hover {
+            transform: translateY(-3px);
+        }
+        .file-preview {
+            height: 100px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            overflow: hidden;
+            background: #f8f8f8;
         }
-        .file-item a {
-            flex: 1;
+        .file-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .file-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .file-preview .file-icon {
+            font-size: 2.5rem;
+            color: #6c757d;
+        }
+        .file-info {
+            padding: 8px;
+            font-size: 0.8rem;
+            text-align: center;
+            word-break: break-all;
+        }
+        .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .remove-btn {
-            color: red;
-            font-size: 12px;
-            background: none;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,255,255,0.8);
             border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
             cursor: pointer;
-            padding: 2px 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: red;
+        }
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .file-input-label:hover {
+            background: #e8e8e8;
+        }
+        .upload-status {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
         }
 
         /* Footer stiliaus pakeitimai */
@@ -143,6 +207,9 @@
                 flex-direction: column;
                 gap: 10px;
             }
+            .file-list {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
         }
     </style>
 </head>
@@ -178,8 +245,8 @@
                 <select id="request" required>
                     <option value="send-part">Išsiųsti atsarginę dalį</option>
                     <option value="send-technician">Siųsti meistrą</option>
-                    <option value="refund">Grąžinti pinigus</option>
                     <option value="exchange">Keisti produktą</option>
+                    <option value="choose">Kita</option>
                 </select>
             </div>
 
@@ -225,13 +292,20 @@
                 <label for="preferred-time">Patogus laikas kontaktui</label>
                 <input type="text" id="preferred-time" placeholder="Pvz., Iš ryto, 9–11 val.">
             </div>
-
-            <div class="attachments">
-                <label for="attachment">Prisegti dokumentus (nuotraukos, PDF, video)</label>
-                <input type="file" id="attachment" accept="image/*,video/*,.pdf" multiple>
+  <div class="form-group">
+                <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra) *</label>
+                <input type="file" id="purchase-document" accept="image/*,application/pdf" required>
+                <small>Pridėkite pirkimo patvirtinimą – be jo pretenzija negali būti priimta.</small>
             </div>
-
-            <div class="file-list" id="file-list"></div>
+            <div class="attachments">
+                <label for="attachment">Įkelkite sugadintos prekės nuotraukas arba vaizdo įrašus *</label>
+                <label for="attachment" class="file-input-label">📎 Paspauskite arba vilkite failus čia</label>
+                <input type="file" id="attachment" accept="image/*,video/*,.pdf" multiple style="display: none;">
+                <small>Pridėkite nuotraukas arba vaizdo įrašus, kurie patvirtina prekės gedimą.</small>
+                
+                <div class="upload-status" id="upload-status"></div>
+                <div class="file-list" id="file-list"></div>
+            </div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px;">
                 <button type="submit">Pateikti pretenziją</button>
@@ -275,10 +349,44 @@
 
         const fileInput = document.getElementById('attachment');
         const fileList = document.getElementById('file-list');
+        const uploadStatus = document.getElementById('upload-status');
         const uploadedUrls = [];
-
+        
+        // Pridėti vilkimo ir paleidimo funkcionalumą
+        const fileInputLabel = document.querySelector('.file-input-label');
+        
+        fileInputLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.background = '#e0e0e0';
+        });
+        
+        fileInputLabel.addEventListener('dragleave', function() {
+            this.style.background = '#f0f0f0';
+        });
+        
+        fileInputLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.background = '#f0f0f0';
+            if (e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+        
+        fileInputLabel.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
         fileInput.addEventListener('change', function() {
-            Array.from(this.files).forEach(file => {
+            if (this.files.length > 0) {
+                handleFiles(this.files);
+                this.value = ''; // Išvalome input reikšmę, kad galėtume įkelti tuos pačius failus dar kartą
+            }
+        });
+        
+        function handleFiles(files) {
+            uploadStatus.textContent = `Įkeliama ${files.length} failų...`;
+            
+            Array.from(files).forEach((file, index) => {
                 // ✅ Failų dydžio ribojimai
                 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
                 const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
@@ -309,17 +417,107 @@
                     return;
                 }
 
+                // Iš karto atvaizduojame failo peržiūrą
+                const tempUrl = URL.createObjectURL(file);
+                renderFilePreview(file, tempUrl, true);
+                
                 uploadToCloudinary(file, (url) => {
+                    // Pakeičiame laikiną URL į tikrąjį
                     uploadedUrls.push(url);
-                    fileList.innerHTML += `<div class="file-item">📎 <a href="${url}" target="_blank">${file.name}</a> <button type="button" class="remove-btn" onclick="removeFile('${url}', this)">✕</button></div>`;
+                    updateFilePreview(url, file);
+                    
+                    if (index === files.length - 1) {
+                        uploadStatus.textContent = 'Visi failai sėkmingai įkelti.';
+                        setTimeout(() => {
+                            uploadStatus.textContent = '';
+                        }, 3000);
+                    }
                 }, (err) => {
-                    alert(`Nepavyko įkelti: ${file.name}`);
+                    document.querySelector(`[data-filename="${file.name}"]`).innerHTML += 
+                        '<div style="color: red; font-size: 0.7rem;">Įkelti nepavyko</div>';
+                    console.error(`Nepavyko įkelti: ${file.name}`, err);
                 });
             });
-        });
-
+        }
+        
+        function renderFilePreview(file, url, isTemp = false) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.setAttribute('data-filename', file.name);
+            
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'file-preview';
+            
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = file.name;
+                previewDiv.appendChild(img);
+            } else if (file.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.controls = true;
+                previewDiv.appendChild(video);
+            } else {
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'file-icon';
+                iconDiv.textContent = '📄';
+                previewDiv.appendChild(iconDiv);
+            }
+            
+            // Rodyti įkėlimo indikatorių, jei tai laikinas failas
+            if (isTemp) {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.style.position = 'absolute';
+                loadingDiv.style.top = '0';
+                loadingDiv.style.left = '0';
+                loadingDiv.style.right = '0';
+                loadingDiv.style.bottom = '0';
+                loadingDiv.style.background = 'rgba(255,255,255,0.7)';
+                loadingDiv.style.display = 'flex';
+                loadingDiv.style.alignItems = 'center';
+                loadingDiv.style.justifyContent = 'center';
+                loadingDiv.innerHTML = '<div>Įkeliama...</div>';
+                previewDiv.appendChild(loadingDiv);
+            }
+            
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'file-info';
+            
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+            fileInfo.appendChild(fileName);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = function() {
+                removeFile(url, fileItem);
+            };
+            
+            fileItem.appendChild(previewDiv);
+            fileItem.appendChild(fileInfo);
+            fileItem.appendChild(removeBtn);
+            
+            fileList.appendChild(fileItem);
+        }
+        
+        function updateFilePreview(url, file) {
+            const fileItem = document.querySelector(`[data-filename="${file.name}"]`);
+            if (fileItem) {
+                // Pašaliname įkėlimo indikatorių
+                const loadingDiv = fileItem.querySelector('.file-preview > div:last-child');
+                if (loadingDiv) loadingDiv.remove();
+            }
+        }
+        
         function removeFile(url, element) {
-            element.closest('.file-item').remove();
+            // 1. Pašalinti iš DOM
+            element.remove();
+
+            // 2. Pašalinti iš uploadedUrls masyvo
             const index = uploadedUrls.indexOf(url);
             if (index > -1) {
                 uploadedUrls.splice(index, 1);
@@ -328,6 +526,11 @@
 
         document.getElementById('claim-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            if (uploadedUrls.length === 0) {
+                alert('Prašome įkelti bent vieną sugadintos prekės nuotrauką ar vaizdo įrašą.');
+                return;
+            }
 
             const claim = {
                 id: 'PRET-' + Date.now(),
