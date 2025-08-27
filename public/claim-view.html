@@ -160,21 +160,28 @@
                 <div class="field"><span class="field-label">Patogus laikas:</span> <span id="preferred-time"></span></div>
             </div>
 
+<div class="section">
+    <h3>3. Pirkimo dokumentas</h3>
+    <div id="purchase-document"></div>
+</div>
+
             <div class="section">
-                <h3>3. Vartotojo prisegti dokumentai</h3>
+                <h3>4. Vartotojo prisegti dokumentai</h3>
                 <div id="user-files"></div>
             </div>
         </div>
 
+
+
         <!-- Dešinė pusė -->
         <div class="right-column">
             <div class="section">
-                <h3>4. Kokybės skyriaus komentarai</h3>
+                <h3>5. Kokybės skyriaus komentarai</h3>
                 <p id="quality-note">Nėra papildomų pastabų.</p>
             </div>
 
             <div class="section">
-                <h3>5. Atsakingas asmuo</h3>
+                <h3>6. Atsakingas asmuo</h3>
                 <div class="field"><span class="field-label">Vardas:</span> <span id="responsible-name"></span></div>
                 <div class="field"><span class="field-label">Pavardė:</span> <span id="responsible-surname"></span></div>
                 <div class="field"><span class="field-label">Pareigos:</span> <span id="responsible-role"></span></div>
@@ -183,22 +190,22 @@
             </div>
 
             <div class="section">
-                <h3>6. Priskirtas partneris</h3>
+                <h3>7. Priskirtas partneris</h3>
                 <div class="field"><span class="field-label">Pavadinimas:</span> <span id="partner-name"></span></div>
             </div>
 
             <div class="section">
-                <h3>7. Būsena</h3>
+                <h3>8. Būsena</h3>
                 <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status"></span></div>
             </div>
 
             <div class="section">
-                <h3>8. Veiksmų istorija</h3>
+                <h3>9. Veiksmų istorija</h3>
                 <div id="timeline-container" class="timeline"></div>
             </div>
 
 <div class="section">
-    <h3>9. Kokybės skyriaus dokumentai</h3>
+    <h3>10. Kokybės skyriaus dokumentai</h3>
     <div id="quality-attachments"></div>
 </div>
 
@@ -249,35 +256,87 @@
         document.getElementById('contact-method').textContent = claim.contactMethod;
         document.getElementById('preferred-time').textContent = claim.preferredTime;
 
+
+
+// --- Pirkimo dokumentas ---
+const purchaseDocContainer = document.getElementById('purchase-document');
+if (claim.purchaseDocument) {
+    const url = claim.purchaseDocument;
+
+    if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+        purchaseDocContainer.innerHTML = `<img src="${url}" alt="Pirkimo dokumentas" style="max-width:100%; border-radius:6px;">`;
+    } else if (url.match(/\.(mp4|webm)$/i)) {
+        purchaseDocContainer.innerHTML = `<video controls style="max-width:100%;"><source src="${url}" type="video/mp4">Naršyklė nepalaiko video.</video>`;
+    } else if (url.match(/\.(pdf)$/i)) {
+        purchaseDocContainer.innerHTML = `<a href="${url}" target="_blank" style="color:#d44646;">📄 Atidaryti pirkimo dokumentą (PDF)</a>`;
+    } else {
+        purchaseDocContainer.innerHTML = `<a href="${url}" target="_blank" style="color:#17a2b8;">📎 Atsisiųsti dokumentą</a>`;
+    }
+} else {
+    purchaseDocContainer.innerHTML = '<p style="color:#dc3545;">Pirkimo dokumentas nerastas. Klientas jo neįkėlė.</p>';
+}
+
+
 // Rodyti kokybės skyriaus dokumentus
+// --- Kokybės skyriaus dokumentai ---
 const qualityAttachmentsContainer = document.getElementById('quality-attachments');
+qualityAttachmentsContainer.innerHTML = '';
+
 if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
     claim.qualityAttachments.forEach(att => {
         const item = document.createElement('div');
-        item.className = 'attachment-item';
+        item.className = 'file-item';
         item.style.margin = '8px 0';
         item.style.padding = '8px';
         item.style.border = '1px solid #ddd';
         item.style.borderRadius = '6px';
         item.style.backgroundColor = '#f9f9f9';
+        item.style.textAlign = 'center';
 
-        let link = '';
-        if (att.type === 'video') {
-            link = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🎬 Peržiūrėti video</a>`;
+        if (att.type === 'file') {
+            const url = att.url;
+            const name = att.name;
+
+            if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+                item.innerHTML = `
+                    <strong>${name}</strong><br>
+                    <img src="${url}" alt="${name}" style="max-width:100%; border-radius:4px; margin:4px 0;">
+                `;
+            } else if (url.match(/\.(mp4|webm)$/i)) {
+                item.innerHTML = `
+                    <strong>${name}</strong><br>
+                    <video controls style="max-width:100%;">
+                        <source src="${url}" type="video/mp4">
+                        Jūsų naršyklė nepalaiko video.
+                    </video>
+                `;
+            } else if (url.match(/\.(pdf)$/i)) {
+                item.innerHTML = `
+                    <strong>${name}</strong><br>
+                    <a href="${url}" target="_blank" style="color:#d44646;">📄 Atidaryti PDF</a>
+                `;
+            } else {
+                item.innerHTML = `
+                    <strong>${name}</strong><br>
+                    <a href="${url}" target="_blank" style="color:#17a2b8;">📎 Atsisiųsti dokumentą</a>
+                `;
+            }
+        } else if (att.type === 'video') {
+            item.innerHTML = `
+                <strong>${att.name}</strong><br>
+                <a href="${att.url}" target="_blank" style="color:#17a2b8;">🎬 Peržiūrėti video</a>
+            `;
         } else if (att.type === 'link') {
-            link = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">🔗 Atidaryti nuorodą</a>`;
-        } else {
-            link = `<a href="${att.url}" target="_blank" style="color:#17a2b8;">📎 Atsisiųsti dokumentą</a>`;
+            item.innerHTML = `
+                <strong>${att.name}</strong><br>
+                <a href="${att.url}" target="_blank" style="color:#17a2b8;">🔗 Atidaryti nuorodą</a>
+            `;
         }
 
-        item.innerHTML = `
-            <strong>${att.name}</strong><br>
-            ${link}
-        `;
         qualityAttachmentsContainer.appendChild(item);
     });
 } else {
-    qualityAttachmentsContainer.innerHTML = '<p>Nėra papildomų dokumentų nuo kokybės skyriaus.</p>';
+    qualityAttachmentsContainer.innerHTML = '<p>Nėra prisegtų dokumentų nuo kokybės skyriaus.</p>';
 }
 
 
@@ -300,7 +359,14 @@ if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
         } else {
             userFilesHtml = '<div class="file-item">Nėra įkeltų failų</div>';
         }
+       
+       
+       
         userFilesContainer.innerHTML = userFilesHtml;
+
+
+
+        
 
         // --- Kokybės komentaras ---
         document.getElementById('quality-note').textContent = claim.qualityExternalComment || 'Nėra papildomų pastabų.';
@@ -327,6 +393,9 @@ timeline.innerHTML = '';
 const baseHistory = [
     { user: 'Sistema', time: claim.date, action: 'Pretenzija pateikta' }
 ];
+
+
+
 
 if (claim.status !== 'Nauja') {
     baseHistory.push({
