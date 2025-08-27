@@ -1775,7 +1775,55 @@ function viewInstallerDocs(id) {
             `;
             document.getElementById('claimModal').style.display = 'flex';
         }
+    }function showUserHistory(id) {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.id === id);
+
+    if (!user) {
+        alert('Vartotojas nerastas.');
+        return;
     }
+
+    // Nustatome modalo antraštę be „Peržiūrėti atskirai“ mygtuko
+    setModalHeader('Vartotojo istorija', false);
+
+    let docsHtml = '';
+    if (user.documents && user.documents.length > 0) {
+        docsHtml = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">';
+        docsHtml += '<p><strong>Pateikti dokumentai:</strong></p><div style="display: flex; flex-direction: column; gap: 6px;">';
+        user.documents.forEach(doc => {
+            docsHtml += `<a href="${doc.url}" target="_blank" style="color: #17a2b8; text-decoration: none;">📎 ${doc.name}</a>`;
+        });
+        docsHtml += '</div></div>';
+    }
+
+    // Būsenos žymė
+    let statusBadge = user.status;
+    if (user.status === 'approved') {
+        statusBadge = '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Patvirtintas</span>';
+    } else if (user.status === 'pending') {
+        statusBadge = '<span style="background: #ffc107; color: #212529; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Laukia</span>';
+    } else if (user.status === 'rejected') {
+        statusBadge = '<span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Atmestas</span>';
+    }
+
+    document.getElementById('modal-body').innerHTML = `
+        <div class="modal-section">
+            <h3>Vartotojo istorija</h3>
+            <p><strong>Vardas:</strong> ${user.name} ${user.surname}</p>
+            <p><strong>El. paštas:</strong> ${user.email}</p>
+            <p><strong>Telefonas:</strong> ${user.phone}</p>
+            <p><strong>Miestas:</strong> ${user.city}</p>
+            <p><strong>Rolė:</strong> ${user.role}</p>
+            <p><strong>Būsena:</strong> ${statusBadge}</p>
+            ${user.rejectionReason ? `<p><strong>Priežastis atmestant:</strong> ${user.rejectionReason}</p>` : ''}
+            <p><strong>Registracijos data:</strong> ${user.submissionDate ? new Date(user.submissionDate).toLocaleDateString('lt-LT') : 'Nenurodyta'}</p>
+            ${docsHtml}
+        </div>
+    `;
+
+    document.getElementById('claimModal').style.display = 'flex';
+}
 
     function loadPartners(partnersToShow = null) {
         const partners = partnersToShow || JSON.parse(localStorage.getItem('servicePartners') || '[]');
