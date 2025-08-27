@@ -370,18 +370,28 @@
         // --- Išsaugoti profilį ---
         function saveProfile() {
             const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.id === currentUser.id);
-            if (user) {
-                user.name = document.getElementById('profile-name').value;
-                user.surname = document.getElementById('profile-surname').value;
-                user.email = document.getElementById('profile-email').value;
-                user.phone = document.getElementById('profile-phone').value;
-                user.street = document.getElementById('profile-street').value;
-                user.city = document.getElementById('profile-city').value;
-                user.postal = document.getElementById('profile-postal').value;
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            
+            if (userIndex !== -1) {
+                // Atnaujiname vartotojo duomenis masyve
+                users[userIndex].name = document.getElementById('profile-name').value;
+                users[userIndex].surname = document.getElementById('profile-surname').value;
+                users[userIndex].email = document.getElementById('profile-email').value;
+                users[userIndex].phone = document.getElementById('profile-phone').value;
+                users[userIndex].street = document.getElementById('profile-street').value;
+                users[userIndex].city = document.getElementById('profile-city').value;
+                users[userIndex].postal = document.getElementById('profile-postal').value;
+                
+                // Išsaugome atnaujintą vartotojų masyvą
                 localStorage.setItem('users', JSON.stringify(users));
-                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // Atnaujiname currentUser objektą
+                const updatedUser = users[userIndex];
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                
                 alert('Profilis atnaujintas!');
+            } else {
+                alert('Klaida: vartotojas nerastas.');
             }
         }
 
