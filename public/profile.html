@@ -369,7 +369,10 @@
 
         // --- Išsaugoti profilį ---
         function saveProfile() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            // Gauname visus vartotojus
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            // Randame vartotojo indeksą
             const userIndex = users.findIndex(u => u.id === currentUser.id);
             
             if (userIndex !== -1) {
@@ -391,7 +394,26 @@
                 
                 alert('Profilis atnaujintas!');
             } else {
-                alert('Klaida: vartotojas nerastas.');
+                // Jei vartotojas nerastas users masyve, sukuriame naują įrašą
+                const updatedUser = {
+                    ...currentUser,
+                    name: document.getElementById('profile-name').value,
+                    surname: document.getElementById('profile-surname').value,
+                    email: document.getElementById('profile-email').value,
+                    phone: document.getElementById('profile-phone').value,
+                    street: document.getElementById('profile-street').value,
+                    city: document.getElementById('profile-city').value,
+                    postal: document.getElementById('profile-postal').value
+                };
+                
+                // Pridedame prie users masyvo
+                users.push(updatedUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Atnaujiname currentUser
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                
+                alert('Profilis atnaujintas ir pridėtas prie vartotojų sąrašo!');
             }
         }
 
