@@ -680,10 +680,7 @@
         <div class="modal-content">
             <div id="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h2 id="modal-title">Pretenzijos peržiūra</h2>
-                <div id="modal-actions">
-                    <button onclick="openClaimViewPage()" class="btn btn-export" style="padding: 5px 10px; font-size: 11px; margin-right: 10px;">Peržiūrėti atskirai</button>
-                    <span class="close" onclick="closeModal()">&times;</span>
-                </div>
+               
             </div>
             <div id="modal-body"></div>
         </div>
@@ -744,6 +741,39 @@
             alert('Prieiga draudžiama. Reikalingos administratoriaus teisės.');
             location.href = 'index.html';
         }
+
+function viewInstallerDocs(id) {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.id === id);
+    if (!user || !user.documents || user.documents.length === 0) {
+        alert('Nėra įkeltų dokumentų.');
+        return;
+    }
+
+    let docsHtml = '<div class="file-list">';
+    user.documents.forEach(doc => {
+        // Tikriname ar dokumento URL yra tinkamas
+        const docUrl = doc.url || doc;
+        const docName = doc.name || doc;
+        
+        docsHtml += `<div class="file-item">
+            <a href="${docUrl}" target="_blank" style="text-decoration: none;">
+                📎 ${docName}
+            </a>
+        </div>`;
+    });
+    docsHtml += '</div>';
+
+    document.getElementById('modal-body').innerHTML = `
+        <div class="modal-section">
+            <h3>Dokumentai – ${user.name} ${user.surname}</h3>
+            ${docsHtml}
+            <p><strong>Patvirtinimo data:</strong> ${user.submissionDate || 'Nenurodyta'}</p>
+        </div>
+    `;
+    document.getElementById('claimModal').style.display = 'flex';
+}
+
 
         function setModalHeader(title, showViewSeparately = false) {
             document.getElementById('modal-title').textContent = title;
