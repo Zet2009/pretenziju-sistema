@@ -216,7 +216,11 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.secure_url) {
-                        onSuccess(data.secure_url);
+                        onSuccess({
+                            name: file.name,
+                            url: data.secure_url,
+                            type: file.type
+                        });
                     } else {
                         onError(new Error('Nepavyko gauti URL'));
                     }
@@ -259,7 +263,7 @@
                 street,
                 city,
                 postal,
-                document: null // Bus papildytas po įkėlimo
+                documents: [] // Pakeista į daugiskaitą (masyvas)
             };
 
             const fileInput = document.getElementById('document');
@@ -267,8 +271,8 @@
 
             // Jei montuotojas ir įkeltas dokumentas – įkelk į Cloudinary
             if (role === 'installer' && file) {
-                uploadToCloudinary(file, (url) => {
-                    newUser.document = url;
+                uploadToCloudinary(file, (documentData) => {
+                    newUser.documents.push(documentData); // Pridedame dokumentą į masyvą
                     users.push(newUser);
                     localStorage.setItem('users', JSON.stringify(users));
                     alert('Registracija sėkminga! Laukite patvirtinimo.');
