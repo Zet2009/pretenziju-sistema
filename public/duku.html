@@ -58,7 +58,7 @@
             font-size: 16px;
         }
         .search {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .search input {
             width: 100%;
@@ -72,18 +72,61 @@
             border-color: var(--primary);
             outline: none;
         }
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        .category-filter {
+            padding: 8px 16px;
+            background: #e9ecef;
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .category-filter:hover, .category-filter.active {
+            background: var(--primary);
+            color: white;
+        }
         .faq-item {
             background: var(--white);
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .faq-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
         }
         .faq-item h3 {
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 0;
             font-size: 18px;
             font-weight: 500;
+            flex: 1;
+            padding-right: 20px;
+        }
+        .faq-item .icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+        .faq-item.open .icon {
+            transform: rotate(180deg);
+        }
+        .faq-content {
+            margin-top: 15px;
+            display: none;
+        }
+        .faq-item.open .faq-content {
+            display: block;
         }
         .faq-item p {
             color: var(--dark);
@@ -98,6 +141,12 @@
             font-size: 12px;
             font-weight: 500;
             margin-bottom: 15px;
+        }
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+            display: none;
         }
         footer {
             text-align: center;
@@ -116,6 +165,14 @@
                 flex-wrap: wrap;
                 justify-content: center;
             }
+            .faq-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .faq-item h3 {
+                margin-bottom: 10px;
+                padding-right: 0;
+            }
         }
     </style>
 </head>
@@ -130,69 +187,368 @@
 
     <main>
         <h1>Dažniausiai užduodami klausimai</h1>
-        <p class="subtitle">Raskite atsakymus į dažniausiai užduodamus klausimus apie produktus, garantiją ir techninę pagalbą.</p>
+        <p class="subtitle">Raskite atsakymus į dažniausiai užduodamus klausimus apie produktus, garantiją, techninę pagalbą ir atsargines dalių.</p>
 
         <div class="search">
             <input type="text" id="search-input" placeholder="Ieškoti klausimų ar temų...">
         </div>
 
-        <div class="faq-item">
-            <span class="category">Garantija</span>
-            <h3>Kiek ilgai veikia garantija?</h3>
-            <p>Garantinis laikotarpis – 2 metai nuo pirkimo datos. Garantija galioja tik su pirkimo dokumentu. Jei dokumentas nepateiktas, pretenzija nebus priimta.</p>
+        <div class="category-filters">
+            <div class="category-filter active" data-category="all">Visi</div>
+            <div class="category-filter" data-category="Garantija">Garantija</div>
+            <div class="category-filter" data-category="Technika">Techninės problemos</div>
+            <div class="category-filter" data-category="Montavimas">Montavimas</div>
+            <div class="category-filter" data-category="Pirkimas">Pirkimas</div>
+            <div class="category-filter" data-category="Kokybė">Kokybė</div>
+            <div class="category-filter" data-category="Kita">Kita</div>
         </div>
 
-        <div class="faq-item">
-            <span class="category">Pretenzijos</span>
-            <h3>Kaip pateikti pretenziją?</h3>
-            <p>Prisijunkite prie savo paskyros ir pildykite daugiapakopę formą. Reikės nurodyti produkto pavadinimą, problemos aprašymą, kontaktus ir įkelti dokumentus. Neregistruotiems vartotojams – galima pateikti be registracijos, bet nebus galima stebėti būsenos.</p>
+        <div class="no-results" id="no-results">
+            <p>Pagal jūsų paiešką nerasta jokių rezultatų. Pabandykite kitą raktažodį.</p>
         </div>
 
-        <div class="faq-item">
-            <span class="category">Montavimas</span>
-            <h3>Kaip tinkamai sumontuoti maišytuvą?</h3>
-            <p>Visiems produktams pateikiama detali montavimo instrukcija. Rekomenduojame naudoti tik kvalifikuotus montuotojus. Netinkamas montavimas gali pažeisti produktą ir netekti garantijos.</p>
-        </div>
+        <div id="faq-container">
+            <!-- Garantija ir garantinis aptarnavimas -->
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Kokia yra Rubineta produktų garantijos trukmė?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Daugumos Rubineta vandens maišytuvų garantinė trukmė yra 5 metai. Tačiau kai kurioms komponentams (kaip termostato elementui, dušo galvutėms, laikikliams, žarnoms, divertoriams) taikoma 2 metų garantija. Visą informaciją rasite savo garantiniame talone.</p>
+                </div>
+            </div>
 
-        <div class="faq-item">
-            <span class="category">Techninė pagalba</span>
-            <h3>Ką daryti, jei produktas sugedo?</h3>
-            <p>Pateikite pretenziją su foto, vaizdo įrašu ir pirkimo patvirtinimu. Mūsų kokybės komanda peržiūrės ir nustatys, ar problema garantinė. Jei taip – bus siūlomas nemokamas remontas ar keitimas.</p>
-        </div>
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Ką daryti, jei mano produktas sugedo garantiniu laikotarpiu?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Kreipkitės į autorizuotą garantinio aptarnavimo tarnybą, susisiekite su prekybos vieta arba oficialiu Rubineta atstovu toje šalyje. Jų kontaktus rasite mūsų svetainėje.</p>
+                </div>
+            </div>
 
-        <div class="faq-item">
-            <span class="category">Kontaktai</span>
-            <h3>Ar galima pateikti pretenziją be paskyros?</h3>
-            <p>Ne, pretenziją galima pateikti tik prisijungus prie registruotos paskyros. Tai užtikrina saugų ir sekamą procesą. Tačiau neregistruotiems vartotojams suteikiama galimybė pateikti pretenziją per supaprastintą formą be prisijungimo.</p>
-        </div>
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Ar garantija dengia gedimus, atsiradusius dėl vandens kietumo (kalkių)?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Ne, garantija nėra taikoma gedimams, atsiradusiems dėl kalkių, smėlio, mechaninio pažeidimo ar netinkamo priėmimo. Rekomenduojame reguliariai valyti aeratorius ir dušo galvutes, o taip pat naudoti vandens filtrus, jei vanduo yra kietas.</p>
+                </div>
+            </div>
 
-        <div class="faq-item">
-            <span class="category">Atsarginės detalės</span>
-            <h3>Kaip užsisakyti atsarginę detalę?</h3>
-            <p>Atsarginės detalės užsakomos per pretenzijos formą. Nurodykite produkto pavadinimą, modelį ir reikiamą detalę. Po patvirtinimo detalė bus išsiųsta per 3–5 darbo dienas.</p>
-        </div>
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Ką daryti, jei servisas neatsako į skambučius ar delsia su remontu?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Jei negalite susisiekti su servisu arba remontas užtrunka nepagrįstai ilgai (pvz., virš 2 savaičių), nedelsdami kreipkitės tiesiogiai į Rubineta. Rašykite el. paštu su visais detalėmis (užklausos numeriu, datos, serviso pavadinimu). Mes kišimės ir greičiau koordinuosime jūsų atvejį su atsakingais asmenimis.</p>
+                </div>
+            </div>
 
-        <div class="faq-item">
-            <span class="category">Servisas</span>
-            <h3>Kaip susisiekti su serviso partneriu?</h3>
-            <p>Meistras bus išsiųstas į namus, jei pasirinksite „Meistras į namus“ pretenzijos metu. Administratorius priskirs artimiausią serviso partnerį pagal jūsų miestą.</p>
-        </div>
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Ar galiu gauti atsarginių dalių nemokamai užsienyje?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Taip, jei garantija dar galioja. Rubineta turi platintojų tinklą (pvz., SIA SANTEHKOMPLEKTS Latvijoje, ЧАО Сантехкомплект Ukrainoje). Mes perduosime jūsų užklausą atsakingam regiono atstovui, kuris su jumis susisieks ir organizuos detalės pakeitimą.</p>
+                </div>
+            </div>
 
-        <div class="faq-item">
-            <span class="category">Dokumentai</span>
-            <h3>Kokių dokumentų reikia pretenzijai?</h3>
-            <p>Reikia pateikti: pirkimo dokumento kopiją (čekį, sąskaitą-faktūrą), nuotraukas ar vaizdo įrašą su problema, bei, jei taikoma – montavimo dokumentus. Visi failai – iki 10 MB.</p>
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Kodėl servisas atsisako remontuoti mano maišytuvą, nors garantija dar galioja?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Servisas gali atsisakyti, jei: nėra pirkimo čekio; gedimas nepadengiamas garantija (pvz., dėl kalkių, mechaninio pažeidimo); produktas buvo naudojamas ne pagal paskirtį arba valytas agresyviais chemikalais.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Garantija">
+                <span class="category">Garantija</span>
+                <div class="faq-header">
+                    <h3>Kaip elgtis, jei pametėte pirkimo čekį arba garantinį taloną?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Kreipkitės į parduotuvę, kurioje įsigijote prekę. Jie dažniausiai turi pirkimo duomenis savo sistemoje ir gali išduoti pakartotinę kvito kopiją. Be šio dokumento, garantinį aptarnavimą gali būti sudėtinga gauti.</p>
+                </div>
+            </div>
+
+            <!-- Techninės problemos -->
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Kodėl mano maišytuvas pradėjo lašėti?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Lašėjimas dažniausiai atsiranda dėl: apačioje, po rankenėle – reikia pakeisti kasetę (kartridžą); ten, kur snapas jungiasi prie korpuso – gali tekti priveržti sujungimą arba pakeisti susidėvėjusias tarpines; iš snapo galvutės / aeratoriaus – reikia išvalyti arba pakeisti užsikimšusį aeratorių; iš dušo galvutės – galimai užsikimšę purkštukai arba pažeista vidinė mechanika.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Kodėl dušo galvutėje ar maišytuve yra silpnas vandens srautas?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Beveik visada priežastis yra užsikimšęs aeratorius snapo gale arba kalkių ir nešvarumų kaupimasis dušo galvutės purkštukuose. Išsukite aeratorių ir išplaukite jį stipria srove, o jei nepadeda – palikite porai valandų pamirkyti acto tirpale. Tą patį principą taikykite ir dušo galvutei.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Kodėl mano termostatinis maišytuvas nemaišo vandens tinkamai? (teka tik karštas arba tik šaltas vanduo)</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Labai dažna priežastis yra netinkamas vandens prijungimas. Įsitikinkite, kad karštas vanduo prijungtas kairėje, o šaltas – dešinėje. Jei prijungimas teisingas, problema gali kilti dėl užsikimšusio termostato elemento (dėl kalkių) arba mechaninio defekto. Tokiu atveju kreipkitės į garantinį servisą.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Termostatinis maišytuvas Thermo-10/15 – vanduo svyruoja, teka tik karštas arba tik šaltas</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>99% atvejų – netinkamas vandens prijungimas. Įsitikinkite, kad karštas vanduo prijungtas iš kairės, o šaltas – iš dešinės. Jei prijungimas teisingas, problema gali kilti dėl užsikimšusio termoelemento (dėl kalkių), kurį reikia keisti.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Maišytuvas Flexy-33 (FL30068) – prateka lankstusis snapas arba vanduo teka po rankena</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Prateka snapas: Dažniausiai reikia pakeisti patį lankstųjį snapą. Galima įsigyti atskirai. Vanduo po rankena: Reikia pakeisti kasetę (kartridžą). Flexy-33 modeliui tinka kasetė 35 mm Sedal-Rubineta (634007).</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Virtuvinis maišytuvas Ultima-50 (UL50008) – silpnas vandens srautas</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Labai tikėtina, kad užsikimšęs aeratorius snapo gale. Jį reikia atsukti specialiu raktu (dėžutėje) ir išvalyti. Jei raktelio neturite, galite užsakyti naują iš platintojo.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Dušo galvutė purkšta į šalis arba pradėjo tekėti per korpuso sujungimus</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Tai dažnai pasitaikanti problema dėl užsikimšusių purkštukų kalkių. Rekomenduojame išvirti galvutę acto tirpale. Jei tai nepadeda arba atsirado įtrūkimas, reikės naujos dušo galvutės.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Technika">
+                <span class="category">Technika</span>
+                <div class="faq-header">
+                    <h3>Dušo kolona River (624125) – viršutinis vamzdis nesilaiko aukštyje arba vanduo teka per sujungimą</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Ši problema dažniausiai kyla dėl nepakankamai priveržto tvirtinimo veržlės. Reikia sutvirtinti veržlę, kuri yra po dekoratyviniu dangteliu, naudojant specialų raktą (dažniausiai komplekte). Instrukciją su nuotraukomis galime atsiųsti papildomai.</p>
+                </div>
+            </div>
+
+            <!-- Montavimas ir suderinamumas -->
+            <div class="faq-item" data-category="Montavimas">
+                <span class="category">Montavimas</span>
+                <div class="faq-header">
+                    <h3>Kur galu rasti montavimo instrukciją savo maišytuvui?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Visas montavimo instrukcijas rasite mūsų svetainėje skiltyje „Instrukcijos“. Įveskite savo produkto kodą arba pasirinkite jį iš katalogo.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Montavimas">
+                <span class="category">Montavimas</span>
+                <div class="faq-header">
+                    <h3>Ar galima sumontuoti termostatinį maišytuvą, jei vandens vamzdžiai yra prijungti atvirkščiai?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Ne, termostatiniai maišytuvai veikia tinkamai tik esant standartiniam prijungimui (karštas kairėje, šaltas dešinėje). Jei jūsų sistemoje laidai yra sukeisti, juos reikia pakeisti.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Montavimas">
+                <span class="category">Montavimas</span>
+                <div class="faq-header">
+                    <h3>Ar jūsų dušo kolonos ir maišytuvai yra suderinami tarpusavyje?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Taip, daugelis mūsų produktų yra suderinami. Pvz., River dušo kolona yra suderinama su Aero-10 maišytuvu. Konkrečiam suderinamumui visada galite pasitarti el. paštu hello@rubineta.com.</p>
+                </div>
+            </div>
+
+            <!-- Atsarginės dalys ir pirkimas -->
+            <div class="faq-item" data-category="Pirkimas">
+                <span class="category">Pirkimas</span>
+                <div class="faq-header">
+                    <h3>Kur galiu nusipirkti atsargines dalis (pvz., kasetes, snapus, ventilius)?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Atsargines dalis Lietuvoje galite įsigyti pas mūsų oficialų platintoją UAB "Merlana" (Motorų g. 6, Vilnius) arba per jų el. parduotuvę. Užsienyje kreipkitės į vietinį Rubineta atstovą (platintojų sąrašą rasite mūsų svetainėje).</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Pirkimas">
+                <span class="category">Pirkimas</span>
+                <div class="faq-header">
+                    <h3>Ar siunčiate atsargines dalis tiesiogiai namų adresu?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Standartiškai mes nesiunčiame detalių tiesiogiai galutiniams vartotojams. Tai daro mūsų oficialūs platintojai ir servisai. Mes galime padėti nukreipti jus į artimiausią vietą, kurioje galite įsigyti reikiamą detalę.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Pirkimas">
+                <span class="category">Pirkimas</span>
+                <div class="faq-header">
+                    <h3>Ar galima atskirai įsigyti tik vieną detalę iš rinkinio, pvz., tik dušo laikiklį ar veržlę?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Taip! Daugumą atsarginių dalių galima įsigyti atskirai. Mums svarbu žinoti konkretų detalės pavadinimą arba produkto kodą (pvz., 799233 - apatinis stovas kolonai Olo). Susisiekę su mumis arba platintoju su kodu, rasite tai, ko reikia.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Pirkimas">
+                <span class="category">Pirkimas</span>
+                <div class="faq-header">
+                    <h3>Kaip pakeisti kasetę (kartridžą) maišytuve?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Daugumai modelių instrukcijas rasite mūsų svetainėje skiltyje „Instrukcijos“. Jei nerandate, atsiųskite mums savo maišytuvo modelio kodą, ir mes atsiųsime jums atitinkamą informaciją.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="Pirkimas">
+                <span class="category">Pirkimas</span>
+                <div class="faq-header">
+                    <h3>Kaip pakeisti ventilius senesniuose maišytuvuose, pvz., R-1 Globo (R1SK02) arba P-12 Star?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Šiems modeliams dažniausiai tinka ventilis 1/2″ Cross 7x7 180 (664028). Pirkimo vietą galime nurodyti, atsiųstų jūsų buvimo vietą.</p>
+                </div>
+            </div>
+
+            <!-- Produkto kokybė ir standartai -->
+            <div class="faq-item" data-category="Kokybė">
+                <span class="category">Kokybė</span>
+                <div class="faq-header">
+                    <h3>Ar jūsų produktai turi CE pažymėjimą?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Taip, visi Rubineta produktai atitinka ES standartus ir reikalavimus. CE žymėjimas mūsų produktų kategorijai nėra privalomas, tačiau mes vis tiek jį taikome ir atitinkame visas reikalingas normas medžiagų, triukšmo, vandens srauto ir paviršiaus dangos kokybei.</p>
+                </div>
+            </div>
+
+            <!-- Papildomos situacijos -->
+            <div class="faq-item" data-category="Kita">
+                <span class="category">Kita</span>
+                <div class="faq-header">
+                    <h3>Atsiuntėte prekę, bet pakuotėje trūksta detalių. Ką daryti?</h3>
+                    <span class="icon">▼</span>
+                </div>
+                <div class="faq-content">
+                    <p>Nedelsdami susisiekite su parduotuve, kurioje įsigijote prekę. Jie išspręs šią problemą pakeisdami prekę arba paprašydami trūkstamų dalių. Jei kyla sunkumų, informuokite mus, ir mes padėsime.</p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+    <footer>
+        <p>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</p>
+        <p><strong>Svarbu:</strong> Išsaugokite čekį. Naudokite vandens filtrus. Teisingas montavimas – raktas prie ilgo tarnavimo.</p>
+    </footer>
 
     <script>
-        document.getElementById('search-input').addEventListener('input', function() {
+        // Akordeono funkcionalumas
+        document.querySelectorAll('.faq-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                item.classList.toggle('open');
+            });
+        });
+
+        // Paieškos funkcionalumas
+        const searchInput = document.getElementById('search-input');
+        const faqItems = document.querySelectorAll('.faq-item');
+        const noResults = document.getElementById('no-results');
+        
+        searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase();
-            document.querySelectorAll('.faq-item').forEach(item => {
+            let visibleItems = 0;
+            
+            faqItems.forEach(item => {
                 const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(query) ? 'block' : 'none';
+                if (text.includes(query)) {
+                    item.style.display = 'block';
+                    visibleItems++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Rodyti/praleisti pranešimą, jei nerasta rezultatų
+            noResults.style.display = visibleItems === 0 ? 'block' : 'none';
+        });
+
+        // Kategorijų filtras
+        const categoryFilters = document.querySelectorAll('.category-filter');
+        
+        categoryFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                // Pašalinti aktyvų klasę iš visų filtrai
+                categoryFilters.forEach(f => f.classList.remove('active'));
+                // Pridėti aktyvų klasę paspaustam filtrui
+                filter.classList.add('active');
+                
+                const category = filter.getAttribute('data-category');
+                
+                faqItems.forEach(item => {
+                    const itemCategory = item.getAttribute('data-category');
+                    
+                    if (category === 'all' || category === itemCategory) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
             });
         });
     </script>
