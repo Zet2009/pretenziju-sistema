@@ -152,6 +152,16 @@
             color: #6c757d;
         }
 
+        /* Sutikimo langelio stilius */
+        #consent-container label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding: 12px;
+            background: #fff8e1;
+            border: 1px solid #ffd54f;
+            border-radius: 6px;
+        }
+
         /* Footer stiliaus pakeitimai */
         footer {
             width: 100%;
@@ -293,13 +303,23 @@
                 <input type="text" id="preferred-time" placeholder="Pvz., Iš ryto, 9–11 val.">
             </div>
 
-            <!-- Pirkimo dokumentas (būtinas tik dėl produkto problemos) -->
+            <!-- Pirkimo dokumentas -->
             <div class="form-group">
                 <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra)</label>
                 <input type="file" id="purchase-document" accept="image/*,application/pdf">
                 <small id="purchase-document-hint">
                     Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.
                 </small>
+            </div>
+
+            <!-- Sutikimas su duomenų perdavimu meistrui -->
+            <div class="form-group" id="consent-container" style="display: none;">
+                <label>
+                    <input type="checkbox" id="consent-to-share" required>
+                    Sutinku, kad mano kontaktiniai duomenys būtų perduoti meistrui, kuris atliks remontą arba diagnozę. 
+                    Su asmens duomenų apdorojimo tvarka susipažinau – 
+                    <a href="privacy.html" target="_blank">Privatumo politika</a>.
+                </label>
             </div>
 
             <div class="attachments">
@@ -523,7 +543,7 @@
             }
         }
 
-        // Dinaminis pagalbinio teksto keitimas priklausomai nuo temos
+        // Dinamiškai keisti pirkimo dokumento paaiškinimą
         document.getElementById('topic').addEventListener('change', function() {
             const hint = document.getElementById('purchase-document-hint');
             if (this.value === 'Produkto problema') {
@@ -535,6 +555,27 @@
             }
         });
 
+        // Rodyti sutikimo langelį, jei pasirenkama „Siųsti meistrą“ arba „Produkto problema“
+        function updateConsentVisibility() {
+            const request = document.getElementById('request').value;
+            const topic = document.getElementById('topic').value;
+            const consentContainer = document.getElementById('consent-container');
+
+            if (request === 'send-technician' || topic === 'Produkto problema') {
+                consentContainer.style.display = 'block';
+            } else {
+                consentContainer.style.display = 'none';
+                document.getElementById('consent-to-share').checked = false;
+            }
+        }
+
+        // Sekame abi parinktis
+        document.getElementById('request').addEventListener('change', updateConsentVisibility);
+        document.getElementById('topic').addEventListener('change', updateConsentVisibility);
+
+        // Iškviečiame pirmą kartą
+        updateConsentVisibility();
+
         // Pagrindinė formos siuntimo logika
         document.getElementById('claim-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -542,18 +583,19 @@
             const topic = document.getElementById('topic').value;
             const purchaseFile = document.getElementById('purchase-document').files[0];
 
-            // Tikriname: jei tema – produkto problema, dokumentas būtinas
+            // Tikriname: ar reikia pirkimo dokumento
             if (topic === 'Produkto problema' && !purchaseFile) {
                 alert('Kreipdamasis dėl produkto problemos, privalote pateikti pirkimo dokumentą.');
                 return;
             }
 
+            // Tikriname: ar įkelti bent viena nuotrauka
             if (uploadedUrls.length === 0) {
                 alert('Prašome įkelti bent vieną sugadintos prekės nuotrauką ar vaizdo įrašą.');
                 return;
             }
 
-            // Funkcija, kuri siunčia pretenziją (su ar be dokumento)
+            // Funkcija, kuri siunčia pretenziją
             const handleClaimSubmission = (purchaseUrl = null) => {
                 const claim = {
                     id: 'PRET-' + Date.now(),
@@ -606,13 +648,13 @@
                 location.href = 'index.html';
             };
 
-            // Jei yra dokumentas – įkeliame, jei ne – siunčiame be jo
+            // Įkeliame dokumentą, jei pateiktas
             if (purchaseFile) {
                 uploadToCloudinary(purchaseFile, handleClaimSubmission, (err) => {
                     alert('Nepavyko įkelti pirkimo dokumento. Bandykite dar kartą.');
                 });
             } else {
-                handleClaimSubmission(); // Siunčiama be dokumento
+                handleClaimSubmission();
             }
         });
     </script>
