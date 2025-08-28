@@ -152,6 +152,16 @@
             color: #6c757d;
         }
 
+        /* Sutikimo langelio stilius */
+        #consent-container label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding: 12px;
+            background: #fff8e1;
+            border: 1px solid #ffd54f;
+            border-radius: 6px;
+        }
+
         /* Footer stiliaus pakeitimai */
         footer {
             width: 100%;
@@ -263,13 +273,23 @@
                 <input type="text" id="preferred-time" placeholder="Pvz., Iš ryto, 9–11 val.">
             </div>
 
-            <!-- Pirkimo dokumentas (nebūtinas visais atvejais) -->
+            <!-- Pirkimo dokumentas -->
             <div class="form-group">
                 <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra)</label>
                 <input type="file" id="purchase-document" accept="image/*,application/pdf">
                 <small id="purchase-document-hint">
                     Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.
                 </small>
+            </div>
+
+            <!-- Sutikimas su duomenų perdavimu meistrui -->
+            <div class="form-group" id="consent-container" style="display: none;">
+                <label>
+                    <input type="checkbox" id="consent-to-share" required>
+                    Sutinku, kad mano kontaktiniai duomenys būtų perduoti meistrui, kuris atliks remontą arba diagnozę. 
+                    Su asmens duomenų apdorojimo tvarka susipažinau – 
+                    <a href="privacy.html" target="_blank">Privatumo politika</a>.
+                </label>
             </div>
 
             <div class="attachments">
@@ -333,7 +353,7 @@
         const uploadStatus = document.getElementById('upload-status');
         const uploadedUrls = [];
         
-        // Pridėti vilkimo ir paleidimo funkcionalumą
+        // Vilkimo ir paleidimo funkcionalumas
         const fileInputLabel = document.querySelector('.file-input-label');
         
         fileInputLabel.addEventListener('dragover', function(e) {
@@ -360,7 +380,7 @@
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
                 handleFiles(this.files);
-                this.value = ''; // Išvalome input reikšmę, kad galėtume įkelti tuos pačius failus dar kartą
+                this.value = ''; // Leidžia įkelti tuos pačius failus iš naujo
             }
         });
         
@@ -368,12 +388,41 @@
             uploadStatus.textContent = `Įkeliama ${files.length} failų...`;
             
             Array.from(files).forEach((file, index) => {
-                // Iš karto atvaizduojame failo peržiūrą
+                // Failų dydžio ribojimai
+                const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+                const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
+                const MAX_DOC_SIZE   = 5  * 1024 * 1024;
+
+                let isValid = true;
+                let errorMessage = '';
+
+                if (file.type.startsWith('image/')) {
+                    if (file.size > MAX_IMAGE_SIZE) {
+                        isValid = false;
+                        errorMessage = `${file.name}: Nuotrauka negali būti didesnė nei 10 MB.`;
+                    }
+                } else if (file.type.startsWith('video/')) {
+                    if (file.size > MAX_VIDEO_SIZE) {
+                        isValid = false;
+                        errorMessage = `${file.name}: Video negali būti ilgesnis nei 20 MB.`;
+                    }
+                } else {
+                    if (file.size > MAX_DOC_SIZE) {
+                        isValid = false;
+                        errorMessage = `${file.name}: Dokumentas negali būti didesnis nei 5 MB.`;
+                    }
+                }
+
+                if (!isValid) {
+                    alert(errorMessage);
+                    return;
+                }
+
+                // Rodyti failo peržiūrą
                 const tempUrl = URL.createObjectURL(file);
                 renderFilePreview(file, tempUrl, true);
                 
                 uploadToCloudinary(file, (url) => {
-                    // Pakeičiame laikiną URL į tikrąjį
                     uploadedUrls.push(url);
                     updateFilePreview(url, file);
                     
@@ -416,7 +465,6 @@
                 previewDiv.appendChild(iconDiv);
             }
             
-            // Rodyti įkėlimo indikatorių, jei tai laikinas failas
             if (isTemp) {
                 const loadingDiv = document.createElement('div');
                 loadingDiv.style.position = 'absolute';
@@ -458,28 +506,20 @@
         function updateFilePreview(url, file) {
             const fileItem = document.querySelector(`[data-filename="${file.name}"]`);
             if (fileItem) {
-                // Pašaliname įkėlimo indikatorių
                 const loadingDiv = fileItem.querySelector('.file-preview > div:last-child');
                 if (loadingDiv) loadingDiv.remove();
-                
-                // Atnaujiname nuorodą
-                const link = fileItem.querySelector('a');
-                if (link) link.href = url;
             }
         }
         
         function removeFile(url, element) {
-            // 1. Pašalinti iš DOM
             element.remove();
-
-            // 2. Pašalinti iš uploadedUrls masyvo
             const index = uploadedUrls.indexOf(url);
             if (index > -1) {
                 uploadedUrls.splice(index, 1);
             }
         }
 
-        // Dinamiškai keisti pagalbinį tekstą, kai pasirenkama tema
+        // Dinamiškai keisti pirkimo dokumento paaiškinimą
         document.getElementById('topic').addEventListener('change', function() {
             const hint = document.getElementById('purchase-document-hint');
             if (this.value === 'Produkto problema') {
@@ -491,6 +531,24 @@
             }
         });
 
+        // Rodyti sutikimo langelį, jei „Siųsti meistrą“ arba „Produkto problema“
+        function updateConsentVisibility() {
+            const request = document.getElementById('request').value;
+            const topic = document.getElementById('topic').value;
+            const consentContainer = document.getElementById('consent-container');
+
+            if (request === 'send-technician' || topic === 'Produkto problema') {
+                consentContainer.style.display = 'block';
+            } else {
+                consentContainer.style.display = 'none';
+                document.getElementById('consent-to-share').checked = false;
+            }
+        }
+
+        document.getElementById('request').addEventListener('change', updateConsentVisibility);
+        document.getElementById('topic').addEventListener('change', updateConsentVisibility);
+        updateConsentVisibility(); // Pradinis patikrinimas
+
         // Pagrindinė formos siuntimo logika
         document.getElementById('claim-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -498,18 +556,19 @@
             const topic = document.getElementById('topic').value;
             const purchaseFile = document.getElementById('purchase-document').files[0];
 
-            // Tikriname: jei tema – produkto problema, tada dokumentas būtinas
+            // Tikriname: ar reikia pirkimo dokumento
             if (topic === 'Produkto problema' && !purchaseFile) {
                 alert('Kreipdamasis dėl produkto problemos, privalote pateikti pirkimo dokumentą.');
                 return;
             }
 
+            // Tikriname: ar įkelti bent viena nuotrauka
             if (uploadedUrls.length === 0) {
                 alert('Prašome įkelti bent vieną sugadintos prekės nuotrauką ar vaizdo įrašą.');
                 return;
             }
 
-            // Jei yra pirkimo dokumentas – įkeliam, jei ne – tęsiama be jo
+            // Funkcija, kuri siunčia pretenziją
             const handleClaimSubmission = (purchaseUrl = null) => {
                 const claim = {
                     id: 'PRET-' + Date.now(),
@@ -556,7 +615,7 @@
                 location.href = 'index.html';
             };
 
-            // Jei pateiktas dokumentas – įkeliame, jei ne – siunčiame be jo
+            // Įkeliame dokumentą, jei pateiktas
             if (purchaseFile) {
                 uploadToCloudinary(purchaseFile, handleClaimSubmission, (err) => {
                     alert('Nepavyko įkelti pirkimo dokumento. Bandykite dar kartą.');
