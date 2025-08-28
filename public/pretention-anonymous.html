@@ -292,11 +292,16 @@
                 <label for="preferred-time">Patogus laikas kontaktui</label>
                 <input type="text" id="preferred-time" placeholder="Pvz., Iš ryto, 9–11 val.">
             </div>
-  <div class="form-group">
-                <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra) *</label>
-                <input type="file" id="purchase-document" accept="image/*,application/pdf" required>
-                <small>Pridėkite pirkimo patvirtinimą – be jo pretenzija negali būti priimta.</small>
+
+            <!-- Pirkimo dokumentas (būtinas tik dėl produkto problemos) -->
+            <div class="form-group">
+                <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra)</label>
+                <input type="file" id="purchase-document" accept="image/*,application/pdf">
+                <small id="purchase-document-hint">
+                    Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.
+                </small>
             </div>
+
             <div class="attachments">
                 <label for="attachment">Įkelkite sugadintos prekės nuotraukas arba vaizdo įrašus *</label>
                 <label for="attachment" class="file-input-label">📎 Paspauskite arba vilkite failus čia</label>
@@ -352,7 +357,7 @@
         const uploadStatus = document.getElementById('upload-status');
         const uploadedUrls = [];
         
-        // Pridėti vilkimo ir paleidimo funkcionalumą
+        // Vilkimo ir paleidimo funkcionalumas
         const fileInputLabel = document.querySelector('.file-input-label');
         
         fileInputLabel.addEventListener('dragover', function(e) {
@@ -379,7 +384,7 @@
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
                 handleFiles(this.files);
-                this.value = ''; // Išvalome input reikšmę, kad galėtume įkelti tuos pačius failus dar kartą
+                this.value = ''; // Leidžia įkelti tuos pačius failus iš naujo
             }
         });
         
@@ -387,7 +392,7 @@
             uploadStatus.textContent = `Įkeliama ${files.length} failų...`;
             
             Array.from(files).forEach((file, index) => {
-                // ✅ Failų dydžio ribojimai
+                // Failų dydžio ribojimai
                 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
                 const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
                 const MAX_DOC_SIZE   = 5  * 1024 * 1024;
@@ -417,12 +422,11 @@
                     return;
                 }
 
-                // Iš karto atvaizduojame failo peržiūrą
+                // Rodyti failo peržiūrą
                 const tempUrl = URL.createObjectURL(file);
                 renderFilePreview(file, tempUrl, true);
                 
                 uploadToCloudinary(file, (url) => {
-                    // Pakeičiame laikiną URL į tikrąjį
                     uploadedUrls.push(url);
                     updateFilePreview(url, file);
                     
@@ -465,7 +469,6 @@
                 previewDiv.appendChild(iconDiv);
             }
             
-            // Rodyti įkėlimo indikatorių, jei tai laikinas failas
             if (isTemp) {
                 const loadingDiv = document.createElement('div');
                 loadingDiv.style.position = 'absolute';
@@ -507,79 +510,110 @@
         function updateFilePreview(url, file) {
             const fileItem = document.querySelector(`[data-filename="${file.name}"]`);
             if (fileItem) {
-                // Pašaliname įkėlimo indikatorių
                 const loadingDiv = fileItem.querySelector('.file-preview > div:last-child');
                 if (loadingDiv) loadingDiv.remove();
             }
         }
         
         function removeFile(url, element) {
-            // 1. Pašalinti iš DOM
             element.remove();
-
-            // 2. Pašalinti iš uploadedUrls masyvo
             const index = uploadedUrls.indexOf(url);
             if (index > -1) {
                 uploadedUrls.splice(index, 1);
             }
         }
 
+        // Dinaminis pagalbinio teksto keitimas priklausomai nuo temos
+        document.getElementById('topic').addEventListener('change', function() {
+            const hint = document.getElementById('purchase-document-hint');
+            if (this.value === 'Produkto problema') {
+                hint.innerHTML = '<strong>Dėmesio:</strong> Kreipiantis dėl produkto problemos, privalomas pirkimo dokumentas.';
+                hint.style.color = 'red';
+            } else {
+                hint.innerHTML = 'Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.';
+                hint.style.color = '#6c757d';
+            }
+        });
+
+        // Pagrindinė formos siuntimo logika
         document.getElementById('claim-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
+            const topic = document.getElementById('topic').value;
+            const purchaseFile = document.getElementById('purchase-document').files[0];
+
+            // Tikriname: jei tema – produkto problema, dokumentas būtinas
+            if (topic === 'Produkto problema' && !purchaseFile) {
+                alert('Kreipdamasis dėl produkto problemos, privalote pateikti pirkimo dokumentą.');
+                return;
+            }
+
             if (uploadedUrls.length === 0) {
                 alert('Prašome įkelti bent vieną sugadintos prekės nuotrauką ar vaizdo įrašą.');
                 return;
             }
 
-            const claim = {
-                id: 'PRET-' + Date.now(),
-                date: new Date().toISOString(),
-                topic: document.getElementById('topic').value,
-                role: 'Anoniminis vartotojas',
-                product: document.getElementById('product').value,
-                description: document.getElementById('description').value,
-                request: document.getElementById('request').value,
-                contactMethod: document.getElementById('contact-method').value,
-                preferredTime: document.getElementById('preferred-time').value,
-                contact: {
-                    name: document.getElementById('name').value,
-                    surname: document.getElementById('surname').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    street: document.getElementById('street').value,
-                    city: document.getElementById('city').value,
-                    postal: document.getElementById('postal').value
-                },
-                files: uploadedUrls,
-                status: 'Nauja'
+            // Funkcija, kuri siunčia pretenziją (su ar be dokumento)
+            const handleClaimSubmission = (purchaseUrl = null) => {
+                const claim = {
+                    id: 'PRET-' + Date.now(),
+                    date: new Date().toISOString(),
+                    topic: topic,
+                    role: 'Anoniminis vartotojas',
+                    product: document.getElementById('product').value,
+                    description: document.getElementById('description').value,
+                    request: document.getElementById('request').value,
+                    contactMethod: document.getElementById('contact-method').value,
+                    preferredTime: document.getElementById('preferred-time').value,
+                    contact: {
+                        name: document.getElementById('name').value,
+                        surname: document.getElementById('surname').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        street: document.getElementById('street').value,
+                        city: document.getElementById('city').value,
+                        postal: document.getElementById('postal').value
+                    },
+                    files: uploadedUrls,
+                    purchaseDocument: purchaseUrl,
+                    status: 'Nauja'
+                };
+
+                const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+                claims.push(claim);
+                localStorage.setItem('claims', JSON.stringify(claims));
+
+                // Siųsti patvirtinimą klientui
+                fetch('https://pretenzijos-sistema.onrender.com/send-confirmation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: claim.contact.email,
+                        claimId: claim.id,
+                        language: 'lt',
+                        isRegistered: false
+                    })
+                }).catch(console.error);
+
+                // Pranešti kokybės skyriui
+                fetch('https://pretenzijos-sistema.onrender.com/notify-quality', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ claimId: claim.id })
+                }).catch(console.error);
+
+                alert('Pretenzija sėkmingai pateikta! Patvirtinimo laiškas išsiųstas į jūsų el. paštą.');
+                location.href = 'index.html';
             };
 
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            claims.push(claim);
-            localStorage.setItem('claims', JSON.stringify(claims));
-
-            // ✅ Siųsti patvirtinimą klientui
-            fetch('https://pretenzijos-sistema.onrender.com/send-confirmation', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: claim.contact.email,
-                    claimId: claim.id,
-                    language: 'lt',
-                    isRegistered: false  // ❌ Nesiunčiama nuoroda į claim-view
-                })
-            }).then(() => console.log('Patvirtinimo laiškas išsiųstas'));
-
-            // ✅ Pranešti kokybės skyriui
-            fetch('https://pretenzijos-sistema.onrender.com/notify-quality', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ claimId: claim.id })
-            }).then(() => console.log('Pranešta kokybės skyriui'));
-
-            alert('Pretenzija sėkmingai pateikta! Patvirtinimo laiškas išsiųstas į jūsų el. paštą.');
-            location.href = 'index.html';
+            // Jei yra dokumentas – įkeliame, jei ne – siunčiame be jo
+            if (purchaseFile) {
+                uploadToCloudinary(purchaseFile, handleClaimSubmission, (err) => {
+                    alert('Nepavyko įkelti pirkimo dokumento. Bandykite dar kartą.');
+                });
+            } else {
+                handleClaimSubmission(); // Siunčiama be dokumento
+            }
         });
     </script>
 </body>
