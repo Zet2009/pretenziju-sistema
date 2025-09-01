@@ -3,214 +3,1093 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pretenzija #ID – Rubineta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <title data-translate="claim-title">Jūsų pretenzija – Rubineta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2D2D2D;
+            --primary-light: #4A4A4A;
+            --primary-hover: #6B6B6B;
+            --secondary: #FFCC00;
             --light: #F5F5F5;
             --white: #FFFFFF;
+            --dark: #212121;
+            --gray: #757575;
             --font: 'Roboto', sans-serif;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: var(--font);
-            background: var(--light);
+        }
+
+        body {
+            background-color: var(--light);
             color: #333;
-            line-height: 1.4;
+            line-height: 1.6;
             padding: 20px;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+
+        header {
             background: var(--white);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo { height: 50px; cursor: pointer; }
+        
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .language-btn {
+            background: var(--primary-light);
+            color: var(--white);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--white);
+            min-width: 140px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 101;
+        }
+        
+        .language-dropdown.show {
+            display: block;
+        }
+        
+        .language-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        
+        .language-option:hover {
+            background: var(--light);
+        }
+        
+        .language-flag {
+            width: 24px;
+            height: 18px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .claim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
             padding: 20px;
+            background: var(--white);
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        h2 {
+        
+        .claim-title {
+            font-size: 1.8rem;
             color: var(--primary);
+        }
+        
+        .status-badge {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        .status-Nauja {
+            background-color: var(--warning);
+            color: #000;
+        }
+        
+        .status-Perduota, .status-Vykdoma, .status-Laukiama-informacijos, .status-Perduota-servisui, .status-Laukiama-atsakymo {
+            background-color: var(--info);
+            color: white;
+        }
+        
+        .status-Išnagrinėta, .status-Išspręsta {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .status-Atmesta {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
-            padding-bottom: 5px;
+            padding-bottom: 10px;
             border-bottom: 1px solid #eee;
         }
-        .field {
-            margin-bottom: 10px;
+        
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 600;
         }
-        .field-label {
-            font-weight: 500;
-            color: #555;
-            display: inline-block;
-            min-width: 120px;
+        
+        .info-group {
+            margin-bottom: 15px;
         }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: var(--dark);
+        }
+        
+        .files-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
         .file-item {
-            margin: 5px 0;
-            word-break: break-all;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            text-align: center;
+            background: #f8f9fa;
         }
-
-        .status {
-            font-weight: bold;
-            color: #d44646;
+        
+        .file-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .status.Išspręsta {
-            color: green;
+        
+        .file-preview {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--info);
         }
+        
+        .file-info {
+            padding: 10px;
+        }
+        
+        .file-name {
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--dark);
+        }
+        
+        .file-name a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-top: 20px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ddd;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+        
+        .timeline-date {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .timeline-content {
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+        
+        .specialist-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .specialist-list li {
+            font-size: 1rem;
+            color: var(--dark);
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .specialist-list li:last-child {
+            border-bottom: none;
+        }
+        
         footer {
             text-align: center;
-            margin-top: 40px;
-            color: #75757d;
-            font-size: 12px;
+            margin-top: 60px;
             padding: 20px;
-            border-top: 1px solid #ddd;
+            color: var(--gray);
+            font-size: 12px;
+            border-top: 1px solid #dee2e6;
+            background: var(--secondary);
         }
-        .file-item a {
-    color: #17a2b8;
-    text-decoration: none;
-    display: inline-block;
-    padding: 6px 10px;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    background: #f8f9fa;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.file-item a:hover {
-    background: #e9ecef;
-    border-color: #17a2b8;
-    transform: translateY(-1px);
-}
-
-
+        
+        .footer-flags {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .footer-flag {
+            width: 30px;
+            height: 20px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .footer-flag:hover {
+            transform: scale(1.1);
+        }
+        
+        .back-button {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .back-button:hover {
+            background: var(--primary-hover);
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .claim-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            nav {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
+    <header>
+        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+        <nav>
+            <a href="index.html" data-translate="nav-home">Pagrindinis</a>
+            <a href="duku.html" data-translate="nav-faq">DUK</a>
+            <a href="login.html" data-translate="nav-login">Prisijungti</a>
+        </nav>
+        <div class="language-selector">
+            <button class="language-btn" id="language-btn">
+                <img src="LT.png" alt="LT" class="language-flag" id="current-flag">
+                <span id="current-lang">LT</span>
+            </button>
+            <div class="language-dropdown" id="language-dropdown">
+                <div class="language-option" data-lang="lt">
+                    <img src="LT.png" alt="LT" class="language-flag">
+                    <span>Lietuvių</span>
+                </div>
+                <div class="language-option" data-lang="lv">
+                    <img src="LV.png" alt="LV" class="language-flag">
+                    <span>Latviešu</span>
+                </div>
+                <div class="language-option" data-lang="ru">
+                    <img src="RU.png" alt="RU" class="language-flag">
+                    <span>Русский</span>
+                </div>
+                <div class="language-option" data-lang="en">
+                    <img src="UK.png" alt="EN" class="language-flag">
+                    <span>English</span>
+                </div>
+                <div class="language-option" data-lang="kz">
+                    <img src="KZ.png" alt="KZ" class="language-flag">
+                    <span>Қазақша</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
-        <h2>Jūsų pretenzija</h2>
-        
-        <div class="field"><span class="field-label">ID:</span> <span id="claim-id"></span></div>
-        <div class="field"><span class="field-label">Data:</span> <span id="claim-date"></span></div>
-        <div class="field"><span class="field-label">Tema:</span> <span id="claim-topic"></span></div>
-        <div class="field"><span class="field-label">Produktas:</span> <span id="claim-product"></span></div>
-        <div class="field"><span class="field-label">Aprašymas:</span> <span id="claim-description"></span></div>
-        <div class="field"><span class="field-label">Kliento reikalavimas:</span> <span id="claim-request"></span></div>
-        <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status" class="status"></span></div>
+        <button class="back-button" onclick="history.back()">
+            ← <span data-translate="back-button">Grįžti atgal</span>
+        </button>
 
-        <h2>Vartotojo dokumentai</h2>
-        <div id="user-files"></div>
+        <div class="claim-header">
+            <div class="claim-title"><span data-translate="claim-title-full">Pretenzija</span> #<span id="claim-id"></span></div>
+            <div class="status-badge" id="claim-status-badge"></div>
+        </div>
 
-        <h2>Pirkimo dokumentas</h2>
-        <div id="purchase-document"></div>
+        <div class="cards-container">
+            <!-- Pagrindinė informacija -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-translate="main-info-title">Pagrindinė informacija</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="claim-date-label">Pateikimo data</div>
+                    <div class="info-value" id="claim-date"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="claim-topic-label">Tema</div>
+                    <div class="info-value" id="claim-topic"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="claim-product-label">Produkto pavadinimas</div>
+                    <div class="info-value" id="claim-product"></div>
+                </div>
+            </div>
 
-        <h2>Papildomi dokumentai</h2>
-        <div id="additional-files"></div>
+            <!-- Aprašymas -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-translate="claim-description-title">Pretenzijos aprašymas</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-value" id="claim-description"></div>
+                </div>
+            </div>
+            
+            <!-- Paskirti specialistai -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-translate="assigned-specialists-title">Paskirti specialistai</div>
+                </div>
+                <ul class="specialist-list" id="assigned-specialists">
+                    <!-- Specialistai bus įkelti JavaScript'u -->
+                </ul>
+            </div>
 
-        <h2>Būsenos istorija</h2>
-        <div id="status-history"></div>
+            <!-- Kliento pageidavimai -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-translate="claim-request-title">Kliento pageidavimai</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="claim-request-label">Pageidavimas</div>
+                    <div class="info-value" id="claim-request"></div>
+                </div>
+            </div>
+
+            <!-- Prikabinti dokumentai -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-translate="attached-documents-title">Prikabinti dokumentai</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="purchase-document-title">Pirkimo dokumentas</div>
+                    <div class="files-container" id="purchase-document"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="user-files-title">Vartotojo dokumentai</div>
+                    <div class="files-container" id="user-files"></div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label" data-translate="additional-files-title">Papildomi dokumentai</div>
+                    <div class="files-container" id="additional-files"></div>
+                </div>
+            </div>
+
+            <!-- Būsenos istorija -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-translate="status-history-title">Būsenos istorija</div>
+                </div>
+                <div class="timeline" id="status-history"></div>
+            </div>
+        </div>
     </div>
 
-    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+    <footer>
+        <div data-translate="footer">© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</div>
+        <div class="footer-flags">
+            <img src="LT.png" alt="Lietuvių" class="footer-flag" data-lang="lt">
+            <img src="LV.png" alt="Latviešu" class="footer-flag" data-lang="lv">
+            <img src="RU.png" alt="Русский" class="footer-flag" data-lang="ru">
+            <img src="UK.png" alt="English" class="footer-flag" data-lang="en">
+            <img src="KZ.png" alt="Қазақша" class="footer-flag" data-lang="kz">
+        </div>
+    </footer>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const claimId = urlParams.get('id');
+        const translations = {
+            lt: {
+                "nav-home": "Pagrindinis",
+                "nav-faq": "DUK",
+                "nav-login": "Prisijungti",
+                "back-button": "Grįžti atgal",
+                "claim-title-full": "Pretenzija",
+                "main-info-title": "Pagrindinė informacija",
+                "claim-date-label": "Pateikimo data",
+                "claim-topic-label": "Tema",
+                "claim-product-label": "Produkto pavadinimas",
+                "claim-description-title": "Pretenzijos aprašymas",
+                "assigned-specialists-title": "Paskirti specialistai",
+                "no-specialists": "Nėra paskirtų specialistų",
+                "claim-request-title": "Kliento pageidavimai",
+                "claim-request-label": "Pageidavimas",
+                "attached-documents-title": "Prikabinti dokumentai",
+                "purchase-document-title": "Pirkimo dokumentas",
+                "user-files-title": "Vartotojo dokumentai",
+                "additional-files-title": "Papildomi dokumentai",
+                "status-history-title": "Būsenos istorija",
+                "footer": "© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt",
+                "no-files": "Nėra įkeltų failų",
+                "no-purchase-document": "Pirkimo dokumentas nerastas.",
+                "no-additional-files": "Nėra papildomų dokumentų",
+                "claim-submitted": "Pretenzija pateikta",
+                "status-changed": "Būsena: ",
+                "resolved": "Išspręsta",
+                "no-claim-id": "Nenurodytas pretenzijos ID.",
+                "claim-not-found": "Pretenzija nerasta.",
+                "not-specified": "Nenurodyta",
+                "view-photo": "Nuotrauka",
+                "view-video": "Video",
+                "open-pdf": "PDF dokumentas",
+                "download-document": "Dokumentas",
+                "Nauja": "Nauja",
+                "Perduota": "Perduota",
+                "Vykdoma": "Vykdoma",
+                "Laukiama informacijos": "Laukiama informacijos",
+                "Išnagrinėta": "Išnagrinėta",
+                "Išspręsta": "Išspręsta",
+                "Atmesta": "Atmesta",
+                "Perduota servisui": "Perduota servisui",
+                "Laukiama atsakymo": "Laukiama atsakymo",
+                "Bendrieji klausimai": "Bendrieji klausimai",
+                "Produkto informacija": "Produkto informacija",
+                "Atsarginių dalių informacija": "Atsarginių dalių informacija",
+                "Techninė pagalba": "Techninė pagalba",
+                "Produkto problema": "Produkto problema",
+                "Atsiliepimai": "Atsiliepimai",
+                "send-part": "Išsiųsti atsarginę dalį",
+                "send-technician": "Siųsti meistrą",
+                "exchange": "Keisti produktą",
+                "choose": "Kita"
+            },
+            lv: {
+                "nav-home": "Galvenā",
+                "nav-faq": "BUJ",
+                "nav-login": "Pieslēgties",
+                "back-button": "Atpakaļ",
+                "claim-title-full": "Pretenzija",
+                "main-info-title": "Pamatinformācija",
+                "claim-date-label": "Iesniegšanas datums",
+                "claim-topic-label": "Temats",
+                "claim-product-label": "Produkta nosaukums",
+                "claim-description-title": "Pretenzijas apraksts",
+                "assigned-specialists-title": "Piešķirtie speciālisti",
+                "no-specialists": "Nav piešķirtu speciālistu",
+                "claim-request-title": "Klienta prasības",
+                "claim-request-label": "Prasība",
+                "attached-documents-title": "Pievienotie dokumenti",
+                "purchase-document-title": "Pirkuma dokuments",
+                "user-files-title": "Lietotāja dokumenti",
+                "additional-files-title": "Papildu dokumenti",
+                "status-history-title": "Statusa vēsture",
+                "footer": "© 2025 Rubineta. Visas tiesības aizsargātas. | info@rubineta.lv",
+                "no-files": "Nav augšupielādētu failu",
+                "no-purchase-document": "Pirkuma dokuments netika atrasts.",
+                "no-additional-files": "Nav papildu dokumentu",
+                "claim-submitted": "Pretenzija iesniegta",
+                "status-changed": "Statuss: ",
+                "resolved": "Atrisināts",
+                "no-claim-id": "Nav norādīts pretenzijas ID.",
+                "claim-not-found": "Pretenzija netika atrasta.",
+                "not-specified": "Nav norādīts",
+                "view-photo": "Attēls",
+                "view-video": "Video",
+                "open-pdf": "PDF dokuments",
+                "download-document": "Dokuments",
+                "Nauja": "Jauna",
+                "Perduota": "Nodota",
+                "Vykdoma": "Procesā",
+                "Laukiama informacijos": "Gaida informāciju",
+                "Išnagrinėta": "Izskatīta",
+                "Išspręsta": "Atrisināta",
+                "Atmesta": "Noraidīta",
+                "Perduota servisui": "Nodota servisam",
+                "Laukiama atsakymo": "Gaida atbildi",
+                "Bendrieji klausimai": "Vispārīgi jautājumi",
+                "Produkto informacija": "Produkta informācija",
+                "Atsarginių dalių informacija": "Rezerves daļu informācija",
+                "Techninė pagalba": "Tehniskā atbalsts",
+                "Produkto problema": "Produkta problēma",
+                "Atsiliepimai": "Atsauksmes",
+                "send-part": "Nosūtīt rezerves daļu",
+                "send-technician": "Nosūtīt meistaru",
+                "exchange": "Apmainīt preci",
+                "choose": "Cits"
+            },
+            ru: {
+                "nav-home": "Главная",
+                "nav-faq": "ЧЗВ",
+                "nav-login": "Войти",
+                "back-button": "Назад",
+                "claim-title-full": "Претензия",
+                "main-info-title": "Основная информация",
+                "claim-date-label": "Дата подачи",
+                "claim-topic-label": "Тема",
+                "claim-product-label": "Название продукта",
+                "claim-description-title": "Описание претензии",
+                "assigned-specialists-title": "Назначенные специалисты",
+                "no-specialists": "Нет назначенных специалистов",
+                "claim-request-title": "Требования клиента",
+                "claim-request-label": "Требование",
+                "attached-documents-title": "Прикрепленные документы",
+                "purchase-document-title": "Документ о покупке",
+                "user-files-title": "Документы пользователя",
+                "additional-files-title": "Дополнительные документы",
+                "status-history-title": "История статуса",
+                "footer": "© 2025 Rubineta. Все права защищены. | info@rubineta.ru",
+                "no-files": "Нет загруженных файлов",
+                "no-purchase-document": "Документ о покупке не найден.",
+                "no-additional-files": "Нет дополнительных документов",
+                "claim-submitted": "Претензия подана",
+                "status-changed": "Статус: ",
+                "resolved": "Решено",
+                "no-claim-id": "Не указан ID претензии.",
+                "claim-not-found": "Претензия не найдена.",
+                "not-specified": "Не указано",
+                "view-photo": "Фото",
+                "view-video": "Видео",
+                "open-pdf": "PDF документ",
+                "download-document": "Документ",
+                "Nauja": "Новая",
+                "Perduota": "Передана",
+                "Vykdoma": "В процессе",
+                "Laukiama informacijos": "Ожидает информации",
+                "Išnagrinėta": "Рассмотрена",
+                "Išspręsta": "Решена",
+                "Atmesta": "Отклонена",
+                "Perduota servisui": "Передана в сервис",
+                "Laukiama atsakymo": "Ожидает ответа",
+                "Bendrieji klausimai": "Общие вопросы",
+                "Produkto informacija": "Информация о продукте",
+                "Atsarginių dalių informacija": "Информация о запчастях",
+                "Techninė pagalba": "Техническая поддержка",
+                "Produkto problema": "Проблема с продуктом",
+                "Atsiliepimai": "Отзывы",
+                "send-part": "Отправить запчасть",
+                "send-technician": "Отправить мастера",
+                "exchange": "Обменять продукт",
+                "choose": "Другое"
+            },
+            en: {
+                "nav-home": "Home",
+                "nav-faq": "FAQ",
+                "nav-login": "Login",
+                "back-button": "Go back",
+                "claim-title-full": "Claim",
+                "main-info-title": "Main Information",
+                "claim-date-label": "Submission date",
+                "claim-topic-label": "Topic",
+                "claim-product-label": "Product name",
+                "claim-description-title": "Claim description",
+                "assigned-specialists-title": "Assigned specialists",
+                "no-specialists": "No specialists assigned",
+                "claim-request-title": "Customer requests",
+                "claim-request-label": "Request",
+                "attached-documents-title": "Attached documents",
+                "purchase-document-title": "Purchase document",
+                "user-files-title": "User documents",
+                "additional-files-title": "Additional files",
+                "status-history-title": "Status history",
+                "footer": "© 2025 Rubineta. All rights reserved. | info@rubineta.lt",
+                "no-files": "No files uploaded",
+                "no-purchase-document": "Purchase document not found.",
+                "no-additional-files": "No additional documents",
+                "claim-submitted": "Claim submitted",
+                "status-changed": "Status: ",
+                "resolved": "Resolved",
+                "no-claim-id": "No claim ID specified.",
+                "claim-not-found": "Claim not found.",
+                "not-specified": "Not specified",
+                "view-photo": "Photo",
+                "view-video": "Video",
+                "open-pdf": "PDF document",
+                "download-document": "Document",
+                "Nauja": "New",
+                "Perduota": "Forwarded",
+                "Vykdoma": "In Progress",
+                "Laukiama informacijos": "Awaiting Information",
+                "Išnagrinėta": "Reviewed",
+                "Išspręsta": "Resolved",
+                "Atmesta": "Rejected",
+                "Perduota servisui": "Forwarded to Service",
+                "Laukiama atsakymo": "Awaiting Response",
+                "Bendrieji klausimai": "General questions",
+                "Produkto informacija": "Product information",
+                "Atsarginių dalių informacija": "Spare parts information",
+                "Techninė pagalba": "Technical support",
+                "Produkto problema": "Product problem",
+                "Atsiliepimai": "Feedback",
+                "send-part": "Send spare part",
+                "send-technician": "Send a technician",
+                "exchange": "Exchange product",
+                "choose": "Other"
+            },
+            kz: {
+                "nav-home": "Басты бет",
+                "nav-faq": "ЖИС",
+                "nav-login": "Кіру",
+                "back-button": "Артқа",
+                "claim-title-full": "Шағым",
+                "main-info-title": "Негізгі ақпарат",
+                "claim-date-label": "Жіберілген күні",
+                "claim-topic-label": "Тақырыбы",
+                "claim-product-label": "Өнімнің атауы",
+                "claim-description-title": "Шағым сипаттамасы",
+                "assigned-specialists-title": "Тағайындалған мамандар",
+                "no-specialists": "Тағайындалған мамандар жоқ",
+                "claim-request-title": "Тұтынушының талаптары",
+                "claim-request-label": "Талап",
+                "attached-documents-title": "Тіркелген құжаттар",
+                "purchase-document-title": "Сатып алу құжаты",
+                "user-files-title": "Пайдаланушы құжаттары",
+                "additional-files-title": "Қосымша құжаттар",
+                "status-history-title": "Күйінің тарихы",
+                "footer": "© 2025 Rubineta. Барлық құқықтар қорғалған. | info@rubineta.kz",
+                "no-files": "Жүктелген файлдар жоқ",
+                "no-purchase-document": "Сатып алу құжаты табылмады.",
+                "no-additional-files": "Қосымша құжаттар жоқ",
+                "claim-submitted": "Шағым қабылданды",
+                "status-changed": "Күйі: ",
+                "resolved": "Шешілді",
+                "no-claim-id": "Шағымның ID-сы көрсетілмеген.",
+                "claim-not-found": "Шағым табылмады.",
+                "not-specified": "Көрсетілмеген",
+                "view-photo": "Фото",
+                "view-video": "Видео",
+                "open-pdf": "PDF құжаты",
+                "download-document": "Құжат",
+                "Nauja": "Жаңа",
+                "Perduota": "Жіберілді",
+                "Vykdoma": "Орындалуда",
+                "Laukiama informacijos": "Ақпарат күтілуде",
+                "Išnagrinėta": "Қарастырылды",
+                "Išspręsta": "Шешілді",
+                "Atmesta": "Қабылданбады",
+                "Perduota servisui": "Сервисте",
+                "Laukiama atsakymo": "Жауап күтілуде",
+                "Bendrieji klausimai": "Жалпы сұрақтар",
+                "Produkto informacija": "Өнім туралы ақпарат",
+                "Atsarginių dalių informacija": "Қосалқы бөлшектер туралы ақпарат",
+                "Techninė pagalba": "Техникалық көмек",
+                "Produkto problema": "Өнім мәселесі",
+                "Atsiliepimai": "Кері байланыс",
+                "send-part": "Қосалқы бөлшекті жіберу",
+                "send-technician": "Шебер жіберу",
+                "exchange": "Өнімді ауыстыру",
+                "choose": "Басқа"
+            }
+        };
 
-        if (!claimId) {
-            alert('Nenurodytas pretenzijos ID.');
-            history.back();
+        let currentLang = localStorage.getItem('language') || 'lt';
+        let claim = null;
+
+        function updateLanguageButton() {
+            const btn = document.getElementById('language-btn');
+            const flag = document.getElementById('current-flag');
+            const langText = document.getElementById('current-lang');
+            flag.src = getFlagSrc(currentLang);
+            flag.alt = currentLang.toUpperCase();
+            langText.textContent = currentLang.toUpperCase();
         }
 
-        const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-        const claim = claims.find(c => c.id === claimId);
-
-        if (!claim) {
-            alert('Pretenzija nerasta.');
-            history.back();
+        function getFlagSrc(lang) {
+            switch(lang) {
+                case 'lt': return "LT.png";
+                case 'lv': return "LV.png";
+                case 'ru': return "RU.png";
+                case 'en': return "UK.png";
+                case 'kz': return "KZ.png";
+                default: return "LT.png";
+            }
         }
 
-        // --- Užpildyti pagrindinę informaciją ---
-        document.getElementById('claim-id').textContent = claim.id;
-        document.getElementById('claim-date').textContent = new Date(claim.date).toLocaleString('lt-LT');
-        document.getElementById('claim-topic').textContent = claim.topic;
-        document.getElementById('claim-product').textContent = claim.product;
-        document.getElementById('claim-description').textContent = claim.description;
-        document.getElementById('claim-request').textContent = claim.request;
-        document.getElementById('claim-status').textContent = claim.status;
-        document.getElementById('claim-status').className += ' ' + claim.status;
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            applyTranslations();
+            updateLanguageButton();
+            document.documentElement.lang = lang;
+            if (claim) {
+                updateClaimData();
+            }
+        }
 
-        // --- Vartotojo failai ---
-        const userFilesContainer = document.getElementById('user-files');
-        if (Array.isArray(claim.files) && claim.files.length > 0) {
-            claim.files.forEach(url => {
-                if (typeof url !== 'string') return;
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-translate]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.textContent = translations[currentLang][key];
+                }
+            });
+        }
+        
+        function translateStatus(status) {
+            return translations[currentLang]?.[status] || status;
+        }
+
+        function translateTopic(topic) {
+            return translations[currentLang]?.[topic] || topic;
+        }
+
+        function translateRequest(request) {
+            return translations[currentLang]?.[request] || request;
+        }
+        
+        function getLocaleFromLang(lang) {
+            switch(lang) {
+                case 'lt': return 'lt-LT';
+                case 'lv': return 'lv-LV';
+                case 'ru': return 'ru-RU';
+                case 'en': return 'en-GB';
+                case 'kz': return 'kk-KZ';
+                default: return 'lt-LT';
+            }
+        }
+        
+        function updateClaimData() {
+            if (!claim) return;
+
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+
+            document.getElementById('claim-date').textContent = new Date(claim.date).toLocaleString(getLocaleFromLang(currentLang), options);
+            
+            const statusBadge = document.getElementById('claim-status-badge');
+            statusBadge.textContent = translateStatus(claim.status);
+            const safeStatus = claim.status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+            statusBadge.className = 'status-badge status-' + safeStatus;
+            
+            document.getElementById('claim-topic').textContent = translateTopic(claim.topic);
+            document.getElementById('claim-request').textContent = translateRequest(claim.request);
+            
+            updateAssignedSpecialists();
+            updateStatusHistory();
+        }
+        
+        function updateAssignedSpecialists() {
+            const specialistsContainer = document.getElementById('assigned-specialists');
+            specialistsContainer.innerHTML = '';
+            
+            if (claim.assignedSpecialists && claim.assignedSpecialists.length > 0) {
+                claim.assignedSpecialists.forEach(specialist => {
+                    const li = document.createElement('li');
+                    li.textContent = specialist;
+                    specialistsContainer.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = translations[currentLang]?.['no-specialists'] || 'Nėra paskirtų specialistų';
+                specialistsContainer.appendChild(li);
+            }
+        }
+
+
+        function updateStatusHistory() {
+            const historyContainer = document.getElementById('status-history');
+            historyContainer.innerHTML = '';
+            
+            const historyEvents = claim.statusHistory ? [...claim.statusHistory] : [
+                { status: claim.status, timestamp: claim.date }
+            ];
+            
+            historyEvents.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const dateOptions = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+
+            let locale = getLocaleFromLang(currentLang);
+            
+            historyEvents.forEach(event => {
                 const item = document.createElement('div');
-                item.className = 'file-item';
-                item.innerHTML = `<a href="${url}" target="_blank">📎 ${url.split('/').pop()}</a>`;
-                userFilesContainer.appendChild(item);
-            });
-        } else {
-            userFilesContainer.innerHTML = '<div class="file-item">Nėra įkeltų failų</div>';
-        }
-
-        // --- Pirkimo dokumentas ---
-const purchaseDocContainer = document.getElementById('purchase-document');
-if (claim.purchaseDocument) {
-    const url = claim.purchaseDocument;
-    const fileName = url.split('/').pop();
-
-    let link = '';
-    if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
-        link = `<a href="${url}" target="_blank">📷 Peržiūrėti nuotrauką</a>`;
-    } else if (url.match(/\.(mp4|webm)$/i)) {
-        link = `<a href="${url}" target="_blank">🎥 Peržiūrėti video</a>`;
-    } else if (url.match(/\.(pdf)$/i)) {
-        link = `<a href="${url}" target="_blank">📄 Atidaryti PDF</a>`;
-    } else {
-        link = `<a href="${url}" target="_blank">📎 Atsisiųsti dokumentą</a>`;
-    }
-
-    purchaseDocContainer.innerHTML = link;
-} else {
-    purchaseDocContainer.innerHTML = '<div class="file-item" style="color:#dc3545;">Pirkimo dokumentas nerastas.</div>';
-}
-
-        // --- Papildomi dokumentai ---
-        const additionalFilesContainer = document.getElementById('additional-files');
-        if (claim.additionalFiles && claim.additionalFiles.length > 0) {
-            claim.additionalFiles.forEach(att => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-                item.innerHTML = `<a href="${att.url}" target="_blank">📎 ${att.name}</a>`;
-                additionalFilesContainer.appendChild(item);
-            });
-        } else {
-            additionalFilesContainer.innerHTML = '<div class="file-item">Nėra papildomų dokumentų</div>';
-        }
-
-        // --- Būsenos istorija ---
-        const historyContainer = document.getElementById('status-history');
-        const historyEvents = [
-            { time: claim.date, action: 'Pretenzija pateikta' },
-            { time: claim.date, action: `Būsena: ${claim.status}` }
-        ];
-
-        if (claim.resolvedAt) {
-            historyEvents.push({
-                time: claim.resolvedAt,
-                action: 'Išspręsta'
+                item.className = 'timeline-item';
+                const translatedStatus = translateStatus(event.status);
+                const timelineText = translations[currentLang]['status-changed'] + translatedStatus;
+                item.innerHTML = `
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">${new Date(event.timestamp).toLocaleString(locale, dateOptions)}</div>
+                    <div class="timeline-content">${timelineText}</div>
+                `;
+                historyContainer.appendChild(item);
             });
         }
-
-        historyEvents.sort((a, b) => new Date(a.time) - new Date(b.time));
-
-        historyEvents.forEach(event => {
-            const item = document.createElement('div');
-            item.className = 'field';
-            item.innerHTML = `
-                <span class="field-label">${new Date(event.time).toLocaleString('lt-LT')}</span>
-                ${event.action}
+        
+        function getFilePreview(url, name) {
+            let icon = '📎';
+            let translatedName = translations[currentLang]['download-document'];
+            const fileName = url.split('/').pop();
+            if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+                icon = '🖼️';
+                translatedName = translations[currentLang]['view-photo'];
+            } else if (url.match(/\.(mp4|webm|mov)$/i)) {
+                icon = '📹';
+                translatedName = translations[currentLang]['view-video'];
+            } else if (url.match(/\.(pdf)$/i)) {
+                icon = '📄';
+                translatedName = translations[currentLang]['open-pdf'];
+            }
+            return `
+                <a href="${url}" target="_blank">
+                    <div class="file-preview">${icon}</div>
+                    <div class="file-info">
+                        <div class="file-name" title="${fileName}">${translatedName}</div>
+                    </div>
+                </a>
             `;
-            historyContainer.appendChild(item);
+        }
+        
+        function loadClaimData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const claimId = urlParams.get('id');
+            
+            if (!claimId) {
+                alert(translations[currentLang]?.['no-claim-id'] || 'Nenurodytas pretenzijos ID.');
+                history.back();
+                return;
+            }
+
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            claim = claims.find(c => c.id === claimId);
+            
+            // Temporary dummy data for demonstration
+            if (!claim) {
+                 claim = {
+                    id: claimId,
+                    date: new Date().toISOString(),
+                    status: 'Perduota servisui',
+                    topic: 'Techninė pagalba',
+                    product: 'Maišytuvas "Aqua-Flow Pro"',
+                    description: 'Maišytuvas leidžia vandenį ties sandūra su vamzdžiu.',
+                    request: 'send-technician',
+                    files: [],
+                    purchaseDocument: 'https://cdn.pixabay.com/photo/2016/06/02/09/27/document-1430939_1280.png',
+                    additionalFiles: [
+                        { url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', name: 'video.mp4' },
+                        { url: 'https://cdn.pixabay.com/photo/2017/10/17/19/27/pdf-2861575_1280.png', name: 'manual.pdf' }
+                    ],
+                    statusHistory: [
+                        { status: 'Nauja', timestamp: new Date(new Date().setHours(new Date().getHours() - 10)).toISOString() },
+                        { status: 'Perduota', timestamp: new Date(new Date().setHours(new Date().getHours() - 8)).toISOString() },
+                        { status: 'Perduota servisui', timestamp: new Date(new Date().setHours(new Date().getHours() - 5)).toISOString() }
+                    ],
+                    assignedSpecialists: ['Jonas Petraitis', 'Petras Jonaitis']
+                };
+            }
+
+
+            if (!claim) {
+                alert(translations[currentLang]?.['claim-not-found'] || 'Pretenzija nerasta.');
+                history.back();
+                return;
+            }
+            
+            if (claim.language) {
+                changeLanguage(claim.language);
+            }
+
+            document.getElementById('claim-id').textContent = claim.id;
+            document.getElementById('claim-product').textContent = claim.product;
+            document.getElementById('claim-description').textContent = claim.description;
+            
+            const userFilesContainer = document.getElementById('user-files');
+            userFilesContainer.innerHTML = '';
+            if (Array.isArray(claim.files) && claim.files.length > 0) {
+                claim.files.forEach(url => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.innerHTML = getFilePreview(url, url.split('/').pop());
+                    userFilesContainer.appendChild(item);
+                });
+            } else {
+                userFilesContainer.innerHTML = `<div class="file-item" style="grid-column: 1 / -1; background: none; border: none; text-align: left; padding: 0;">${translations[currentLang]['no-files']}</div>`;
+            }
+            
+            const purchaseDocContainer = document.getElementById('purchase-document');
+            purchaseDocContainer.innerHTML = '';
+            if (claim.purchaseDocument) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = getFilePreview(claim.purchaseDocument, 'Pirkimo dokumentas');
+                purchaseDocContainer.appendChild(item);
+            } else {
+                purchaseDocContainer.innerHTML = `<div class="file-item" style="grid-column: 1 / -1; background: none; border: none; text-align: left; padding: 0; color:#dc3545;">${translations[currentLang]['no-purchase-document']}</div>`;
+            }
+            
+            const additionalFilesContainer = document.getElementById('additional-files');
+            additionalFilesContainer.innerHTML = '';
+            if (claim.additionalFiles && claim.additionalFiles.length > 0) {
+                claim.additionalFiles.forEach(att => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.innerHTML = getFilePreview(att.url, att.name);
+                    additionalFilesContainer.appendChild(item);
+                });
+            } else {
+                additionalFilesContainer.innerHTML = `<div class="file-item" style="grid-column: 1 / -1; background: none; border: none; text-align: left; padding: 0;">${translations[currentLang]['no-additional-files']}</div>`;
+            }
+
+            updateClaimData();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageBtn = document.getElementById('language-btn');
+            const languageDropdown = document.getElementById('language-dropdown');
+            
+            languageBtn.addEventListener('click', () => {
+                languageDropdown.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', (event) => {
+                if (!languageBtn.contains(event.target) && !languageDropdown.contains(event.target)) {
+                    languageDropdown.classList.remove('show');
+                }
+            });
+            
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.getAttribute('data-lang');
+                    changeLanguage(lang);
+                    languageDropdown.classList.remove('show');
+                });
+            });
+            
+            document.querySelectorAll('.footer-flag').forEach(flag => {
+                flag.addEventListener('click', () => {
+                    const lang = flag.getAttribute('data-lang');
+                    changeLanguage(lang);
+                });
+            });
+
+            loadClaimData();
+            applyTranslations();
+            updateLanguageButton();
+            document.documentElement.lang = currentLang;
         });
     </script>
 </body>
