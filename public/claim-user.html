@@ -3,1207 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pilna pretenzijos informacija – Rubineta</title>
+    <title>Pretenzija #ID – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2D2D2D;
-            --primary-light: #4A4A4A;
-            --primary-hover: #6B6B6B;
-            --secondary: #FFCC00;
             --light: #F5F5F5;
             --white: #FFFFFF;
-            --dark: #212121;
-            --gray: #757575;
             --font: 'Roboto', sans-serif;
-            --accent: #4a6fa5;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --info: #17a2b8;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font);
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: var(--light);
-            color: #333;
-            line-height: 1.6;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        
-        header {
-            background: var(--white);
-            padding: 15px 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .logo { 
-            height: 50px; 
-            cursor: pointer; 
-        }
-        
-        nav a {
-            margin: 0 15px;
-            text-decoration: none;
-            color: var(--dark);
-            font-weight: 500;
-            font-size: 16px;
-        }
-        
-        nav a:hover {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-        
-        .language-selector {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .language-btn {
-            background: var(--primary-light);
-            color: var(--white);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .language-btn:hover {
-            background: var(--primary-hover);
-        }
-        
-        .language-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: var(--white);
-            min-width: 140px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            z-index: 101;
-        }
-        
-        .language-dropdown.show {
-            display: block;
-        }
-        
-        .language-option {
-            padding: 10px 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: background 0.2s;
-        }
-        
-        .language-option:hover {
+            font-family: var(--font);
             background: var(--light);
+            color: #333;
+            line-height: 1.4;
+            padding: 20px;
         }
-        
-        .language-flag {
-            width: 24px;
-            height: 18px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-        }
-        
         .container {
-            width: 90%;
-            max-width: 1200px;
-            flex: 1;
-            margin: 30px auto;
-            padding: 20px;
-        }
-        
-        .claim-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
             background: var(--white);
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        
-        .claim-title {
-            font-size: 1.8rem;
+        h2 {
             color: var(--primary);
-        }
-        
-        .status-badge {
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-        
-        .status-new {
-            background-color: var(--warning);
-            color: #000;
-        }
-        
-        .status-in-progress {
-            background-color: var(--info);
-            color: white;
-        }
-        
-        .status-resolved {
-            background-color: var(--success);
-            color: white;
-        }
-        
-        .status-rejected {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .card {
-            background: var(--white);
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            padding: 20px;
-            height: fit-content;
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 5px;
             border-bottom: 1px solid #eee;
         }
-        
-        .card-title {
-            font-size: 1.2rem;
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .info-group {
-            margin-bottom: 15px;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: var(--gray);
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .info-value {
-            font-size: 1rem;
-            color: var(--dark);
-        }
-        
-        .files-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .file-item {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.2s;
-            text-align: center;
-            background: #f8f9fa;
-            cursor: pointer;
-        }
-        
-        .file-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .file-preview {
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-        }
-        
-        .file-info {
-            padding: 10px;
-        }
-        
-        .file-name {
-            font-size: 0.8rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .assignee-card {
-            background: #e8f4fd;
-            border-left: 4px solid var(--info);
-        }
-        
-        .assignee-name {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .assignee-contact {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
-        
-        .timeline {
-            position: relative;
-            padding-left: 30px;
-            margin-top: 20px;
-        }
-        
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 10px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #ddd;
-        }
-        
-        .timeline-item {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        .timeline-dot {
-            position: absolute;
-            left: -30px;
-            top: 5px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--primary);
-        }
-        
-        .timeline-date {
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-bottom: 5px;
-        }
-        
-        .timeline-content {
-            font-size: 0.9rem;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 60px;
-            padding: 20px;
-            color: var(--gray);
-            font-size: 12px;
-            border-top: 1px solid #dee2e6;
-            background: var(--secondary);
-        }
-        
-        .footer-links {
+        .field {
             margin-bottom: 10px;
         }
-        
-        .footer-links a {
-            color: var(--gray);
-            text-decoration: underline;
-            margin: 0 5px;
+        .field-label {
+            font-weight: 500;
+            color: #555;
+            display: inline-block;
+            min-width: 120px;
         }
-        
-        .footer-links a:hover {
-            color: var(--dark);
+        .file-item {
+            margin: 5px 0;
+            word-break: break-all;
         }
-        
-        .footer-flags {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        
-        .footer-flag {
-            width: 30px;
-            height: 20px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .footer-flag:hover {
-            transform: scale(1.1);
-        }
-        
-        .back-button {
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .back-button:hover {
-            background: var(--primary-hover);
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            overflow: auto;
-        }
-        
-        .modal-content {
-            display: block;
-            margin: auto;
-            max-width: 80%;
-            max-height: 80%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
+
+        .status {
             font-weight: bold;
-            cursor: pointer;
+            color: #d44646;
         }
-        
-        .close:hover {
-            color: #bbb;
+        .status.Išspręsta {
+            color: green;
         }
-        
-        @media (max-width: 1200px) {
-            .container {
-                width: 95%;
-            }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #75757d;
+            font-size: 12px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
         }
-        
-        @media (max-width: 768px) {
-            .cards-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .claim-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-            
-            header {
-                padding: 10px 20px;
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            nav {
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            
-            .language-selector {
-                margin-top: 10px;
-            }
-            
-            .footer-flags {
-                flex-wrap: wrap;
-            }
-            
-            .modal-content {
-                max-width: 95%;
-                max-height: 95%;
-            }
-        }
+        .file-item a {
+    color: #17a2b8;
+    text-decoration: none;
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    background: #f8f9fa;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.file-item a:hover {
+    background: #e9ecef;
+    border-color: #17a2b8;
+    transform: translateY(-1px);
+}
+
+
     </style>
 </head>
 <body>
-    <header>
-        <img src="https://placehold.co/150x50/2D2D2D/FFFFFF/png?text=Rubineta" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
-        <nav>
-            <a href="index.html" data-translate="nav-home">Pagrindinis</a>
-            <a href="duku.html" data-translate="nav-faq">DUK</a>
-            <a href="pretention.html" data-translate="nav-claim">Pateikti pretenziją</a>
-            <a href="profile.html" data-translate="nav-profile">Mano paskyra</a>
-        </nav>
-        <div class="language-selector">
-            <button class="language-btn" id="language-btn">
-                <img src="https://placehold.co/24x18/ccc/fff/png?text=LT" alt="LT" class="language-flag" id="current-flag">
-                <span id="current-lang">LT</span>
-            </button>
-            <div class="language-dropdown" id="language-dropdown">
-                <div class="language-option" data-lang="lt">
-                    <img src="https://placehold.co/24x18/ccc/fff/png?text=LT" alt="LT" class="language-flag">
-                    <span data-translate="language-lt">Lietuvių</span>
-                </div>
-                <div class="language-option" data-lang="lv">
-                    <img src="https://placehold.co/24x18/ccc/fff/png?text=LV" alt="LV" class="language-flag">
-                    <span data-translate="language-lv">Latviešu</span>
-                </div>
-                <div class="language-option" data-lang="ru">
-                    <img src="https://placehold.co/24x18/ccc/fff/png?text=RU" alt="RU" class="language-flag">
-                    <span data-translate="language-ru">Русский</span>
-                </div>
-                <div class="language-option" data-lang="en">
-                    <img src="https://placehold.co/24x18/ccc/fff/png?text=EN" alt="EN" class="language-flag">
-                    <span data-translate="language-en">English</span>
-                </div>
-                <div class="language-option" data-lang="kz">
-                    <img src="https://placehold.co/24x18/ccc/fff/png?text=KZ" alt="KZ" class="language-flag">
-                    <span data-translate="language-kz">Қазақша</span>
-                </div>
-            </div>
-        </div>
-    </header>
-
     <div class="container">
-        <button class="back-button" onclick="history.back()">
-            ← <span data-translate="btn-back">Grįžti atgal</span>
-        </button>
+        <h2>Jūsų pretenzija</h2>
         
-        <div class="claim-header">
-            <div class="claim-title"><span data-translate="claim-title">Pretenzija</span> <span id="claim-id">#PRT-2023-0085</span></div>
-            <div class="status-badge" id="claim-status">Vykdoma</div>
-        </div>
-        
-        <div class="cards-container">
-            <!-- Pagrindinė informacija -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title" data-translate="basic-info-title">Pagrindinė informacija</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="submission-date">Pateikimo data</div>
-                    <div class="info-value" id="claim-date">2023-11-15 14:32</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="topic-label">Tema</div>
-                    <div class="info-value" id="claim-topic">Produkto problema</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="product-label">Produkto pavadinimas</div>
-                    <div class="info-value" id="claim-product">Rubineta Virtuvės kriauklė R-455</div>
-                </div>
-            </div>
-            
-            <!-- Aprašymas -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title" data-translate="description-title">Pretenzijos aprašymas</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-value" id="claim-description">
-                        Per dvi savaites po montavimo, kriauklė pradėjo prasikišti. Vanduo pilnai neišteka, užsikemša po 10-15 sekundžių. Problemą bandžiau spręsti pats, valydamas sifoną, bet tai nepadejo.
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Kliento pageidavimai -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title" data-translate="customer-requests-title">Kliento pageidavimai</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="request-label">Pageidavimas</div>
-                    <div class="info-value" id="claim-request">Meistro iškvietimas</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="contact-method-label">Pageidaujamas kontaktavimo būdas</div>
-                    <div class="info-value" id="claim-contact-method">Telefonas</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="preferred-time-label">Patogus laikas kontaktui</div>
-                    <div class="info-value" id="claim-preferred-time">14:00 - 17:00</div>
-                </div>
-            </div>
-            
-            <!-- Priskirti specialistai -->
-            <div class="card assignee-card">
-                <div class="card-header">
-                    <div class="card-title" data-translate="assigned-specialists-title">Priskirti specialistai</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="quality-specialist-label">Kokybės kontrolės specialistas</div>
-                    <div class="assignee-name" id="quality-specialist-name">Jonas Petrauskas</div>
-                    <div class="assignee-contact">
-                        <div class="contact-item">📧 <span id="quality-specialist-email">jonas.petrauskas@rubineta.lt</span></div>
-                        <div class="contact-item">📞 <span id="quality-specialist-phone">+370 612 34567</span></div>
-                    </div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="technician-label">Meistras</div>
-                    <div class="assignee-name" id="technician-name">Petras Juozaitis</div>
-                    <div class="assignee-contact">
-                        <div class="contact-item">📧 <span id="technician-email">petras.juozaitis@rubineta.lt</span></div>
-                        <div class="contact-item">📞 <span id="technician-phone">+370 623 45678</span></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Dokumentai -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title" data-translate="attachments-title">Prikabti dokumentai</div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="purchase-document-label">Pirkimo dokumentas</div>
-                    <div class="files-container" id="purchase-documents">
-                        <!-- Čia bus įkelti pirkimo dokumentai -->
-                    </div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="product-photos-label">Sugadintos prekės nuotraukos</div>
-                    <div class="files-container" id="product-photos">
-                        <!-- Čia bus įkeltos produkto nuotraukos -->
-                    </div>
-                </div>
-                <div class="info-group">
-                    <div class="info-label" data-translate="other-files-label">Kiti failai</div>
-                    <div class="files-container" id="other-files">
-                        <!-- Čia bus įkelti kiti failai -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Būsenos istorija -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title" data-translate="status-history-title">Būsenos istorija</div>
-                </div>
-                <div class="timeline" id="status-history">
-                    <!-- Čia bus įkelta būsenų istorija -->
-                </div>
-            </div>
-        </div>
+        <div class="field"><span class="field-label">ID:</span> <span id="claim-id"></span></div>
+        <div class="field"><span class="field-label">Data:</span> <span id="claim-date"></span></div>
+        <div class="field"><span class="field-label">Tema:</span> <span id="claim-topic"></span></div>
+        <div class="field"><span class="field-label">Produktas:</span> <span id="claim-product"></span></div>
+        <div class="field"><span class="field-label">Aprašymas:</span> <span id="claim-description"></span></div>
+        <div class="field"><span class="field-label">Kliento reikalavimas:</span> <span id="claim-request"></span></div>
+        <div class="field"><span class="field-label">Būsena:</span> <span id="claim-status" class="status"></span></div>
+
+        <h2>Vartotojo dokumentai</h2>
+        <div id="user-files"></div>
+
+        <h2>Pirkimo dokumentas</h2>
+        <div id="purchase-document"></div>
+
+        <h2>Papildomi dokumentai</h2>
+        <div id="additional-files"></div>
+
+        <h2>Būsenos istorija</h2>
+        <div id="status-history"></div>
     </div>
 
-    <!-- Modalas failų peržiūrai -->
-    <div id="fileModal" class="modal">
-        <span class="close" id="closeModal">&times;</span>
-        <img class="modal-content" id="modalImage">
-        <video class="modal-content" id="modalVideo" controls></video>
-        <iframe class="modal-content" id="modalPdf" style="display:none; width:80%; height:80%;"></iframe>
-    </div>
-
-    <footer>
-        <div class="footer-links">
-            <span data-translate="footer-copyright">© 2025 Rubineta. Visos teisės saugomos. | hello@rubineta.com</span> •
-            <a href="privacy.html" data-translate="footer-privacy">Privatumo politika</a> •
-            <a href="cookies.html" data-translate="footer-cookies">Slapukų politika</a>
-        </div>
-        <div class="footer-flags">
-            <img src="https://placehold.co/30x20/ccc/fff/png?text=LT" alt="Lietuvių" class="footer-flag" data-lang="lt">
-            <img src="https://placehold.co/30x20/ccc/fff/png?text=LV" alt="Latviešu" class="footer-flag" data-lang="lv">
-            <img src="https://placehold.co/30x20/ccc/fff/png?text=RU" alt="Русский" class="footer-flag" data-lang="ru">
-            <img src="https://placehold.co/30x20/ccc/fff/png?text=EN" alt="English" class="footer-flag" data-lang="en">
-            <img src="https://placehold.co/30x20/ccc/fff/png?text=KZ" alt="Қазақша" class="footer-flag" data-lang="kz">
-        </div>
-    </footer>
+    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
 
     <script>
-        // Kalbų vertimai
-        const translations = {
-            lt: {
-                "nav-home": "Pagrindinis",
-                "nav-faq": "DUK",
-                "nav-claim": "Pateikti pretenziją",
-                "nav-profile": "Mano paskyra",
-                "language-lt": "Lietuvių",
-                "language-lv": "Latviešu",
-                "language-ru": "Русский",
-                "language-en": "English",
-                "language-kz": "Қазақша",
-                "btn-back": "Grįžti atgal",
-                "claim-title": "Pretenzija",
-                "status-in-progress": "Vykdoma",
-                "basic-info-title": "Pagrindinė informacija",
-                "submission-date": "Pateikimo data",
-                "topic-label": "Tema",
-                "topic-product-problem": "Produkto problema",
-                "product-label": "Produkto pavadinimas",
-                "description-title": "Pretenzijos aprašymas",
-                "customer-requests-title": "Kliento pageidavimai",
-                "request-label": "Pageidavimas",
-                "request-send-technician": "Meistro iškvietimas",
-                "contact-method-label": "Pageidaujamas kontaktavimo būdas",
-                "contact-phone": "Telefonas",
-                "preferred-time-label": "Patogus laikas kontaktui",
-                "assigned-specialists-title": "Priskirti specialistai",
-                "quality-specialist-label": "Kokybės kontrolės specialistas",
-                "technician-label": "Meistras",
-                "attachments-title": "Prikabti dokumentai",
-                "purchase-document-label": "Pirkimo dokumentas",
-                "product-photos-label": "Sugadintos prekės nuotraukos",
-                "other-files-label": "Kiti failai",
-                "status-history-title": "Būsenos istorija",
-                "status-submitted": "Pretenzija pateikta",
-                "status-assigned-specialist": "Priskirtas kokybės kontrolės specialistas",
-                "status-assigned-technician": "Priskirtas meistras",
-                "status-contact-established": "Meistras susisiekė ir sutarta vizito laikas",
-                "footer-copyright": "© 2025 Rubineta. Visos teisės saugomos. | hello@rubineta.com",
-                "footer-privacy": "Privatumo politika",
-                "footer-cookies": "Slapukų politika"
-            },
-            lv: {
-                "nav-home": "Galvenā",
-                "nav-faq": "BUJ",
-                "nav-claim": "Iesniegt pretenziju",
-                "nav-profile": "Mans profils",
-                "language-lt": "Lietuvių",
-                "language-lv": "Latviešu",
-                "language-ru": "Русский",
-                "language-en": "English",
-                "language-kz": "Қазақша",
-                "btn-back": "Atpakaļ",
-                "claim-title": "Pretenzija",
-                "status-in-progress": "Procesā",
-                "basic-info-title": "Pamatinformācija",
-                "submission-date": "Iesniegšanas datums",
-                "topic-label": "Tēma",
-                "topic-product-problem": "Produkta problēma",
-                "product-label": "Produkta nosaukums",
-                "description-title": "Pretenzijas apraksts",
-                "customer-requests-title": "Klienta prasības",
-                "request-label": "Prasība",
-                "request-send-technician": "Nosūtīt meistaru",
-                "contact-method-label": "Vēlamais kontakta veids",
-                "contact-phone": "Pa tālruni",
-                "preferred-time-label": "Ērts laiks kontaktiem",
-                "assigned-specialists-title": "Piešķirtie speciālisti",
-                "quality-specialist-label": "Kvalitātes kontroles speciālists",
-                "technician-label": "Meistars",
-                "attachments-title": "Pievienotie dokumenti",
-                "purchase-document-label": "Pirkuma dokuments",
-                "product-photos-label": "Bojātās preces fotogrāfijas",
-                "other-files-label": "Citi faili",
-                "status-history-title": "Statusa vēsture",
-                "status-submitted": "Pretenzija iesniegta",
-                "status-assigned-specialist": "Piešķirts kvalitātes kontroles speciālists",
-                "status-assigned-technician": "Piešķirts meistars",
-                "status-contact-established": "Meistars sazinājās un vienojās par vizītes laiku",
-                "footer-copyright": "© 2025 Rubineta. Visas tiesības aizsargātas. | hello@rubineta.com",
-                "footer-privacy": "Privātuma politika",
-                "footer-cookies": "Sīkdatņu politika"
-            },
-            en: {
-                "nav-home": "Home",
-                "nav-faq": "FAQ",
-                "nav-claim": "Submit a claim",
-                "nav-profile": "My profile",
-                "language-lt": "Lietuvių",
-                "language-lv": "Latviešu",
-                "language-ru": "Русский",
-                "language-en": "English",
-                "language-kz": "Қазақша",
-                "btn-back": "Back",
-                "claim-title": "Claim",
-                "status-in-progress": "In Progress",
-                "basic-info-title": "Basic Information",
-                "submission-date": "Submission date",
-                "topic-label": "Topic",
-                "topic-product-problem": "Product problem",
-                "product-label": "Product name",
-                "description-title": "Claim description",
-                "customer-requests-title": "Customer requests",
-                "request-label": "Request",
-                "request-send-technician": "Send a technician",
-                "contact-method-label": "Preferred contact method",
-                "contact-phone": "By phone",
-                "preferred-time-label": "Convenient time for contact",
-                "assigned-specialists-title": "Assigned specialists",
-                "quality-specialist-label": "Quality control specialist",
-                "technician-label": "Technician",
-                "attachments-title": "Attached documents",
-                "purchase-document-label": "Purchase document",
-                "product-photos-label": "Damaged product photos",
-                "other-files-label": "Other files",
-                "status-history-title": "Status history",
-                "status-submitted": "Claim submitted",
-                "status-assigned-specialist": "Quality control specialist assigned",
-                "status-assigned-technician": "Technician assigned",
-                "status-contact-established": "Technician contacted and visit time agreed",
-                "footer-copyright": "© 2025 Rubineta. All rights reserved. | hello@rubineta.com",
-                "footer-privacy": "Privacy Policy",
-                "footer-cookies": "Cookie Policy"
-            },
-            ru: {
-                "nav-home": "Главная",
-                "nav-faq": "ЧЗВ",
-                "nav-claim": "Подать претензию",
-                "nav-profile": "Мой профиль",
-                "language-lt": "Lietuvių",
-                "language-lv": "Latviešu",
-                "language-ru": "Русский",
-                "language-en": "English",
-                "language-kz": "Қазақша",
-                "btn-back": "Назад",
-                "claim-title": "Претензия",
-                "status-in-progress": "В процессе",
-                "basic-info-title": "Основная информация",
-                "submission-date": "Дата подачи",
-                "topic-label": "Тема",
-                "topic-product-problem": "Проблема с продуктом",
-                "product-label": "Название продукта",
-                "description-title": "Описание претензии",
-                "customer-requests-title": "Требования клиента",
-                "request-label": "Требование",
-                "request-send-technician": "Отправить мастера",
-                "contact-method-label": "Предпочтительный способ связи",
-                "contact-phone": "По телефону",
-                "preferred-time-label": "Удобное время для связи",
-                "assigned-specialists-title": "Назначенные специалисты",
-                "quality-specialist-label": "Специалист по контролю качества",
-                "technician-label": "Мастер",
-                "attachments-title": "Прикрепленные документы",
-                "purchase-document-label": "Документ о покупке",
-                "product-photos-label": "Фотографии поврежденного товара",
-                "other-files-label": "Другие файлы",
-                "status-history-title": "История статуса",
-                "status-submitted": "Претензия подана",
-                "status-assigned-specialist": "Назначен специалист по контролю качества",
-                "status-assigned-technician": "Назначен мастер",
-                "status-contact-established": "Мастер связался и согласовал время визита",
-                "footer-copyright": "© 2025 Rubineta. Все права защищены. | hello@rubineta.com",
-                "footer-privacy": "Политика конфиденциальности",
-                "footer-cookies": "Политика использования файлов cookie"
-            },
-            kz: {
-                "nav-home": "Басты бет",
-                "nav-faq": "ЖИС",
-                "nav-claim": "Шағым беру",
-                "nav-profile": "Менің профилім",
-                "language-lt": "Lietuvių",
-                "language-lv": "Latviešu",
-                "language-ru": "Русский",
-                "language-en": "English",
-                "language-kz": "Қазақша",
-                "btn-back": "Артқа",
-                "claim-title": "Шағым",
-                "status-in-progress": "Орындалуда",
-                "basic-info-title": "Негізгі ақпарат",
-                "submission-date": "Тапсыру күні",
-                "topic-label": "Тақырып",
-                "topic-product-problem": "Өнім мәселесі",
-                "product-label": "Өнім атауы",
-                "description-title": "Шағым сипаттамасы",
-                "customer-requests-title": "Тұтынушы сұраныстары",
-                "request-label": "Сұраныс",
-                "request-send-technician": "Шебер жіберу",
-                "contact-method-label": "Үлгілі байланыс әдісі",
-                "contact-phone": "Телефон арқылы",
-                "preferred-time-label": "Байланыс үшін ыңғайлы уақыт",
-                "assigned-specialists-title": "Тағайындалған мамандар",
-                "quality-specialist-label": "Сапаны бақылау маманы",
-                "technician-label": "Шебер",
-                "attachments-title": "Тіркелген құжаттар",
-                "purchase-document-label": "Сатып алу құжаты",
-                "product-photos-label": "Бүлінген өнімнің фотосуреттері",
-                "other-files-label": "Басқа файлдар",
-                "status-history-title": "Күйінің тарихы",
-                "status-submitted": "Шағым тапсырылды",
-                "status-assigned-specialist": "Сапаны бақылау маманы тағайындалды",
-                "status-assigned-technician": "Шебер тағайындалды",
-                "status-contact-established": "Шебер хабарласып, келу уақытын келісті",
-                "footer-copyright": "© 2025 Rubineta. Барлық құқықтар қорғалған. | hello@rubineta.com",
-                "footer-privacy": "Құпиялылық саясаты",
-                "footer-cookies": "Cookie файлдары саясаты"
-            }
-        };
+        const urlParams = new URLSearchParams(window.location.search);
+        const claimId = urlParams.get('id');
 
-        // Nustatyti numatytąją kalbą
-        let currentLang = localStorage.getItem('language') || 'lt';
-
-        // Atnaujinti kalbos mygtuką
-        function updateLanguageButton() {
-            const btn = document.getElementById('language-btn');
-            const flag = document.getElementById('current-flag');
-            const langText = document.getElementById('current-lang');
-            flag.src = getFlagSrc(currentLang);
-            flag.alt = currentLang.toUpperCase();
-            langText.textContent = currentLang.toUpperCase();
+        if (!claimId) {
+            alert('Nenurodytas pretenzijos ID.');
+            history.back();
         }
 
-        // Gauti vėliavos šaltinį pagal kalbą
-        function getFlagSrc(lang) {
-            switch(lang) {
-                case 'lt': return "https://placehold.co/24x18/ccc/fff/png?text=LT";
-                case 'lv': return "https://placehold.co/24x18/ccc/fff/png?text=LV";
-                case 'ru': return "https://placehold.co/24x18/ccc/fff/png?text=RU";
-                case 'en': return "https://placehold.co/24x18/ccc/fff/png?text=EN";
-                case 'kz': return "https://placehold.co/24x18/ccc/fff/png?text=KZ";
-                default: return "https://placehold.co/24x18/ccc/fff/png?text=LT";
-            }
+        const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+        const claim = claims.find(c => c.id === claimId);
+
+        if (!claim) {
+            alert('Pretenzija nerasta.');
+            history.back();
         }
 
-        // Pakeisti kalbą
-        function changeLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('language', lang);
-            applyTranslations();
-            updateLanguageButton();
-            document.documentElement.lang = lang;
+        // --- Užpildyti pagrindinę informaciją ---
+        document.getElementById('claim-id').textContent = claim.id;
+        document.getElementById('claim-date').textContent = new Date(claim.date).toLocaleString('lt-LT');
+        document.getElementById('claim-topic').textContent = claim.topic;
+        document.getElementById('claim-product').textContent = claim.product;
+        document.getElementById('claim-description').textContent = claim.description;
+        document.getElementById('claim-request').textContent = claim.request;
+        document.getElementById('claim-status').textContent = claim.status;
+        document.getElementById('claim-status').className += ' ' + claim.status;
+
+        // --- Vartotojo failai ---
+        const userFilesContainer = document.getElementById('user-files');
+        if (Array.isArray(claim.files) && claim.files.length > 0) {
+            claim.files.forEach(url => {
+                if (typeof url !== 'string') return;
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `<a href="${url}" target="_blank">📎 ${url.split('/').pop()}</a>`;
+                userFilesContainer.appendChild(item);
+            });
+        } else {
+            userFilesContainer.innerHTML = '<div class="file-item">Nėra įkeltų failų</div>';
         }
 
-        // Taikyti vertimus
-        function applyTranslations() {
-            const elements = document.querySelectorAll('[data-translate]');
-            elements.forEach(element => {
-                const key = element.getAttribute('data-translate');
-                if (translations[currentLang] && translations[currentLang][key]) {
-                    element.textContent = translations[currentLang][key];
-                }
+        // --- Pirkimo dokumentas ---
+const purchaseDocContainer = document.getElementById('purchase-document');
+if (claim.purchaseDocument) {
+    const url = claim.purchaseDocument;
+    const fileName = url.split('/').pop();
+
+    let link = '';
+    if (url.match(/\.(jpg|jpeg|png|webp)$/i)) {
+        link = `<a href="${url}" target="_blank">📷 Peržiūrėti nuotrauką</a>`;
+    } else if (url.match(/\.(mp4|webm)$/i)) {
+        link = `<a href="${url}" target="_blank">🎥 Peržiūrėti video</a>`;
+    } else if (url.match(/\.(pdf)$/i)) {
+        link = `<a href="${url}" target="_blank">📄 Atidaryti PDF</a>`;
+    } else {
+        link = `<a href="${url}" target="_blank">📎 Atsisiųsti dokumentą</a>`;
+    }
+
+    purchaseDocContainer.innerHTML = link;
+} else {
+    purchaseDocContainer.innerHTML = '<div class="file-item" style="color:#dc3545;">Pirkimo dokumentas nerastas.</div>';
+}
+
+        // --- Papildomi dokumentai ---
+        const additionalFilesContainer = document.getElementById('additional-files');
+        if (claim.additionalFiles && claim.additionalFiles.length > 0) {
+            claim.additionalFiles.forEach(att => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `<a href="${att.url}" target="_blank">📎 ${att.name}</a>`;
+                additionalFilesContainer.appendChild(item);
+            });
+        } else {
+            additionalFilesContainer.innerHTML = '<div class="file-item">Nėra papildomų dokumentų</div>';
+        }
+
+        // --- Būsenos istorija ---
+        const historyContainer = document.getElementById('status-history');
+        const historyEvents = [
+            { time: claim.date, action: 'Pretenzija pateikta' },
+            { time: claim.date, action: `Būsena: ${claim.status}` }
+        ];
+
+        if (claim.resolvedAt) {
+            historyEvents.push({
+                time: claim.resolvedAt,
+                action: 'Išspręsta'
             });
         }
 
-        // Gauti pretenzijos ID iš URL
-        function getClaimIdFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('id');
-        }
+        historyEvents.sort((a, b) => new Date(a.time) - new Date(b.time));
 
-        // Gauti pretenzijos duomenis iš localStorage
-        function getClaimData(claimId) {
-            const claims = JSON.parse(localStorage.getItem('claims')) || [];
-            return claims.find(claim => claim.id === claimId);
-        }
-
-        // Užpildyti puslapį su pretenzijos duomenimis
-        function populateClaimData(claimData) {
-            if (!claimData) {
-                document.getElementById('claim-id').textContent = '#NERASTA';
-                document.getElementById('claim-status').textContent = 'Nerasta';
-                document.getElementById('claim-status').className = 'status-badge status-rejected';
-                return;
-            }
-
-            // Pagrindinė informacija
-            document.getElementById('claim-id').textContent = `#${claimData.id}`;
-            document.getElementById('claim-date').textContent = new Date(claimData.submittedAt).toLocaleString('lt-LT');
-            document.getElementById('claim-topic').textContent = claimData.topic;
-            document.getElementById('claim-product').textContent = claimData.product;
-            document.getElementById('claim-description').textContent = claimData.description;
-            document.getElementById('claim-request').textContent = translateRequest(claimData.request);
-            document.getElementById('claim-contact-method').textContent = translateContactMethod(claimData.contactMethod);
-            document.getElementById('claim-preferred-time').textContent = claimData.preferredTime || 'Nenurodyta';
-
-            // Būsena
-            const statusElement = document.getElementById('claim-status');
-            statusElement.textContent = translateStatus(claimData.status);
-            statusElement.className = 'status-badge ' + getStatusClass(claimData.status);
-
-            // Priskirti specialistai (jei yra)
-            if (claimData.assignedSpecialists) {
-                if (claimData.assignedSpecialists.qualitySpecialist) {
-                    document.getElementById('quality-specialist-name').textContent = claimData.assignedSpecialists.qualitySpecialist.name;
-                    document.getElementById('quality-specialist-email').textContent = claimData.assignedSpecialists.qualitySpecialist.email;
-                    document.getElementById('quality-specialist-phone').textContent = claimData.assignedSpecialists.qualitySpecialist.phone;
-                }
-                
-                if (claimData.assignedSpecialists.technician) {
-                    document.getElementById('technician-name').textContent = claimData.assignedSpecialists.technician.name;
-                    document.getElementById('technician-email').textContent = claimData.assignedSpecialists.technician.email;
-                    document.getElementById('technician-phone').textContent = claimData.assignedSpecialists.technician.phone;
-                }
-            }
-
-            // Įkelti dokumentus
-            loadDocuments(claimData);
-
-            // Įkelti būsenų istoriją
-            loadStatusHistory(claimData);
-        }
-
-        // Išversti užklausos tipą
-        function translateRequest(request) {
-            const requestTranslations = {
-                'send-part': translations[currentLang]['request-send-part'] || 'Išsiųsti atsarginę dalį',
-                'send-technician': translations[currentLang]['request-send-technician'] || 'Siųsti meistrą',
-                'exchange': translations[currentLang]['request-exchange'] || 'Keisti produktą',
-                'choose': translations[currentLang]['request-other'] || 'Kita'
-            };
-            return requestTranslations[request] || request;
-        }
-
-        // Išversti kontakto metodą
-        function translateContactMethod(method) {
-            const methodTranslations = {
-                'email': translations[currentLang]['contact-email'] || 'El. paštu',
-                'phone': translations[currentLang]['contact-phone'] || 'Telefonu'
-            };
-            return methodTranslations[method] || method;
-        }
-
-        // Išversti būseną
-        function translateStatus(status) {
-            const statusTranslations = {
-                'received': translations[currentLang]['status-submitted'] || 'Pateikta',
-                'in-progress': translations[currentLang]['status-in-progress'] || 'Vykdoma',
-                'resolved': translations[currentLang]['status-resolved'] || 'Išspręsta',
-                'rejected': translations[currentLang]['status-rejected'] || 'Atmesta'
-            };
-            return statusTranslations[status] || status;
-        }
-
-        // Gauti būsenos CSS klasę
-        function getStatusClass(status) {
-            const statusClasses = {
-                'received': 'status-new',
-                'in-progress': 'status-in-progress',
-                'resolved': 'status-resolved',
-                'rejected': 'status-rejected'
-            };
-            return statusClasses[status] || 'status-new';
-        }
-
-        // Įkelti dokumentus
-        function loadDocuments(claimData) {
-            const purchaseContainer = document.getElementById('purchase-documents');
-            const photosContainer = document.getElementById('product-photos');
-            const otherContainer = document.getElementById('other-files');
-
-            // Išvalyti konteinerius
-            purchaseContainer.innerHTML = '';
-            photosContainer.innerHTML = '';
-            otherContainer.innerHTML = '';
-
-            // Pirkimo dokumentas
-            if (claimData.purchaseDocument) {
-                const fileItem = createFileItem(claimData.purchaseDocument, 'pdf');
-                purchaseContainer.appendChild(fileItem);
-            } else {
-                purchaseContainer.innerHTML = '<div class="info-value">Nėra pateikto dokumento</div>';
-            }
-
-            // Produkto nuotraukos
-            if (claimData.productPhotos && claimData.productPhotos.length > 0) {
-                claimData.productPhotos.forEach(photo => {
-                    const fileItem = createFileItem(photo, 'image');
-                    photosContainer.appendChild(fileItem);
-                });
-            } else {
-                photosContainer.innerHTML = '<div class="info-value">Nėra pateiktų nuotraukų</div>';
-            }
-
-            // Kiti failai
-            if (claimData.otherFiles && claimData.otherFiles.length > 0) {
-                claimData.otherFiles.forEach(file => {
-                    const fileItem = createFileItem(file, 'other');
-                    otherContainer.appendChild(fileItem);
-                });
-            } else {
-                otherContainer.innerHTML = '<div class="info-value">Nėra pateiktų failų</div>';
-            }
-        }
-
-        // Sukurti failo elementą
-        function createFileItem(fileName, type) {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.setAttribute('data-file', fileName);
-
-            let icon = '📄';
-            if (type === 'image') icon = '🖼️';
-            if (type === 'video') icon = '📹';
-
-            fileItem.innerHTML = `
-                <div class="file-preview">${icon}</div>
-                <div class="file-info">
-                    <div class="file-name">${fileName}</div>
-                </div>
+        historyEvents.forEach(event => {
+            const item = document.createElement('div');
+            item.className = 'field';
+            item.innerHTML = `
+                <span class="field-label">${new Date(event.time).toLocaleString('lt-LT')}</span>
+                ${event.action}
             `;
-
-            return fileItem;
-        }
-
-        // Įkelti būsenų istoriją
-        function loadStatusHistory(claimData) {
-            const historyContainer = document.getElementById('status-history');
-            historyContainer.innerHTML = '';
-
-            if (claimData.statusHistory && claimData.statusHistory.length > 0) {
-                claimData.statusHistory.forEach(event => {
-                    const timelineItem = document.createElement('div');
-                    timelineItem.className = 'timeline-item';
-
-                    timelineItem.innerHTML = `
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-date">${new Date(event.timestamp).toLocaleString('lt-LT')}</div>
-                        <div class="timeline-content">${translateStatus(event.status)}</div>
-                    `;
-
-                    historyContainer.appendChild(timelineItem);
-                });
-            } else {
-                // Jei nėra istorijos, rodome tik pagrindinį įrašą
-                const timelineItem = document.createElement('div');
-                timelineItem.className = 'timeline-item';
-
-                timelineItem.innerHTML = `
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-date">${new Date(claimData.submittedAt).toLocaleString('lt-LT')}</div>
-                    <div class="timeline-content">${translateStatus('received')}</div>
-                `;
-
-                historyContainer.appendChild(timelineItem);
-            }
-        }
-
-        // Failų peržiūros modalas
-        const modal = document.getElementById("fileModal");
-        const modalImg = document.getElementById("modalImage");
-        const modalVideo = document.getElementById("modalVideo");
-        const modalPdf = document.getElementById("modalPdf");
-        const closeModal = document.getElementById("closeModal");
-
-        // Atidaryti modalą su failu
-        function openModal(fileType, fileName) {
-            modal.style.display = "block";
-            
-            if (fileType === "image") {
-                modalImg.src = `https://placehold.co/600x400/2d2d2d/fff/png?text=${encodeURIComponent(fileName)}`;
-                modalImg.style.display = "block";
-                modalVideo.style.display = "none";
-                modalPdf.style.display = "none";
-            } else if (fileType === "video") {
-                modalVideo.src = "https://placehold.co/600x400/2d2d2d/fff/png?text=Video+Preview";
-                modalVideo.style.display = "block";
-                modalImg.style.display = "none";
-                modalPdf.style.display = "none";
-            } else if (fileType === "pdf") {
-                modalPdf.src = "https://placehold.co/600x400/2d2d2d/fff/png?text=PDF+Preview";
-                modalPdf.style.display = "block";
-                modalImg.style.display = "none";
-                modalVideo.style.display = "none";
-            }
-        }
-
-        // Uždaryti modalą
-        closeModal.onclick = function() {
-            modal.style.display = "none";
-            modalVideo.pause();
-        }
-
-        // Uždaryti modalą paspaudus už jo ribų
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-                modalVideo.pause();
-            }
-        }
-
-        // Puslapio užkrovimo metu vykdomi veiksmai
-        document.addEventListener('DOMContentLoaded', function() {
-            // Kalbos pasirinkimo funkcionalumas
-            const languageBtn = document.getElementById('language-btn');
-            const languageDropdown = document.getElementById('language-dropdown');
-            
-            languageBtn.addEventListener('click', () => {
-                languageDropdown.classList.toggle('show');
-            });
-            
-            document.addEventListener('click', (event) => {
-                if (!languageBtn.contains(event.target) && !languageDropdown.contains(event.target)) {
-                    languageDropdown.classList.remove('show');
-                }
-            });
-            
-            document.querySelectorAll('.language-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    const lang = option.getAttribute('data-lang');
-                    changeLanguage(lang);
-                    languageDropdown.classList.remove('show');
-                });
-            });
-            
-            document.querySelectorAll('.footer-flag').forEach(flag => {
-                flag.addEventListener('click', () => {
-                    const lang = flag.getAttribute('data-lang');
-                    changeLanguage(lang);
-                });
-            });
-
-            // Failų atidarymo funkcionalumas
-            document.addEventListener('click', function(event) {
-                if (event.target.closest('.file-item')) {
-                    const fileItem = event.target.closest('.file-item');
-                    const fileName = fileItem.getAttribute('data-file');
-                    if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png')) {
-                        openModal('image', fileName);
-                    } else if (fileName.endsWith('.mp4') || fileName.endsWith('.mov')) {
-                        openModal('video', fileName);
-                    } else if (fileName.endsWith('.pdf')) {
-                        openModal('pdf', fileName);
-                    }
-                }
-            });
-
-            // Gauti pretenzijos duomenis
-            const claimId = getClaimIdFromURL();
-            const claimData = getClaimData(claimId);
-            populateClaimData(claimData);
-
-            // Taikyti kalbą ir vertimus
-            applyTranslations();
-            updateLanguageButton();
-            document.documentElement.lang = currentLang;
+            historyContainer.appendChild(item);
         });
     </script>
 </body>
