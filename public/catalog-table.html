@@ -210,20 +210,27 @@ function renderTable(rows){
   });
 }
 
-async function loadPage(){
-  const base=$('#baseUrl').value.trim();
-  const ck=$('#ck').value.trim();
-  const cs=$('#cs').value.trim();
-  const per=parseInt($('#per').value||'25',10);
-  const alert=$('#alert'); alert.textContent='';
-  try{
-    const products=await wcFetch(base,ck,cs,'products',{ per_page:per });
-    if(!Array.isArray(products)) throw new Error('Netikėtas atsakymas');
-    renderTable(products);
-  }catch(e){
-    const msg=(e&&e.message)?e.message:String(e);
-    alert.textContent='Nepavyko užkrauti: '+msg;
-  }
+async function loadPage() {
+    const per = parseInt($('#per').value || '25', 10);
+    const lang = $('#lang').value;
+
+    const alert = $('#alert');
+    alert.textContent = '';
+
+    try {
+        // Kvieti tavo serverį
+        const response = await fetch(`/api/products?per_page=${per}&lang=${lang}`);
+        const products = await response.json();
+
+        if (!Array.isArray(products)) {
+            throw new Error('Netikėtas atsakymas');
+        }
+
+        // Filtruoti, jei reikia
+        renderTable(products);
+    } catch (e) {
+        alert.textContent = e.message || String(e);
+    }
 }
 
 $('#load').onclick=loadPage;
