@@ -216,13 +216,28 @@
 
     let allProducts = [];
     let currentPage = 1;
-    const productsPerPage = () => parseInt($('#per').value || '25', 10);
 
     function cleanHTML(html) {
       const t = document.createElement('template');
       t.innerHTML = String(html || '');
       t.content.querySelectorAll('script, iframe').forEach(n => n.remove());
       return t.innerHTML.trim();
+    }
+
+    // Tikrina, ar tekstas lietuviškas
+    function isLithuanian(text) {
+      if (!text) return true;
+      return text.includes('Virtuvės') || 
+             text.includes('Vonios') || 
+             text.includes('Dušo') || 
+             text.includes('maišytuvas') || 
+             text.includes('garantija');
+    }
+
+    // Gauti vertę tik lietuviškai (jei galima)
+    function getLtValue(options) {
+      if (!Array.isArray(options)) return '';
+      return options.join(', ');
     }
 
     function getMeta(p, key) {
@@ -232,7 +247,7 @@
 
     function getAttr(p, slug) {
       const a = (p.attributes || []).find(x => x && x.slug === slug);
-      return a ? (a.options || [])[0] : null;
+      return a ? getLtValue(a.options) : '';
     }
 
     function firstImage(p) {
@@ -312,7 +327,7 @@
       listCard.append(ul);
 
       const meta = (product.meta_data || []);
-      const docKeys = ['montavimo_instrukcija', 'zymos_apie_remonta', 'maintenance_manual', 'specification'];
+      const docKeys = ['montavimo_instrukcija', 'maintenance_manual', 'specification'];
       const vidKeys = ['video_lt'];
 
       meta.forEach(m => {
@@ -370,7 +385,7 @@
       (product.attributes || []).forEach(a => {
         const k = doc.createElement('div');
         k.className = 'd-k';
-        k.textContent = (a && a.name) ? a.name.replace(/^\[:.*?\]/, '') : '';
+        k.textContent = (a && a.name) ? a.name.replace(/^\[:.*?\]/, '').replace(/\[:.*?\]/g, '') : '';
         const v = doc.createElement('div');
         v.textContent = (a && a.options) ? a.options.join(', ') : '';
         kv.append(k);
@@ -454,7 +469,8 @@
     }
 
     function renderPagination() {
-      const totalPages = Math.ceil(allProducts.length / productsPerPage());
+      const perPage = parseInt($('#per').value || '25', 10);
+      const totalPages = Math.ceil(allProducts.length / perPage);
       const pagination = $('#pagination');
       pagination.innerHTML = '';
 
@@ -464,8 +480,8 @@
         if (i === currentPage) btn.classList.add('active');
         btn.addEventListener('click', () => {
           currentPage = i;
-          const start = (currentPage - 1) * productsPerPage();
-          const end = start + productsPerPage();
+          const start = (currentPage - 1) * perPage;
+          const end = start + perPage;
           renderTable(allProducts.slice(start, end));
           renderPagination();
         });
@@ -484,23 +500,39 @@
     }
 
     async function loadPage() {
-      const per = productsPerPage();
+      const perPage = parseInt($('#per').value || '25', 10);
       const alert = $('#alert');
       alert.textContent = '';
 
       try {
-        const response = await fetch(`/api/products?per_page=${per}&lang=lt`);
-        const products = await response.json();
+        let allData = [];
+        let page = 1;
+        let hasMore = true;
 
-        if (response.ok && Array.isArray(products)) {
-          allProducts = products;
+        while (hasMore && page < 10) {
+          const response = await fetch(`/api/products?per_page=100&page=${page}&lang=lt`);
+          const data = await response.json();
+
+          if (!Array.isArray(data) || data.length === 0) {
+            hasMore = false;
+          } else {
+            allData.push(...data);
+            if (data.length < 100) hasMore = false;
+          }
+          page++;
+        }
+
+        // Filtruoti tik lietuviškus produktus
+        allProducts = allData.filter(p => p.permalink && !/\/(ru|en|pl|lv)\//.test(p.permalink));
+
+        if (allProducts.length === 0) {
+          alert.textContent = 'Nerasta lietuviškų produktų.';
+        } else {
           currentPage = 1;
           const start = 0;
-          const end = per;
+          const end = perPage;
           renderTable(allProducts.slice(start, end));
           renderPagination();
-        } else {
-          throw new Error(products.error || 'Netikėta klaida');
         }
       } catch (e) {
         alert.textContent = e.message || String(e);
