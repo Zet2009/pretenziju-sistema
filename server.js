@@ -66,7 +66,27 @@ app.post('/send-password-reset', async (req, res) => {
         res.status(500).json({ success: false, error: 'Nepavyko išsiųsti laiško' });
     }
 });
+// API proxy maršrutas į rubineta.com
+app.get('/api/products', async (req, res) => {
+    try {
+        const { per_page = 25, page = 1, lang = 'lt' } = req.query;
 
+        const url = `https://rubineta.com/ru/wp-json/wc/v3/products?consumer_key=ck_ba4ea3a1372bfe158019acd0fb541def80d55f47&consumer_secret=cs_3008445c92b783c6b63717e0b64cae31d60f570e&per_page=${per_page}&page=${page}&lang=${lang}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Filtruoti tik lietuviškus produktus
+        const lithuanianProducts = Array.isArray(data)
+            ? data.filter(p => p.permalink && !/\/(ru|en|pl|lv)\//.test(p.permalink))
+            : [];
+
+        res.json(lithuanianProducts);
+    } catch (error) {
+        console.error('Klaida kviečiant rubineta.com API:', error);
+        res.status(500).json({ error: 'Nepavyko gauti produktų' });
+    }
+});
 
 // === 1. Laiškas klientui – patvirtinimas, kad pretenzija priimta ===
 app.post('/send-confirmation', async (req, res) => {
