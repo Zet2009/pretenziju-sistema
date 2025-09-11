@@ -106,6 +106,31 @@
       text-overflow: ellipsis;
     }
 
+    /* Puslapiavimas */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+    .pagination button {
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .pagination button.active {
+      background: #007cba;
+      color: white;
+      border-color: #007cba;
+    }
+    .pagination button:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+
     /* Detalės lango stiliai */
     .d-wrap {
       max-width: 980px;
@@ -155,19 +180,7 @@
   <header>
     <h1>Rubineta – katalogo lentelė</h1>
     <div class="controls">
-      <div>
-        <label>API URL</label>
-        <input id="baseUrl" value="/api/products" size="40" readonly style="background:#f0f0f0;"/>
-      </div>
-      <div><label>Kalba</label>
-        <select id="lang">
-          <option value="lt" selected>LT</option>
-          <option value="en">EN</option>
-          <option value="ru">RU</option>
-          <option value="lv">LV</option>
-        </select>
-      </div>
-      <div><label>Per puslapį</label><input id="per" type="number" value="25" min="1" max="100"/></div>
+      <div><label>Per puslapį</label><input id="per" type="number" value="25" min="10" max="100"/></div>
       <div><button id="load">Įkelti</button></div>
     </div>
   </header>
@@ -194,10 +207,16 @@
       </thead>
       <tbody></tbody>
     </table>
+
+    <div class="pagination" id="pagination"></div>
   </main>
 
   <script>
     const $ = (s, el = document) => el.querySelector(s);
+
+    let allProducts = [];
+    let currentPage = 1;
+    const productsPerPage = () => parseInt($('#per').value || '25', 10);
 
     function cleanHTML(html) {
       const t = document.createElement('template');
@@ -283,6 +302,7 @@
       desc.innerHTML = cleanHTML(product.description || '');
       right.append(desc);
 
+      // Dokumentai ir video
       const listCard = doc.createElement('div');
       listCard.className = 'd-card';
       const h = doc.createElement('h3');
@@ -292,8 +312,8 @@
       listCard.append(ul);
 
       const meta = (product.meta_data || []);
-      const docKeys = ['montavimo_instrukcija', 'zymos_apie_remonta', 'zymos_apie_remonta_new', 'maintenance_manual', 'specification', 'attr_3d_pdf_file'];
-      const vidKeys = ['video_lt', 'video_en', 'video_ru', 'video_lv'];
+      const docKeys = ['montavimo_instrukcija', 'zymos_apie_remonta', 'maintenance_manual', 'specification'];
+      const vidKeys = ['video_lt'];
 
       meta.forEach(m => {
         if (!m || !m.key) return;
@@ -313,12 +333,31 @@
           a.href = m.value;
           a.target = '_blank';
           a.rel = 'noopener';
-          a.textContent = `${m.key} (YouTube)`;
+          a.textContent = 'Vaizdo pamoka (YouTube)';
           li.append(a);
           ul.append(li);
         }
       });
+
+      // Gedimų sprendimai ir administratoriaus failai
+      const repairGuide = getMeta(product, 'repair_guide_lt') || 'Gedimų sprendimo aprašymas nepateiktas.';
+      const adminFiles = getMeta(product, 'admin_files') ? JSON.parse(getMeta(product, 'admin_files')) : [];
+
+      const guideEl = doc.createElement('div');
+      guideEl.className = 'd-card';
+      guideEl.innerHTML = `<h3>Gedimų sprendimai</h3><p>${escapeHtml(repairGuide)}</p>`;
+      
+      const filesEl = doc.createElement('div');
+      filesEl.className = 'd-card';
+      filesEl.innerHTML = '<h3>Kokybės skyriaus dokumentai</h3><ul>';
+      adminFiles.forEach(file => {
+        filesEl.innerHTML += `<li><a href="${file.url}" target="_blank">${escapeHtml(file.name)}</a></li>`;
+      });
+      filesEl.innerHTML += '</ul>';
+
       right.append(listCard);
+      right.append(guideEl);
+      right.append(filesEl);
 
       const spec = doc.createElement('div');
       spec.className = 'd-card';
@@ -348,11 +387,11 @@
       content.append(tools);
     }
 
-    function renderTable(rows) {
+    function renderTable(products) {
       const tbody = $('#tbl tbody');
       tbody.innerHTML = '';
 
-      rows.forEach(p => {
+      products.forEach(p => {
         const tr = document.createElement('tr');
 
         const tdImg = document.createElement('td');
@@ -414,6 +453,26 @@
       });
     }
 
+    function renderPagination() {
+      const totalPages = Math.ceil(allProducts.length / productsPerPage());
+      const pagination = $('#pagination');
+      pagination.innerHTML = '';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          currentPage = i;
+          const start = (currentPage - 1) * productsPerPage();
+          const end = start + productsPerPage();
+          renderTable(allProducts.slice(start, end));
+          renderPagination();
+        });
+        pagination.appendChild(btn);
+      }
+    }
+
     function escapeHtml(s) {
       return String(s || '').replace(/[&<>"']/g, c => ({
         "&": "&amp;",
@@ -425,18 +484,21 @@
     }
 
     async function loadPage() {
-      const per = parseInt($('#per').value || '25', 10);
-      const lang = $('#lang').value;
+      const per = productsPerPage();
       const alert = $('#alert');
       alert.textContent = '';
 
       try {
-        // Kvieti tavo serverį
-        const response = await fetch(`/api/products?per_page=${per}&lang=${lang}`);
+        const response = await fetch(`/api/products?per_page=${per}&lang=lt`);
         const products = await response.json();
 
         if (response.ok && Array.isArray(products)) {
-          renderTable(products);
+          allProducts = products;
+          currentPage = 1;
+          const start = 0;
+          const end = per;
+          renderTable(allProducts.slice(start, end));
+          renderPagination();
         } else {
           throw new Error(products.error || 'Netikėta klaida');
         }
@@ -446,16 +508,12 @@
     }
 
     $('#load').onclick = loadPage;
-
-    ['per', 'lang'].forEach(id => {
+    ['per'].forEach(id => {
       const el = $(`#${id}`);
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') loadPage(); });
     });
 
-    // Automatiškai įkelti duomenis
-    window.onload = () => {
-      setTimeout(loadPage, 500);
-    };
+    window.onload = loadPage;
   </script>
 </body>
 </html>
