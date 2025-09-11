@@ -5,47 +5,181 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rubineta – katalogo lentelė</title>
   <style>
-    body{margin:0;background:#fff;color:#111;font:13px/1.4 Arial, sans-serif}
-    header,main{max-width:100%;margin:0 auto;padding:10px}
-    h1{margin:8px 0 12px;font-size:18px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end}
-    .controls label{display:block;font-size:11px;color:#333;margin-bottom:2px}
-    .controls input,.controls select{padding:4px 6px;font-size:12px}
-    .controls button{padding:6px 10px;font-size:12px;cursor:pointer}
-    table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-    thead th{background:#eee;border:1px solid #ccc;padding:4px;text-align:left}
-    tbody td{border:1px solid #ccc;padding:4px;vertical-align:top;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    tbody tr:nth-child(even){background:#fafafa}
-    tbody tr:hover{background:#f3f6ff}
-    .thumb{width:40px;height:40px;object-fit:cover;cursor:pointer}
-    .sku{font-family:monospace;font-size:11px;color:#333}
-    .badge{display:inline-block;padding:2px 4px;margin:1px;background:#f0f0f0;border:1px solid #ccc;font-size:10px}
-    .error{color:#b00;margin:6px 0;white-space:pre-wrap}
-    .num{text-align:right;font-variant-numeric:tabular-nums}
-    .nowrap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    body {
+      margin: 0;
+      background: #fff;
+      color: #111;
+      font: 13px/1.4 Arial, sans-serif;
+    }
+    header, main {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    h1 {
+      margin: 8px 0 12px;
+      font-size: 18px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      align-items: flex-end;
+    }
+    .controls label {
+      display: block;
+      font-size: 11px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    .controls input, .controls select {
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+    .controls button {
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      table-layout: fixed;
+    }
+    thead th {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 4px;
+      text-align: left;
+    }
+    tbody td {
+      border: 1px solid #ccc;
+      padding: 4px;
+      vertical-align: top;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+    tbody tr:hover {
+      background: #f3f6ff;
+    }
+
+    .thumb {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .sku {
+      font-family: monospace;
+      font-size: 11px;
+      color: #333;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 4px;
+      margin: 1px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      font-size: 10px;
+    }
+    .error {
+      color: #b00;
+      margin: 6px 0;
+      white-space: pre-wrap;
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .nowrap {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Detalės lango stiliai */
+    .d-wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+      font: 14px/1.5 Arial, sans-serif;
+      color: #111;
+    }
+    .d-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 16px;
+    }
+    .d-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .d-kv {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 6px 12px;
+    }
+    .d-kv div {
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .d-k {
+      color: #666;
+    }
+    .d-gal img {
+      max-width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin: 4px 0;
+    }
+    .d-tools {
+      margin-top: 12px;
+    }
+    .muted {
+      color: #666;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Rubineta – katalogo lentelė</h1>
     <div class="controls">
-   //   <div>
-     //   <label>API URL</label>
-    //    <input id="baseUrl" value="https://rubineta.com/ru/wp-json/wc/v3" size="44"/>
-   //   </div>
- 
+      <div>
+        <label>API URL</label>
+        <input id="baseUrl" value="/api/products" size="40" readonly style="background:#f0f0f0;"/>
+      </div>
+      <div><label>Kalba</label>
+        <select id="lang">
+          <option value="lt" selected>LT</option>
+          <option value="en">EN</option>
+          <option value="ru">RU</option>
+          <option value="lv">LV</option>
+        </select>
+      </div>
       <div><label>Per puslapį</label><input id="per" type="number" value="25" min="1" max="100"/></div>
       <div><button id="load">Įkelti</button></div>
     </div>
-    <div id="alert" class="error"></div>
   </header>
 
   <main>
+    <div id="alert" class="error"></div>
+
     <table id="tbl">
       <thead>
         <tr>
           <th style="width:56px">Nuotrauka</th>
-          <th style="width:22%">Pavadinimas</th>
+          <th style="width:20%">Pavadinimas</th>
           <th style="width:10%">SKU</th>
           <th style="width:13%">Kategorijos</th>
           <th style="width:6%">Kaina</th>
@@ -62,182 +196,266 @@
     </table>
   </main>
 
-<script>
-const $ = s => document.querySelector(s);
+  <script>
+    const $ = (s, el = document) => el.querySelector(s);
 
-function buildUrl(base, path, params={}){
-  const u = new URL(base.replace(/\/$/,'') + '/' + path.replace(/^\//,''));
-  for(const [k,v] of Object.entries(params)){ if(v!=null && v!=='') u.searchParams.set(k,v); }
-  return u.toString();
-}
-
-async function wcFetch(base, ck, cs, path, params={}){
-  const url = buildUrl(base, path, { ...params, consumer_key: ck, consumer_secret: cs });
-  // Svarbu: be jokių papildomų headerių ar mode – kad neprovokuotų preflight
-  const res = await fetch(url);
-  if(!res.ok){
-    const txt = await res.text().catch(()=> '');
-    throw new Error(`HTTP ${res.status} — ${txt.slice(0,200)}`);
-  }
-  return res.json();
-}
-
-function getMeta(p,key){ const m=(p.meta_data||[]).find(x=>x && x.key===key); return m? m.value : null; }
-function getAttr(p,slug){ const a=(p.attributes||[]).find(x=>x && x.slug===slug); return a ? (a.options||[])[0] : null; }
-function firstImage(p){ return (p.images && p.images[0]) ? p.images[0].src : ''; }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-
-function openDetail(product){
-  const win = window.open('', '_blank');
-  if(!win){ alert('Leiskite atidaryti naują langą/popup.'); return; }
-
-  const title = escapeHtml(product.name||'Produktas');
-  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
-  <style>
-    body{background:#f6f7fb;color:#111;margin:0}
-    a{color:#0645ad;text-decoration:none} a:hover{text-decoration:underline}
-    .d-wrap{max-width:980px;margin:0 auto;padding:18px;font:14px/1.5 Arial,sans-serif}
-    h1{margin:0 0 6px}
-    .muted{color:#666}
-    .d-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
-    .d-card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:12px}
-    .d-kv{display:grid;grid-template-columns:160px 1fr;gap:6px 12px}
-    .d-kv div{padding:6px 0;border-bottom:1px solid #eee}
-    .d-k{color:#666}
-    .d-gal img{max-width:100%;border:1px solid #ddd;border-radius:6px;margin:4px 0}
-    .d-tools{margin-top:12px}
-  </style>
-  </head><body>
-    <div class="d-wrap">
-      <h1>${title}</h1>
-      <div class="muted">SKU: ${escapeHtml(product.sku||'')} · ID: ${product.id||''}</div>
-      <div id="content"></div>
-    </div>
-  </body></html>`);
-  win.document.close();
-
-  const doc = win.document;
-  const content = doc.getElementById('content');
-
-  const grid = doc.createElement('div'); grid.className='d-grid';
-  const left = doc.createElement('div'); left.className='d-card';
-  const right = doc.createElement('div'); right.className='d-card';
-  grid.append(left,right); content.append(grid);
-
-  const gal = doc.createElement('div'); gal.className='d-gal';
-  (product.images||[]).forEach(i=>{ const img=doc.createElement('img'); img.src=i.src; img.alt=i.alt||product.name||''; gal.append(img); });
-  if(!(product.images||[]).length){ const ph=doc.createElement('div'); ph.textContent='Nėra nuotraukų'; gal.append(ph); }
-  left.append(gal);
-
-  const desc = doc.createElement('div');
-  // minimalus sanitization – nuimam <script> ir <iframe>
-  desc.innerHTML = String(product.description||'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<iframe[\s\S]*?<\/iframe>/gi,'');
-  right.append(desc);
-
-  const listCard = doc.createElement('div'); listCard.className='d-card';
-  const h = doc.createElement('h3'); h.textContent='Dokumentai ir video'; listCard.append(h);
-  const ul = doc.createElement('ul'); listCard.append(ul);
-  const meta = (product.meta_data||[]);
-  const docKeys = ['montavimo_instrukcija','zymos_apie_remonta','zymos_apie_remonta_new','maintenance_manual','specification','attr_3d_pdf_file'];
-  const vidKeys = ['video_lt','video_en','video_ru','video_lv'];
-  meta.forEach(m=>{
-    if(!m || !m.key) return;
-    if(docKeys.includes(m.key) && m.value){
-      const li = doc.createElement('li');
-      const a = doc.createElement('a'); a.href = m.value; a.target = '_blank'; a.rel='noopener';
-      a.textContent = `${m.key}.pdf`; li.append(a); ul.append(li);
+    function cleanHTML(html) {
+      const t = document.createElement('template');
+      t.innerHTML = String(html || '');
+      t.content.querySelectorAll('script, iframe').forEach(n => n.remove());
+      return t.innerHTML.trim();
     }
-    if(vidKeys.includes(m.key) && m.value){
-      const li = doc.createElement('li');
-      const a = doc.createElement('a'); a.href = m.value; a.target = '_blank'; a.rel='noopener';
-      a.textContent = `${m.key} (YouTube)`; li.append(a); ul.append(li);
+
+    function getMeta(p, key) {
+      const m = (p.meta_data || []).find(x => x && x.key === key);
+      return m ? m.value : null;
     }
-  });
-  right.append(listCard);
 
-  const spec = doc.createElement('div'); spec.className='d-card';
-  const sh = doc.createElement('h3'); sh.textContent='Specifikacijos'; spec.append(sh);
-  const kv = doc.createElement('div'); kv.className='d-kv'; spec.append(kv);
-  (product.attributes||[]).forEach(a=>{
-    const k = doc.createElement('div'); k.className='d-k'; k.textContent = (a && a.name) ? a.name.replace(/^\[:.*?\]/,'') : '';
-    const v = doc.createElement('div'); v.textContent = (a && a.options) ? a.options.join(', ') : '';
-    kv.append(k); kv.append(v);
-  });
-  right.append(spec);
+    function getAttr(p, slug) {
+      const a = (p.attributes || []).find(x => x && x.slug === slug);
+      return a ? (a.options || [])[0] : null;
+    }
 
-  const tools = doc.createElement('div'); tools.className='d-tools';
-  const btn = doc.createElement('button'); btn.textContent='Spausdinti / PDF'; btn.onclick=()=>win.print();
-  tools.append(btn); content.append(tools);
-}
+    function firstImage(p) {
+      return (p.images && p.images[0]) ? p.images[0].src : '';
+    }
 
-function renderTable(rows){
-  const tbody=$('#tbl tbody'); tbody.innerHTML='';
-  rows.forEach(p=>{
-    const tr=document.createElement('tr');
+    function openDetail(product) {
+      const win = window.open('', '_blank');
+      if (!win) {
+        alert('Leiskite atidaryti naują langą.');
+        return;
+      }
 
-    const tdImg=document.createElement('td');
-    const img=document.createElement('img'); img.className='thumb'; img.src=firstImage(p); img.alt=p.name||''; img.addEventListener('click', ()=>openDetail(p));
-    tdImg.append(img);
+      const title = escapeHtml(product.name || 'Produktas');
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
+      <style>
+        body{background:#f6f7fb;color:#111;margin:0}
+        a{color:#0645ad;text-decoration:none} a:hover{text-decoration:underline}
+        .d-wrap{max-width:980px;margin:0 auto;padding:18px;font:14px/1.5 Arial,sans-serif}
+        h1{margin:0 0 6px}
+        .muted{color:#666}
+        .d-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
+        .d-card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:12px}
+        .d-kv{display:grid;grid-template-columns:160px 1fr;gap:6px 12px}
+        .d-kv div{padding:6px 0;border-bottom:1px solid #eee}
+        .d-k{color:#666}
+        .d-gal img{max-width:100%;border:1px solid #ddd;border-radius:6px;margin:4px 0}
+        .d-tools{margin-top:12px}
+      </style>
+      </head><body>
+        <div class="d-wrap">
+          <h1>${title}</h1>
+          <div class="muted">SKU: ${escapeHtml(product.sku || '')} · ID: ${product.id || ''}</div>
+          <div id="content"></div>
+        </div>
+      </body></html>`);
+      win.document.close();
 
-    const tdName=document.createElement('td');
-    const a=document.createElement('a'); a.href='#'; a.textContent=p.name||''; a.onclick=(e)=>{ e.preventDefault(); openDetail(p); };
-    tdName.append(a);
+      const doc = win.document;
+      const content = doc.getElementById('content');
 
-    const tdSku=document.createElement('td'); tdSku.className='sku nowrap'; tdSku.textContent=p.sku||'';
+      const grid = doc.createElement('div');
+      grid.className = 'd-grid';
+      const left = doc.createElement('div');
+      left.className = 'd-card';
+      const right = doc.createElement('div');
+      right.className = 'd-card';
+      grid.append(left, right);
+      content.append(grid);
 
-    const tdCats=document.createElement('td');
-    tdCats.innerHTML=(p.categories||[]).map(c=>'<span class="badge">'+escapeHtml(c.name||c.slug||'')+'</span>').join('');
+      const gal = doc.createElement('div');
+      gal.className = 'd-gal';
+      (product.images || []).forEach(i => {
+        const img = doc.createElement('img');
+        img.src = i.src;
+        img.alt = i.alt || product.name || '';
+        gal.append(img);
+      });
+      if (!(product.images || []).length) {
+        const ph = doc.createElement('div');
+        ph.textContent = 'Nėra nuotraukų';
+        gal.append(ph);
+      }
+      left.append(gal);
 
-    const tdPrice=document.createElement('td'); tdPrice.className='num'; tdPrice.textContent=(p.price||p.regular_price)||'';
+      const desc = doc.createElement('div');
+      desc.innerHTML = cleanHTML(product.description || '');
+      right.append(desc);
 
-    const tdEAN=document.createElement('td'); tdEAN.className='nowrap'; tdEAN.textContent=getMeta(p,'ean')||getAttr(p,'pa_barkodas')||'';
+      const listCard = doc.createElement('div');
+      listCard.className = 'd-card';
+      const h = doc.createElement('h3');
+      h.textContent = 'Dokumentai ir video';
+      listCard.append(h);
+      const ul = doc.createElement('ul');
+      listCard.append(ul);
 
-    const tdSeries=document.createElement('td'); tdSeries.className='nowrap'; tdSeries.textContent=getAttr(p,'pa_serija')||'';
+      const meta = (product.meta_data || []);
+      const docKeys = ['montavimo_instrukcija', 'zymos_apie_remonta', 'zymos_apie_remonta_new', 'maintenance_manual', 'specification', 'attr_3d_pdf_file'];
+      const vidKeys = ['video_lt', 'video_en', 'video_ru', 'video_lv'];
 
-    const tdWarranty=document.createElement('td'); tdWarranty.className='nowrap'; tdWarranty.textContent=getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'';
+      meta.forEach(m => {
+        if (!m || !m.key) return;
+        if (docKeys.includes(m.key) && m.value) {
+          const li = doc.createElement('li');
+          const a = doc.createElement('a');
+          a.href = m.value;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = `${m.key}.pdf`;
+          li.append(a);
+          ul.append(li);
+        }
+        if (vidKeys.includes(m.key) && m.value) {
+          const li = doc.createElement('li');
+          const a = doc.createElement('a');
+          a.href = m.value;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = `${m.key} (YouTube)`;
+          li.append(a);
+          ul.append(li);
+        }
+      });
+      right.append(listCard);
 
-    const tdConn=document.createElement('td'); tdConn.className='nowrap'; tdConn.textContent=getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'';
+      const spec = doc.createElement('div');
+      spec.className = 'd-card';
+      const sh = doc.createElement('h3');
+      sh.textContent = 'Specifikacijos';
+      spec.append(sh);
+      const kv = doc.createElement('div');
+      kv.className = 'd-kv';
+      spec.append(kv);
+      (product.attributes || []).forEach(a => {
+        const k = doc.createElement('div');
+        k.className = 'd-k';
+        k.textContent = (a && a.name) ? a.name.replace(/^\[:.*?\]/, '') : '';
+        const v = doc.createElement('div');
+        v.textContent = (a && a.options) ? a.options.join(', ') : '';
+        kv.append(k);
+        kv.append(v);
+      });
+      right.append(spec);
 
-    const tdColor=document.createElement('td'); tdColor.className='nowrap'; tdColor.textContent=getAttr(p,'pa_spalva')||'';
+      const tools = doc.createElement('div');
+      tools.className = 'd-tools';
+      const btn = doc.createElement('button');
+      btn.textContent = 'Spausdinti / PDF';
+      btn.onclick = () => win.print();
+      tools.append(btn);
+      content.append(tools);
+    }
 
-    const tdFinish=document.createElement('td'); tdFinish.className='nowrap'; tdFinish.textContent=getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'';
+    function renderTable(rows) {
+      const tbody = $('#tbl tbody');
+      tbody.innerHTML = '';
 
-    const tdUpd=document.createElement('td'); tdUpd.className='nowrap'; tdUpd.textContent=(p.date_modified_gmt||p.date_modified||'').toString().replace('T',' ').replace('Z','');
+      rows.forEach(p => {
+        const tr = document.createElement('tr');
 
-    tr.append(tdImg, tdName, tdSku, tdCats, tdPrice, tdEAN, tdSeries, tdWarranty, tdConn, tdColor, tdFinish, tdUpd);
-    tbody.append(tr);
-  });
-}
+        const tdImg = document.createElement('td');
+        const img = document.createElement('img');
+        img.className = 'thumb';
+        img.src = firstImage(p);
+        img.alt = p.name || '';
+        img.onclick = () => openDetail(p);
+        tdImg.append(img);
 
-async function loadPage() {
-    const per = parseInt($('#per').value || '25', 10);
-    const lang = $('#lang').value;
+        const tdName = document.createElement('td');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = p.name || '';
+        a.onclick = (e) => { e.preventDefault(); openDetail(p); };
+        tdName.append(a);
 
-    const alert = $('#alert');
-    alert.textContent = '';
+        const tdSku = document.createElement('td');
+        tdSku.className = 'sku nowrap';
+        tdSku.textContent = p.sku || '';
 
-    try {
+        const tdCats = document.createElement('td');
+        tdCats.innerHTML = (p.categories || []).map(c => `<span class="badge">${escapeHtml(c.name || c.slug || '')}</span>`).join('');
+
+        const tdPrice = document.createElement('td');
+        tdPrice.className = 'num';
+        tdPrice.textContent = (p.price || p.regular_price) || '';
+
+        const tdEAN = document.createElement('td');
+        tdEAN.className = 'nowrap';
+        tdEAN.textContent = getMeta(p, 'ean') || getAttr(p, 'pa_barkodas') || '';
+
+        const tdSeries = document.createElement('td');
+        tdSeries.className = 'nowrap';
+        tdSeries.textContent = getAttr(p, 'pa_serija') || '';
+
+        const tdWarranty = document.createElement('td');
+        tdWarranty.className = 'nowrap';
+        tdWarranty.textContent = getAttr(p, 'pa_garantija') || getMeta(p, 'warranty') || '';
+
+        const tdConn = document.createElement('td');
+        tdConn.className = 'nowrap';
+        tdConn.textContent = getAttr(p, 'pa_pajungimas') || getAttr(p, 'pa_jungtis') || getMeta(p, 'connection') || '';
+
+        const tdColor = document.createElement('td');
+        tdColor.className = 'nowrap';
+        tdColor.textContent = getAttr(p, 'pa_spalva') || '';
+
+        const tdFinish = document.createElement('td');
+        tdFinish.className = 'nowrap';
+        tdFinish.textContent = getAttr(p, 'pa_padengimas') || getMeta(p, 'finish') || '';
+
+        const tdUpd = document.createElement('td');
+        tdUpd.className = 'nowrap';
+        tdUpd.textContent = (p.date_modified_gmt || p.date_modified || '').toString().replace('T', ' ').replace('Z', '');
+
+        tr.append(tdImg, tdName, tdSku, tdCats, tdPrice, tdEAN, tdSeries, tdWarranty, tdConn, tdColor, tdFinish, tdUpd);
+        tbody.append(tr);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({
+        "&": "&amp;",
+        "<": "<",
+        ">": ">",
+        "\"": "&quot;",
+        "'": "&#39;"
+      })[c]);
+    }
+
+    async function loadPage() {
+      const per = parseInt($('#per').value || '25', 10);
+      const lang = $('#lang').value;
+      const alert = $('#alert');
+      alert.textContent = '';
+
+      try {
         // Kvieti tavo serverį
         const response = await fetch(`/api/products?per_page=${per}&lang=${lang}`);
         const products = await response.json();
 
-        if (!Array.isArray(products)) {
-            throw new Error('Netikėtas atsakymas');
+        if (response.ok && Array.isArray(products)) {
+          renderTable(products);
+        } else {
+          throw new Error(products.error || 'Netikėta klaida');
         }
-
-        // Filtruoti, jei reikia
-        renderTable(products);
-    } catch (e) {
+      } catch (e) {
         alert.textContent = e.message || String(e);
+      }
     }
-}
 
-$('#load').onclick=loadPage;
-['baseUrl','ck','cs','per'].forEach(id=>{
-  const el=$('#'+id);
-  if(el) el.addEventListener('keydown', e=>{ if(e.key==='Enter') loadPage(); });
-});
-</script>
+    $('#load').onclick = loadPage;
+
+    ['per', 'lang'].forEach(id => {
+      const el = $(`#${id}`);
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') loadPage(); });
+    });
+
+    // Automatiškai įkelti duomenis
+    window.onload = () => {
+      setTimeout(loadPage, 500);
+    };
+  </script>
 </body>
 </html>
-
