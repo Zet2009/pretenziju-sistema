@@ -156,50 +156,6 @@
       color: #ccc;
       cursor: not-allowed;
     }
-
-    /* Detalės lango stiliai */
-    .d-wrap {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 18px;
-      font: 14px/1.5 Arial, sans-serif;
-      color: #111;
-    }
-    .d-grid {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 16px;
-    }
-    .d-card {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 12px;
-    }
-    .d-kv {
-      display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 6px 12px;
-    }
-    .d-kv div {
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .d-k {
-      color: #666;
-    }
-    .d-gal img {
-      max-width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      margin: 4px 0;
-    }
-    .d-tools {
-      margin-top: 12px;
-    }
-    .muted {
-      color: #666;
-    }
   </style>
 </head>
 <body>
@@ -219,7 +175,7 @@
 
     <!-- Valdymo elementai -->
     <div class="controls">
-      <div><label>Per puslapį</label><input id="per" type="number" value="25" min="10" max="100"/></div>
+      <div><label>Per puslapį</label><input id="per" type="number" value="25" min="5" max="100"/></div>
       <div><button id="load">Įkelti</button></div>
     </div>
   </header>
@@ -255,8 +211,9 @@
     let allProducts = [];
     let currentPage = 1;
     let currentCategory = 'all';
+    let itemsPerPage = 25;
 
-    // Ištraukti tik lietuvišką tekstą iš [lt]...[en] struktūros
+    // Ištraukti tik lietuvišką tekstą
     function extractLtText(text) {
       if (!text) return '';
       const match = text.match(/\[:\s*lt\s*\](.*?)\[/);
@@ -386,7 +343,7 @@
         }
       });
 
-      // Gedimų sprendimai ir administratoriaus failai
+      // Gedimų sprendimai
       const repairGuide = getMeta(product, 'repair_guide_lt') || 'Gedimų sprendimo aprašymas nepateiktas.';
       const adminFiles = getMeta(product, 'admin_files') ? JSON.parse(getMeta(product, 'admin_files')) : [];
 
@@ -495,8 +452,7 @@
     }
 
     function renderPagination() {
-      const perPage = parseInt($('#per').value || '25', 10);
-      const totalPages = Math.ceil(allProducts.length / perPage);
+      const totalPages = Math.ceil(allProducts.length / itemsPerPage);
       const pagination = $('#pagination');
       pagination.innerHTML = '';
 
@@ -506,8 +462,8 @@
         if (i === currentPage) btn.classList.add('active');
         btn.addEventListener('click', () => {
           currentPage = i;
-          const start = (currentPage - 1) * perPage;
-          const end = start + perPage;
+          const start = (currentPage - 1) * itemsPerPage;
+          const end = start + itemsPerPage;
           renderTable(allProducts.slice(start, end));
           renderPagination();
         });
@@ -523,12 +479,12 @@
         const catNames = (p.categories || []).map(c => extractLtText(c.name).toLowerCase());
         const fullName = extractLtText(p.name).toLowerCase();
 
-        if (lowerCat === 'virtuvės') return catNames.some(c => c.includes('virtuvės')) || fullName.includes('virtuvės') || fullName.includes('kitchen');
-        if (lowerCat === 'vonios') return catNames.some(c => c.includes('vonios')) || fullName.includes('vonios') || fullName.includes('bathroom');
-        if (lowerCat === 'dušo') return catNames.some(c => c.includes('dušo')) || fullName.includes('dušo') || fullName.includes('shower');
-        if (lowerCat === 'termostatai') return catNames.some(c => c.includes('termostatas')) || fullName.includes('termostatas') || fullName.includes('thermostat');
-        if (lowerCat === 'komplektai') return catNames.some(c => c.includes('rinkinys')) || fullName.includes('rinkinys') || fullName.includes('set');
-        if (lowerCat === 'priedai') return catNames.some(c => c.includes('priedai')) || fullName.includes('priedai') || fullName.includes('accessories');
+        if (lowerCat === 'virtuvės') return catNames.some(c => c.includes('virtuvės')) || fullName.includes('virtuvės');
+        if (lowerCat === 'vonios') return catNames.some(c => c.includes('vonios')) || fullName.includes('vonios');
+        if (lowerCat === 'dušo') return catNames.some(c => c.includes('dušo')) || fullName.includes('dušo');
+        if (lowerCat === 'termostatai') return catNames.some(c => c.includes('termostatas')) || fullName.includes('termostatas');
+        if (lowerCat === 'komplektai') return catNames.some(c => c.includes('rinkinys')) || fullName.includes('rinkinys');
+        if (lowerCat === 'priedai') return catNames.some(c => c.includes('priedai')) || fullName.includes('priedai');
 
         return false;
       });
@@ -552,7 +508,13 @@
     }
 
     async function loadPage() {
-      const perPage = parseInt($('#per').value || '25', 10);
+      const perPageInput = parseInt($('#per').value || '25', 10);
+      if (isNaN(perPageInput) || perPageInput < 1) {
+        $('#alert').textContent = 'Netinkamas "Per puslapį" skaičius.';
+        return;
+      }
+      itemsPerPage = perPageInput;
+
       const alert = $('#alert');
       alert.textContent = '';
 
@@ -562,14 +524,14 @@
         let hasMore = true;
 
         while (hasMore && page < 10) {
-          const response = await fetch(`/api/products?per_page=${perPage}&page=${page}&lang=lt`);
+          const response = await fetch(`/api/products?per_page=${itemsPerPage}&page=${page}&lang=lt`);
           const data = await response.json();
 
           if (!Array.isArray(data) || data.length === 0) {
             hasMore = false;
           } else {
             allData.push(...data);
-            if (data.length < perPage) hasMore = false;
+            if (data.length < itemsPerPage) hasMore = false;
           }
           page++;
         }
@@ -587,7 +549,7 @@
       }
     }
 
-    // Kategorijų mygtukų veiksmai
+    // Kategorijų mygtukai
     $$('.cat-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         $$('.cat-btn').forEach(b => b.classList.remove('active'));
