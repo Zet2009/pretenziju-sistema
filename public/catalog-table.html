@@ -5,56 +5,241 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rubineta – katalogo lentelė</title>
   <style>
-    /* ... (styles remain the same as in previous improved version) ... */
+    body {
+      margin: 0;
+      background: #fff;
+      color: #111;
+      font: 13px/1.4 Arial, sans-serif;
+    }
+    header, main {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    h1 {
+      margin: 8px 0 12px;
+      font-size: 18px;
+    }
+
+    /* Kategorijų mygtukai */
+    .category-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      justify-content: center;
+    }
+    .category-filters button {
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #e9ecef;
+      transition: all 0.3s;
+    }
+    .category-filters button:hover {
+      background: #d0d5db;
+    }
+    .category-filters button.active {
+      background: #007cba;
+      color: white;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .controls label {
+      display: block;
+      font-size: 11px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    .controls input, .controls select {
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+    .controls button {
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      table-layout: fixed;
+    }
+    thead th {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 4px;
+      text-align: left;
+    }
+    tbody td {
+      border: 1px solid #ccc;
+      padding: 4px;
+      vertical-align: top;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+    tbody tr:hover {
+      background: #f3f6ff;
+    }
+
+    .thumb {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .sku {
+      font-family: monospace;
+      font-size: 11px;
+      color: #333;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 4px;
+      margin: 1px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      font-size: 10px;
+    }
+    .error {
+      color: #b00;
+      margin: 6px 0;
+      white-space: pre-wrap;
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .nowrap {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Puslapiavimas */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+    .pagination button {
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .pagination button.active {
+      background: #007cba;
+      color: white;
+      border-color: #007cba;
+    }
+    .pagination button:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Detalės lango stiliai */
+    .d-wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px;
+      font: 14px/1.5 Arial, sans-serif;
+      color: #111;
+    }
+    .d-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 16px;
+    }
+    .d-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .d-kv {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 6px 12px;
+    }
+    .d-kv div {
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .d-k {
+      color: #666;
+    }
+    .d-gal img {
+      max-width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin: 4px 0;
+    }
+    .d-tools {
+      margin-top: 12px;
+    }
+    .muted {
+      color: #666;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Rubineta – katalogo lentelė</h1>
-    <div class="controls">
-      <div class="control-group">
-        <label for="per">Įrašų per puslapį</label>
-        <input id="per" type="number" value="25" min="10" max="100" />
-      </div>
-      <div class="control-group">
-        <button id="load">Įkelti produktus</button>
-      </div>
-      <div class="control-group">
-        <span id="loading" class="loading" style="display:none;"></span>
-      </div>
-      <div class="control-group">
-        <label for="debug">Įjungti derinimą</label>
-        <input id="debug" type="checkbox" />
-      </div>
+
+    <!-- Kategorijų mygtukai -->
+    <div class="category-filters">
+      <button class="cat-btn active" data-cat="all">Visi</button>
+      <button class="cat-btn" data-cat="virtuvės">Virtuvės maišytuvai</button>
+      <button class="cat-btn" data-cat="vonios">Vonios maišytuvai</button>
+      <button class="cat-btn" data-cat="dušo">Dušo maišytuvai</button>
+      <button class="cat-btn" data-cat="termostatai">Termostatai</button>
+      <button class="cat-btn" data-cat="komplektai">Dušo komplektai</button>
+      <button class="cat-btn" data-cat="priedai">Priedai</button>
     </div>
-    <div class="controls" style="margin-top: 10px;">
-      <div class="control-group">
-        <label for="apiUrl">API URL</label>
-        <input id="apiUrl" type="text" value="/api/products?per_page=100&page=1&lang=lt" style="width: 300px;" />
-      </div>
+
+    <!-- Valdymo elementai -->
+    <div class="controls">
+      <div><label>Per puslapį</label><input id="per" type="number" value="25" min="10" max="100"/></div>
+      <div><button id="load">Įkelti</button></div>
     </div>
   </header>
 
   <main>
-    <div id="alert"></div>
-    <div id="debug-info" style="display: none; margin: 10px 0; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;"></div>
-    <div id="info" class="pagination-info"></div>
+    <div id="alert" class="error"></div>
 
     <table id="tbl">
       <thead>
         <tr>
           <th style="width:56px">Nuotrauka</th>
-          <th style="width:20%">Pavadinimas</th>
-          <th style="width:10%">SKU</th>
-          <th style="width:13%">Kategorijos</th>
-          <th style="width:6%">Kaina</th>
-          <th style="width:7%">EAN</th>
-          <th style="width:7%">Serija</th>
-          <th style="width:6%">Garantija</th>
-          <th style="width:6%">Jungtis</th>
-          <th style="width:6%">Spalva</th>
+          <th style="width:25%">Pavadinimas</th>
+          <th style="width:12%">SKU</th>
+          <th style="width:18%">Kategorijos</th>
+          <th style="width:8%">EAN</th>
+          <th style="width:8%">Serija</th>
+          <th style="width:8%">Garantija</th>
+          <th style="width:8%">Jungtis</th>
+          <th style="width:7%">Spalva</th>
           <th style="width:8%">Padengimas</th>
-          <th style="width:9%">Atnaujinta</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -69,104 +254,13 @@
 
     let allProducts = [];
     let currentPage = 1;
-    let isLoading = false;
-    let debugMode = false;
-
-    // Debug informacijos rodymas
-    function showDebugInfo(info) {
-      if (!debugMode) return;
-      
-      const debugDiv = $('#debug-info');
-      debugDiv.style.display = 'block';
-      debugDiv.innerHTML = `<pre>${JSON.stringify(info, null, 2)}</pre>`;
-    }
-
-    // Rodomi pranešimai
-    function showMessage(message, type = 'error') {
-      const alert = $('#alert');
-      alert.textContent = message;
-      alert.className = type;
-      
-      if (type === 'error') {
-        console.error(message);
-        // Automačiškai paslėpti po 10 sekundžių
-        setTimeout(() => {
-          if (alert.textContent === message) {
-            alert.textContent = '';
-            alert.className = '';
-          }
-        }, 10000);
-      } else {
-        // Automačiškai paslėpti pranešimus apie sėkmę po 5 sekundes
-        setTimeout(() => {
-          if (alert.textContent === message) {
-            alert.textContent = '';
-            alert.className = '';
-          }
-        }, 5000);
-      }
-    }
-
-    // Rodyti/uždaryti įkėlimo indikatorių
-    function setLoading(loading) {
-      isLoading = loading;
-      const loadButton = $('#load');
-      const loadingIndicator = $('#loading');
-      
-      if (loading) {
-        loadButton.disabled = true;
-        loadButton.textContent = 'Kraunama...';
-        loadingIndicator.style.display = 'inline-block';
-      } else {
-        loadButton.disabled = false;
-        loadButton.textContent = 'Įkelti produktus';
-        loadingIndicator.style.display = 'none';
-      }
-    }
+    let currentCategory = 'all';
 
     function cleanHTML(html) {
       const t = document.createElement('template');
       t.innerHTML = String(html || '');
       t.content.querySelectorAll('script, iframe').forEach(n => n.remove());
       return t.innerHTML.trim();
-    }
-
-    // Patikrinti, ar produktas yra lietuviškas (pagerinta versija)
-    function isLithuanianProduct(product) {
-      if (!product) return false;
-      
-      // 1. Tikriname pagal kalbos atributą
-      const langMeta = (product.meta_data || []).find(m => m.key === 'language' || m.key === 'wpml_language');
-      if (langMeta && langMeta.value === 'lt') return true;
-      
-      // 2. Tikriname pagal permalink (URL)
-      if (product.permalink && product.permalink.includes('/lt/')) return true;
-      if (product.slug && product.slug.endsWith('-lt')) return true;
-      
-      // 3. Tikriname pagal pavadinimą/aprašymą (lietuviški simboliai)
-      const hasLithuanianChars = (text) => text && /[ąčęėįšųūž]/i.test(text);
-      
-      if (hasLithuanianChars(product.name) || hasLithuanianChars(product.description)) {
-        return true;
-      }
-      
-      // 4. Tikriname pagal kategorijas (jei yra lietuviškų kategorijų)
-      const lithuanianCategories = (product.categories || []).filter(cat => 
-        cat.name && hasLithuanianChars(cat.name)
-      );
-      
-      if (lithuanianCategories.length > 0) return true;
-      
-      // 5. Jei niekas neveikia, bet produktas turi LT kalbos duomenis
-      const ltName = (product.meta_data || []).find(m => m.key === 'name_lt');
-      const ltDescription = (product.meta_data || []).find(m => m.key === 'description_lt');
-      
-      if (ltName || ltDescription) return true;
-      
-      // Jei visi metodai nepavyko, bet norime matyti visus produktus derinimo režime
-      if (debugMode) return true;
-      
-      return false;
     }
 
     function getMeta(p, key) {
@@ -176,181 +270,329 @@
 
     function getAttr(p, slug) {
       const a = (p.attributes || []).find(x => x && x.slug === slug);
-      return a ? (a.options || []).join(', ') : '';
+      return a ? (a.options || [])[0] : null;
     }
 
     function firstImage(p) {
       return (p.images && p.images[0]) ? p.images[0].src : '';
     }
 
-    // API užklausos funkcija su geresniu klaidų valdymu
-    async function fetchProducts(page) {
-      const apiUrl = $('#apiUrl').value || `/api/products?per_page=100&page=${page}&lang=lt`;
+    function openDetail(product) {
+      const win = window.open('', '_blank');
+      if (!win) {
+        alert('Leiskite atidaryti naują langą.');
+        return;
+      }
+
+      const title = escapeHtml(product.name || 'Produktas');
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
+      <style>
+        body{background:#f6f7fb;color:#111;margin:0}
+        a{color:#0645ad;text-decoration:none} a:hover{text-decoration:underline}
+        .d-wrap{max-width:980px;margin:0 auto;padding:18px;font:14px/1.5 Arial,sans-serif}
+        h1{margin:0 0 6px}
+        .muted{color:#666}
+        .d-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
+        .d-card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:12px}
+        .d-kv{display:grid;grid-template-columns:160px 1fr;gap:6px 12px}
+        .d-kv div{padding:6px 0;border-bottom:1px solid #eee}
+        .d-k{color:#666}
+        .d-gal img{max-width:100%;border:1px solid #ddd;border-radius:6px;margin:4px 0}
+        .d-tools{margin-top:12px}
+      </style>
+      </head><body>
+        <div class="d-wrap">
+          <h1>${title}</h1>
+          <div class="muted">SKU: ${escapeHtml(product.sku || '')} · ID: ${product.id || ''}</div>
+          <div id="content"></div>
+        </div>
+      </body></html>`);
+      win.document.close();
+
+      const doc = win.document;
+      const content = doc.getElementById('content');
+
+      const grid = doc.createElement('div');
+      grid.className = 'd-grid';
+      const left = doc.createElement('div');
+      left.className = 'd-card';
+      const right = doc.createElement('div');
+      right.className = 'd-card';
+      grid.append(left, right);
+      content.append(grid);
+
+      const gal = doc.createElement('div');
+      gal.className = 'd-gal';
+      (product.images || []).forEach(i => {
+        const img = doc.createElement('img');
+        img.src = i.src;
+        img.alt = i.alt || product.name || '';
+        gal.append(img);
+      });
+      if (!(product.images || []).length) {
+        const ph = doc.createElement('div');
+        ph.textContent = 'Nėra nuotraukų';
+        gal.append(ph);
+      }
+      left.append(gal);
+
+      const desc = doc.createElement('div');
+      desc.innerHTML = cleanHTML(product.description || '');
+      right.append(desc);
+
+      // Dokumentai ir video
+      const listCard = doc.createElement('div');
+      listCard.className = 'd-card';
+      const h = doc.createElement('h3');
+      h.textContent = 'Dokumentai ir video';
+      listCard.append(h);
+      const ul = doc.createElement('ul');
+      listCard.append(ul);
+
+      const meta = (product.meta_data || []);
+      const docKeys = ['montavimo_instrukcija', 'maintenance_manual', 'specification'];
+      const vidKeys = ['video_lt'];
+
+      meta.forEach(m => {
+        if (!m || !m.key) return;
+        if (docKeys.includes(m.key) && m.value) {
+          const li = doc.createElement('li');
+          const a = doc.createElement('a');
+          a.href = m.value;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = `${m.key}.pdf`;
+          li.append(a);
+          ul.append(li);
+        }
+        if (vidKeys.includes(m.key) && m.value) {
+          const li = doc.createElement('li');
+          const a = doc.createElement('a');
+          a.href = m.value;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = 'Vaizdo pamoka (YouTube)';
+          li.append(a);
+          ul.append(li);
+        }
+      });
+
+      // Gedimų sprendimai ir administratoriaus failai
+      const repairGuide = getMeta(product, 'repair_guide_lt') || 'Gedimų sprendimo aprašymas nepateiktas.';
+      const adminFiles = getMeta(product, 'admin_files') ? JSON.parse(getMeta(product, 'admin_files')) : [];
+
+      const guideEl = doc.createElement('div');
+      guideEl.className = 'd-card';
+      guideEl.innerHTML = `<h3>Gedimų sprendimai</h3><p>${escapeHtml(repairGuide)}</p>`;
       
-      try {
-        const response = await fetch(apiUrl);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Serveris grąžino ne JSON formatą');
-        }
-        
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        showDebugInfo({
-          error: 'API užklausos klaida',
-          page: page,
-          url: apiUrl,
-          message: error.message
+      const filesEl = doc.createElement('div');
+      filesEl.className = 'd-card';
+      filesEl.innerHTML = '<h3>Kokybės skyriaus dokumentai</h3><ul>';
+      adminFiles.forEach(file => {
+        filesEl.innerHTML += `<li><a href="${file.url}" target="_blank">${escapeHtml(file.name)}</a></li>`;
+      });
+      filesEl.innerHTML += '</ul>';
+
+      right.append(listCard);
+      right.append(guideEl);
+      right.append(filesEl);
+
+      const spec = doc.createElement('div');
+      spec.className = 'd-card';
+      const sh = doc.createElement('h3');
+      sh.textContent = 'Specifikacijos';
+      spec.append(sh);
+      const kv = doc.createElement('div');
+      kv.className = 'd-kv';
+      spec.append(kv);
+      (product.attributes || []).forEach(a => {
+        const k = doc.createElement('div');
+        k.className = 'd-k';
+        k.textContent = (a && a.name) ? a.name.replace(/^\[:.*?\]/, '').replace(/\[:.*?\]/g, '') : '';
+        const v = doc.createElement('div');
+        v.textContent = (a && a.options) ? a.options.join(', ') : '';
+        kv.append(k);
+        kv.append(v);
+      });
+      right.append(spec);
+
+      const tools = doc.createElement('div');
+      tools.className = 'd-tools';
+      const btn = doc.createElement('button');
+      btn.textContent = 'Spausdinti / PDF';
+      btn.onclick = () => win.print();
+      tools.append(btn);
+      content.append(tools);
+    }
+
+    function renderTable(products) {
+      const tbody = $('#tbl tbody');
+      tbody.innerHTML = '';
+
+      products.forEach(p => {
+        const tr = document.createElement('tr');
+
+        const tdImg = document.createElement('td');
+        const img = document.createElement('img');
+        img.className = 'thumb';
+        img.src = firstImage(p);
+        img.alt = p.name || '';
+        img.onclick = () => openDetail(p);
+        tdImg.append(img);
+
+        const tdName = document.createElement('td');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = p.name || '';
+        a.onclick = (e) => { e.preventDefault(); openDetail(p); };
+        tdName.append(a);
+
+        const tdSku = document.createElement('td');
+        tdSku.className = 'sku nowrap';
+        tdSku.textContent = p.sku || '';
+
+        const tdCats = document.createElement('td');
+        tdCats.innerHTML = (p.categories || []).map(c => `<span class="badge">${escapeHtml(c.name || c.slug || '')}</span>`).join('');
+
+        const tdEAN = document.createElement('td');
+        tdEAN.className = 'nowrap';
+        tdEAN.textContent = getMeta(p, 'ean') || getAttr(p, 'pa_barkodas') || '';
+
+        const tdSeries = document.createElement('td');
+        tdSeries.className = 'nowrap';
+        tdSeries.textContent = getAttr(p, 'pa_serija') || '';
+
+        const tdWarranty = document.createElement('td');
+        tdWarranty.className = 'nowrap';
+        tdWarranty.textContent = getAttr(p, 'pa_garantija') || getMeta(p, 'warranty') || '';
+
+        const tdConn = document.createElement('td');
+        tdConn.className = 'nowrap';
+        tdConn.textContent = getAttr(p, 'pa_pajungimas') || getAttr(p, 'pa_jungtis') || getMeta(p, 'connection') || '';
+
+        const tdColor = document.createElement('td');
+        tdColor.className = 'nowrap';
+        tdColor.textContent = getAttr(p, 'pa_spalva') || '';
+
+        const tdFinish = document.createElement('td');
+        tdFinish.className = 'nowrap';
+        tdFinish.textContent = getAttr(p, 'pa_padengimas') || getMeta(p, 'finish') || '';
+
+        tr.append(tdImg, tdName, tdSku, tdCats, tdEAN, tdSeries, tdWarranty, tdConn, tdColor, tdFinish);
+        tbody.append(tr);
+      });
+    }
+
+    function renderPagination() {
+      const perPage = parseInt($('#per').value || '25', 10);
+      const totalPages = Math.ceil(allProducts.length / perPage);
+      const pagination = $('#pagination');
+      pagination.innerHTML = '';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          currentPage = i;
+          const start = (currentPage - 1) * perPage;
+          const end = start + perPage;
+          renderTable(allProducts.slice(start, end));
+          renderPagination();
         });
-        
-        throw error;
+        pagination.appendChild(btn);
       }
     }
 
-    // Testinė užklausa, kad patikrintume API
-    async function testApiConnection() {
-      try {
-        setLoading(true);
-        showMessage('Tikrinama API prieiga...', 'success');
-        
-        const testData = await fetchProducts(1);
-        showDebugInfo({
-          apiResponse: Array.isArray(testData) ? 
-            `Gauta ${testData.length} įrašų` : 
-            'Gautas ne masyvas',
-          firstItem: Array.isArray(testData) && testData.length > 0 ? testData[0] : 'Nėra duomenų',
-          responseType: Array.isArray(testData) ? 'array' : typeof testData
-        });
-        
-        if (Array.isArray(testData)) {
-          showMessage(`API veikia. Gauta ${testData.length} įrašų. Filtruojame lietuviškus produktus...`, 'success');
-          return testData;
-        } else {
-          showMessage('API grąžino netinkamą formato atsakymą (ne masyvą)', 'error');
-          return [];
-        }
-      } catch (error) {
-        showMessage(`API ryšio klaida: ${error.message}`, 'error');
-        return [];
-      } finally {
-        setLoading(false);
-      }
+    function filterByCategory(category) {
+      const lowerCat = category.toLowerCase();
+      return allProducts.filter(p => {
+        if (category === 'all') return true;
+
+        const catNames = (p.categories || []).map(c => c.name.toLowerCase());
+        const fullName = p.name.toLowerCase();
+
+        if (lowerCat === 'virtuvės') return catNames.some(c => c.includes('virtuvės')) || fullName.includes('virtuvės') || fullName.includes('kitchen');
+        if (lowerCat === 'vonios') return catNames.some(c => c.includes('vonios')) || fullName.includes('vonios') || fullName.includes('bathroom');
+        if (lowerCat === 'dušo') return catNames.some(c => c.includes('dušo')) || fullName.includes('dušo') || fullName.includes('shower');
+        if (lowerCat === 'termostatai') return catNames.some(c => c.includes('termostatas')) || fullName.includes('termostatas') || fullName.includes('thermostat');
+        if (lowerCat === 'komplektai') return catNames.some(c => c.includes('rinkinys')) || fullName.includes('rinkinys') || fullName.includes('set');
+        if (lowerCat === 'priedai') return catNames.some(c => c.includes('priedai')) || fullName.includes('priedai') || fullName.includes('accessories');
+
+        return false;
+      });
     }
 
-    async function loadProducts() {
-      if (isLoading) return;
-      
-      setLoading(true);
-      $('#alert').textContent = '';
-      
+    function applyFilters() {
+      const filtered = filterByCategory(currentCategory);
+      currentPage = 1;
+      renderTable(filtered);
+      renderPagination();
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({
+        "&": "&amp;",
+        "<": "<",
+        ">": ">",
+        "\"": "&quot;",
+        "'": "&#39;"
+      })[c]);
+    }
+
+    async function loadPage() {
+      const perPage = parseInt($('#per').value || '25', 10);
+      const alert = $('#alert');
+      alert.textContent = '';
+
       try {
         let allData = [];
         let page = 1;
-        const maxPages = debugMode ? 50 : 10; // Daugiau puslapių derinimo režime
+        let hasMore = true;
 
-        // Pirmiausia patikrinkime API
-        const testData = await testApiConnection();
-        if (testData.length === 0 && !debugMode) {
-          showMessage('API nepateikė jokių duomenų. Įjunkite derinimo režimą detalesnei informacijai.', 'error');
-          return;
-        }
+        while (hasMore && page < 10) {
+          const response = await fetch(`/api/products?per_page=100&page=${page}&lang=lt`);
+          const data = await response.json();
 
-        showMessage('Pradedamas duomenų įkėlimas...', 'success');
-        
-        // Jei testiniai duomenys jau gauti, pradedame nuo jų
-        if (testData.length > 0) {
-          allData = testData.filter(isLithuanianProduct);
-          page = 2; // Jau turime 1 puslapį
-        }
-
-        // Įkeliame likusius puslapius
-        while (page <= maxPages) {
-          try {
-            showMessage(`Įkeliamas puslapis ${page}...`, 'success');
-            
-            const data = await fetchProducts(page);
-            
-            if (!Array.isArray(data) || data.length === 0) {
-              break;
-            }
-            
-            // Filtruojame tik lietuviškus produktus
-            const lithuanianProducts = data.filter(isLithuanianProduct);
-            allData = allData.concat(lithuanianProducts);
-            
-            showDebugInfo({
-                page: page,
-                totalReceived: data.length,
-                lithuanianProducts: lithuanianProducts.length,
-                totalCollected: allData.length
-            });
-
-            // Jei gauta mažiau nei 100 įrašų, reiškia daugiau puslapių nėra
-            if (data.length < 100) {
-              break;
-            }
-            
-            page++;
-          } catch (error) {
-            showMessage(`Klaida įkeliant puslapį ${page}: ${error.message}`, 'error');
-            break;
+          if (!Array.isArray(data) || data.length === 0) {
+            hasMore = false;
+          } else {
+            allData.push(...data);
+            if (data.length < 100) hasMore = false;
           }
+          page++;
         }
 
-        if (allData.length === 0) {
-          showMessage('Nerasta lietuviškų produktų. Patikrinkite:<br>1. Ar API grąžina duomenis<br>2. Ar produktai pažymėti kaip lietuviški<br>3. Įjunkite derinimo režimą', 'error');
+        // Filtruoti tik lietuviškus produktus
+        allProducts = allData.filter(p => p.permalink && !/\/(ru|en|pl|lv)\//.test(p.permalink));
+
+        if (allProducts.length === 0) {
+          alert.textContent = 'Nerasta lietuviškų produktų.';
         } else {
-          allProducts = allData;
-          currentPage = 1;
-          updateTable();
-          showMessage(`Sėkmingai įkelta ${allProducts.length} lietuviškų produktų.`, 'success');
+          applyFilters();
         }
       } catch (e) {
-        showMessage(`Įvyko kritinė klaida: ${e.message}`, 'error');
-        console.error(e);
-      } finally {
-        setLoading(false);
+        alert.textContent = e.message || String(e);
       }
     }
 
-    // Liko like funkcijos tos pačios (renderTable, renderPagination, updateTable, escapeHtml)
-    // ... (renderTable, renderPagination, updateTable, escapeHtml functions remain the same) ...
-
-    // Event listeners
-    $('#load').addEventListener('click', loadProducts);
-    
-    $('#per').addEventListener('change', function() {
-      if (allProducts.length > 0) {
-        currentPage = 1;
-        updateTable();
-      }
+    // Kategorijų mygtukų veiksmai
+    $$('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $$('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.cat;
+        applyFilters();
+      });
     });
 
-    $('#debug').addEventListener('change', function() {
-      debugMode = this.checked;
-      $('#debug-info').style.display = debugMode ? 'block' : 'none';
-      if (debugMode) {
-        showMessage('Derinimo režimas įjungtas. Rodomi visi produktai, nepriklausomai nuo kalbos.', 'success');
-      }
+    $('#load').onclick = loadPage;
+    ['per'].forEach(id => {
+      const el = $(`#${id}`);
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') loadPage(); });
     });
 
-    // Pridedame klaviatūros palaikymą
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !isLoading) {
-        loadProducts();
-      }
-    });
-
-    // Inicijuojame puslapį
-    window.addEventListener('DOMContentLoaded', function() {
-      showMessage('Paspauskite "Įkelti produktus" norėdami pradėti.', 'success');
-    });
+    window.onload = loadPage;
   </script>
 </body>
 </html>
