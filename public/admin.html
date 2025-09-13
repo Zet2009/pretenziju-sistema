@@ -51,6 +51,10 @@
         }
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 16px; text-align: center; }
 
+        .pagination-btn { padding: 4px 8px; border: 1px solid #dee2e6; background: #fff; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .pagination-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .pagination-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
         /* Skirtukai */
         .tabs {
             display: flex;
@@ -293,25 +297,7 @@
             .stats-bar { flex-direction: column; gap: 6px; }
             th, td { padding: 4px 6px; font-size: 10px; }
         }
-    
-.pagination-btn {
-  padding: 4px 8px;
-  border: 1px solid #dee2e6;
-  background: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 11px;
-}
-.pagination-btn.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-.pagination-btn[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>
+    </style>
 </head>
 <body>
     <header>
@@ -401,13 +387,12 @@
                     </tr>
                 </thead>
                 <tbody id="claims-body">
-                    <tr><td colspan="10" style="text-align: center;">Kraunama...</td></tr>
+                    <tr><td colspan="11" style="text-align: center;">Kraunama...</td></tr>
                 </tbody>
             </table>
 
-<!-- Paginacija -->
-<div id="claims-pagination" style="margin-top:10px; display:flex; gap:6px; justify-content:flex-end; align-items:center; font-size:11px;"></div>
-
+        <!-- Paginacija -->
+        <div id="claims-pagination" style="margin-top:10px; display:flex; gap:6px; justify-content:flex-end; align-items:center; font-size:11px;"></div>
         </div>
 
         <!-- Skirtukas: Vartotojai -->
@@ -430,6 +415,9 @@
                     <tr><td colspan="8" style="text-align: center;">Kraunama...</td></tr>
                 </tbody>
             </table>
+
+        <!-- Paginacija -->
+        <div id="claims-pagination" style="margin-top:10px; display:flex; gap:6px; justify-content:flex-end; align-items:center; font-size:11px;"></div>
         </div>
 
         <!-- Kitų skirtukų turinys -->
@@ -515,9 +503,9 @@
     <script>
         // Globalus kintamasis filtrui
         let currentFilters = null;
-let currentClaimsCache = [];
-let currentPage = 1;
-const pageSize = 25;
+        let currentClaimsCache = [];
+        let currentPage = 1;
+        const pageSize = 25;
 
         // Tikriname, ar vartotojas yra administratorius
       //  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -557,102 +545,137 @@ function setModalHeader(title, showViewSeparately = false) {
         }
 
         function loadClaims(filteredClaims = null) {
-  const claims = filteredClaims || JSON.parse(localStorage.getItem('claims') || '[]');
-  currentClaimsCache = claims;
-  currentPage = 1;
-  renderClaimsPage();
-}
+            const claims = filteredClaims || JSON.parse(localStorage.getItem('claims') || '[]');
+            currentClaimsCache = claims;
+            currentPage = 1;
+            renderClaimsPage();
+        }
+        
+        function renderClaimsPage() {
+            const tbody = document.getElementById('claims-body');
+            tbody.innerHTML = '';
 
-function renderClaimsPage() {
-  const tbody = document.getElementById('claims-body');
-  tbody.innerHTML = '';
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageItems = currentClaimsCache.slice(start, end);
 
-  const start = (currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const pageItems = currentClaimsCache.slice(start, end);
+            pageItems.forEach(claim => {
+                const masterCell = claim.assignedPartner 
+                    ? `<span>${claim.assignedPartner}</span>` 
+                    : `<button class="btn btn-primary" onclick="showAssignModal('${r"${claim.id}"}')">Priskirti meistrui</button>`;
 
-  pageItems.forEach(claim => {
-    const masterCell = claim.assignedPartner 
-      ? `<span>${claim.assignedPartner}</span>` 
-      : `<button class="btn btn-primary" onclick="showAssignModal('${'${'}claim.id{'}'}')">Priskirti meistrui</button>`;
+                const responsibleCell = claim.responsible 
+                    ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${r"${claim.id}"}');">${r"${claim.responsible}"}...</a>`
+                    : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${r"${claim.id}"}');">Paskirti atsakingą</a>`;
 
-    const responsibleCell = claim.responsible 
-      ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${'${'}claim.id{'}'}');">${'${'}claim.responsible{'}'}</a>`
-      : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${'${'}claim.id{'}'}');">Paskirti atsakingą</a>`;
+                const commentCell = claim.qualityComment || '-------';
 
-    const commentCell = claim.qualityComment || '-------';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${r"${claim.id}"}');">${r"${claim.id}"}</a></td>
+                    <td>${r"${new Date(claim.date).toLocaleDateString('lt-LT')}"}</td>
+                    <td>${r"${claim.contact?.name ?? ''}"} ${r"${claim.contact?.surname ?? ''}"}</td>
+                    <td>${r"${claim.contact?.city ?? ''}"}</td>
+                    <td>${r"${claim.product ?? ''}"}</td>
+                    <td>${r"${(claim.description || '').substring(0, 30)}"}...</td>
+                    <td>${r"${masterCell}"}</td>
+                    <td>
+                        <select class="status-dropdown status-${r"${getStatusClass(claim.status)}"}" onchange="updateStatusDirectly('${r"${claim.id}"}', this.value)">
+                            <option value="Nauja" ${r"${claim.status === 'Nauja' ? 'selected' : ''}"}>Nauja</option>
+                            <option value="Laukia patvirtinimo" ${r"${claim.status === 'Laukia patvirtinimo' ? 'selected' : ''}"}>Laukia patvirtinimo</option>
+                            <option value="Patvirtinta" ${r"${claim.status === 'Patvirtinta' ? 'selected' : ''}"}>Patvirtinta</option>
+                            <option value="Perduota servisui" ${r"${claim.status === 'Perduota servisui' ? 'selected' : ''}"}>Perduota servisui</option>
+                            <option value="Išspręsta" ${r"${claim.status === 'Išspręsta' ? 'selected' : ''}"}>Išspręsta</option>
+                            <option value="Atmesta" ${r"${claim.status === 'Atmesta' ? 'selected' : ''}"}>Atmesta</option>
+                        </select>
+                    </td>
+                    <td>${r"${responsibleCell}"}</td>
+                    <td>
+                        <input type="number" min="0" step="0.01" value="${r"${claim.repairCost ?? ''}"}" 
+                            onblur="updateRepairCost('${r"${claim.id}"}', this.value)" 
+                            style="width:100%; padding:4px;">
+                    </td>
+                    <td>${r"${commentCell}"}</td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${'${'}claim.id{'}'}');">${'${'}claim.id{'}'}</a></td>
-      <td>${'${'}new Date(claim.date).toLocaleDateString('lt-LT'){'}'}</td>
-      <td>${'${'}claim.contact.name{'}'} ${'${'}claim.contact.surname{'}'}</td>
-      <td>${'${'}claim.contact.city{'}'}</td>
-      <td>${'${'}claim.product{'}'}</td>
-      <td>${'${'}(claim.description || '').substring(0, 30){'}'}...</td>
-      <td>${'${'}masterCell{'}'}</td>
-      <td>
-        <select class="status-dropdown status-${'${'}getStatusClass(claim.status){'}'}" onchange="updateStatusDirectly('${'${'}claim.id{'}'}', this.value)">
-          <option value="Nauja" ${'${'}claim.status === 'Nauja' ? 'selected' : ''{'}'}>Nauja</option>
-          <option value="Laukia patvirtinimo" ${'${'}claim.status === 'Laukia patvirtinimo' ? 'selected' : ''{'}'}>Laukia patvirtinimo</option>
-          <option value="Patvirtinta" ${'${'}claim.status === 'Patvirtinta' ? 'selected' : ''{'}'}>Patvirtinta</option>
-          <option value="Perduota servisui" ${'${'}claim.status === 'Perduota servisui' ? 'selected' : ''{'}'}>Perduota servisui</option>
-          <option value="Išspręsta" ${'${'}claim.status === 'Išspręsta' ? 'selected' : ''{'}'}>Išspręsta</option>
-          <option value="Atmesta" ${'${'}claim.status === 'Atmesta' ? 'selected' : ''{'}'}>Atmesta</option>
-        </select>
-      </td>
-      <td>${'${'}responsibleCell{'}'}</td>
-      <td>
-        <input type="number" min="0" step="0.01" value="${'${'}claim.repairCost ?? ''{'}'}"
-               onblur="updateRepairCost('${'${'}claim.id{'}'}', this.value)"
-               style="width:100%; padding:4px;">
-      </td>
-      <td>${'${'}commentCell{'}'}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+            const totalEl = document.getElementById('total-claims');
+            if (totalEl) totalEl.textContent = currentClaimsCache.length;
+            renderPagination();
+        }
 
-  document.getElementById('total-claims').textContent = currentClaimsCache.length;
-  renderPagination();
-}
+        function renderPagination() {
+            const total = currentClaimsCache.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            const container = document.getElementById('claims-pagination');
+            if (!container) return;
 
-function renderPagination() {
-  const total = currentClaimsCache.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const container = document.getElementById('claims-pagination');
-  if (!container) return;
+            if (totalPages === 1) {
+                container.innerHTML = '';
+                return;
+            }
 
-  if (totalPages === 1) {
-    container.innerHTML = '';
-    return;
-  }
+            let html = '';
+            html += `<button class="pagination-btn" onclick="goPage(1)" ${r"${currentPage === 1 ? 'disabled' : ''}"}>«</button>`;
+            html += `<button class="pagination-btn" onclick="goPage(${r"${currentPage - 1}"})" ${r"${currentPage === 1 ? 'disabled' : ''}"}>‹</button>`;
 
-  let html = '';
-  html += `<button class="pagination-btn" onclick="goPage(1)" ${'${'}currentPage === 1 ? 'disabled' : ''{'}'}>«</button>`;
-  html += `<button class="pagination-btn" onclick="goPage(${ '${' }currentPage - 1${ '}' })" ${'${'}currentPage === 1 ? 'disabled' : ''{'}'}>‹</button>`;
+            const windowSize = 5;
+            let from = Math.max(1, currentPage - Math.floor(windowSize / 2));
+            let to = Math.min(totalPages, from + windowSize - 1);
+            if (to - from + 1 < windowSize) from = Math.max(1, to - windowSize + 1);
 
-  const windowSize = 5;
-  let from = Math.max(1, currentPage - Math.floor(windowSize / 2));
-  let to = Math.min(totalPages, from + windowSize - 1);
-  if (to - from + 1 < windowSize) from = Math.max(1, to - windowSize + 1);
+            for (let p = from; p <= to; p++) {
+                html += `<button class="pagination-btn ${r"${p === currentPage ? 'active' : ''}"}" onclick="goPage(${r"${p}"})">${r"${p}"}</button>`;
+            }
 
-  for (let p = from; p <= to; p++) {
-    html += `<button class="pagination-btn ${'${'}p === currentPage ? 'active' : ''{'}'}" onclick="goPage(${ '${' }p${ '}' })">${'${'}p{'}'}</button>`;
-  }
+            html += `<button class="pagination-btn" onclick="goPage(${r"${currentPage + 1}"})" ${r"${currentPage === totalPages ? 'disabled' : ''}"}>›</button>`;
+            html += `<button class="pagination-btn" onclick="goPage(${r"${totalPages}"})" ${r"${currentPage === totalPages ? 'disabled' : ''}"}>»</button>`;
 
-  html += `<button class="pagination-btn" onclick="goPage(${ '${' }currentPage + 1${ '}' })" ${'${'}currentPage === totalPages ? 'disabled' : ''{'}'}>›</button>`;
-  html += `<button class="pagination-btn" onclick="goPage(${ '${' }totalPages${ '}' })" ${'${'}currentPage === totalPages ? 'disabled' : ''{'}'}>»</button>`;
+            container.innerHTML = html;
+        }
 
-  container.innerHTML = html;
-}
+        function goPage(p) {
+            const totalPages = Math.max(1, Math.ceil(currentClaimsCache.length / pageSize));
+            currentPage = Math.min(Math.max(1, p), totalPages);
+            renderClaimsPage();
+        }
+        </span>` 
+                    : `<button class="btn btn-primary" onclick="showAssignModal('${claim.id}')">Priskirti meistrui</button>`;
 
-function goPage(p) {
-  const totalPages = Math.max(1, Math.ceil(currentClaimsCache.length / pageSize));
-  currentPage = Math.min(Math.max(1, p), totalPages);
-  renderClaimsPage();
-}
+                const responsibleCell = claim.responsible 
+                    ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">${claim.responsible}</a>`
+                    : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">Paskirti atsakingą</a>`;
 
+                const commentCell = claim.qualityComment || '-------';
 
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${claim.id}');">${claim.id}</a></td>
+                    <td>${new Date(claim.date).toLocaleDateString('lt-LT')}</td>
+                    <td>${claim.contact.name} ${claim.contact.surname}</td>
+                    <td>${claim.contact.city}</td>
+                    <td>${claim.product}</td>
+                    <td>${claim.description.substring(0, 30)}...</td>
+                    <td>${masterCell}</td>
+                    <td>
+                        <select class="status-dropdown status-${getStatusClass(claim.status)}" onchange="updateStatusDirectly('${claim.id}', this.value)">
+                            <option value="Nauja" ${claim.status === 'Nauja' ? 'selected' : ''}>Nauja</option>
+                            <option value="Laukia patvirtinimo" ${claim.status === 'Laukia patvirtinimo' ? 'selected' : ''}>Laukia patvirtinimo</option>
+                            <option value="Patvirtinta" ${claim.status === 'Patvirtinta' ? 'selected' : ''}>Patvirtinta</option>
+                            <option value="Perduota servisui" ${claim.status === 'Perduota servisui' ? 'selected' : ''}>Perduota servisui</option>
+                            <option value="Išspręsta" ${claim.status === 'Išspręsta' ? 'selected' : ''}>Išspręsta</option>
+                            <option value="Atmesta" ${claim.status === 'Atmesta' ? 'selected' : ''}>Atmesta</option>
+                        </select>
+                    </td>
+                    <td>${responsibleCell}</td>
+                    <td>${commentCell}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('total-claims').textContent = claims.length;
+        }
 
         function getStatusClass(status) {
             switch (status) {
@@ -664,6 +687,16 @@ function goPage(p) {
                 case 'Atmesta': return 'rejected';
                 default: return 'new';
             }
+        }
+
+        function updateRepairCost(id, value) {
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const claim = claims.find(c => c.id === id);
+            if (!claim) return;
+            const val = value === '' ? null : Number(value);
+            if (val !== null && isNaN(val)) return;
+            claim.repairCost = val;
+            localStorage.setItem('claims', JSON.stringify(claims));
         }
 
         function updateStatusDirectly(id, newStatus) {
@@ -687,24 +720,6 @@ function goPage(p) {
                 }
             }
         }
-
-function updateRepairCost(id, value) {
-  const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-  const claim = claims.find(c => c.id === id);
-  if (!claim) return;
-  const val = value === '' ? null : Number(value);
-  if (val !== null && isNaN(val)) return;
-  claim.repairCost = val;
-  localStorage.setItem('claims', JSON.stringify(claims));
-  if (currentFilters) {
-    applyFilters();
-  } else {
-    // stay on current page, just update total if needed
-    document.getElementById('total-claims').textContent = claims.length;
-  }
-}
-
-
 
 function showAssignModal(id) {
     tempAttachments = [];
@@ -1261,26 +1276,40 @@ function deletePartner(id) {
         }
 
         function exportToCSV() {
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const headers = ['ID', 'Data', 'Vardas', 'Pavardė', 'El. paštas', 'Telefonas', 'Produktas', 'Aprašymas', 'Būsena', 'Miestas', 'Priskirtas meistras', 'Komentaras'];
+            // eksportuojame tik šiuo metu filtruotą sąrašą
+            const rows = currentClaimsCache || [];
+            const headers = ['ID','Data','Vardas','Pavardė','El. paštas','Telefonas','Produktas','Problema','Būsena','Miestas','Priskirtas meistras','Atsakingas','Remonto kaina (EUR)','Komentaras'];
             const csv = [
                 headers.join(';'),
-                ...claims.map(c => [
+                ...rows.map(c => [
                     c.id,
                     new Date(c.date).toLocaleDateString('lt-LT'),
-                    c.contact.name,
-                    c.contact.surname,
-                    c.contact.email,
-                    c.contact.phone,
-                    c.product,
-                    c.description.replace(/"/g, '""'),
-                    c.status,
-                    c.contact.city,
-                    c.assignedPartner || '',
-                    (c.qualityComment || '').replace(/"/g, '""')
-                ].join(';'))
-            ].join('\n');
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                    c.contact?.name ?? '',
+                    c.contact?.surname ?? '',
+                    c.contact?.email ?? '',
+                    c.contact?.phone ?? '',
+                    c.product ?? '',
+                    (c.description || '').replace(/"/g, '""'),
+                    c.status ?? '',
+                    c.contact?.city ?? '',
+                    c.assignedPartner ?? '',
+                    c.responsible ?? '',
+                    (c.repairCost ?? '').toString().replace('.', ','),
+                    c.qualityComment ?? ''
+                ].map(v => typeof v === 'string' && v.includes(';') ? `"${v}"` : v).join(';'))
+            ].join('
+');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pretenzijos.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
