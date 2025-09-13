@@ -10,7 +10,7 @@
             --primary: #2D2D2D;
             --primary-light: #4A4A4A;
             --primary-hover: #6B6B6B;
-            --secondary: #FFCC00;
+            --secondary: #FFCC00; /* Geltona */
             --light: #F5F5F5;
             --dark: #212121;
             --white: #FFFFFF;
@@ -92,7 +92,6 @@
         .btn-secondary {
             background: var(--secondary);
             color: var(--primary);
-            border: none;
         }
         .btn-secondary:hover {
             background: #FFD700;
@@ -177,8 +176,10 @@
             <h1>Pretenzijų registracija</h1>
             <p>Pateikite pretenziją greitai ir patogiai. Gauskite atsakymą per 24 valandas.</p>
             <div class="btn-block" id="btn-block">
-                <a href="login.html" class="btn btn-primary">Prisijungti ir pateikti</a>
-                <a href="pretention-anonymous.html" class="btn btn-secondary">Pateikti be registracijos</a>
+                <!-- DABAR: geltonas = "Prisijungti ir pateikti" -->
+                <a href="login.html" class="btn btn-secondary">Prisijungti ir pateikti</a>
+                <!-- DABAR: pilkas = "Pateikti be registracijos" -->
+                <a href="pretention-anonymous.html" class="btn btn-primary">Pateikti be registracijos</a>
             </div>
         </section>
 
@@ -191,7 +192,7 @@
             </div>
             <div class="faq-item">
                 <h3>Kiek ilgai veikia garantija?</h3>
-                <p>Garantinis laikotarpis – iki 5 metų nuo pirkimo datos. Garantija galioja tik su pirkimo dokumentu.</p>
+                <p>Garantinis laikotarpis – 2 metai nuo pirkimo datos. Garantija galioja tik su pirkimo dokumentu.</p>
             </div>
             <div class="faq-item">
                 <h3>Ką daryti, jei produktas sugedo?</h3>
@@ -210,6 +211,7 @@
                 <li style="margin-bottom: 10px;">✅ Greitas atsakymas – per 24 valandas</li>
                 <li style="margin-bottom: 10px;">✅ Patogus procesas – viskas internetu</li>
                 <li style="margin-bottom: 10px;">✅ Sekite būseną savo profilyje (registruotiems)</li>
+                <li style="margin-bottom: 10px;">✅ Galimybė gauti meistrą į namus</li>
             </ul>
         </section>
     </main>
@@ -222,7 +224,7 @@
         // Patikriname, ar vartotojas prisijungęs
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-        // Atnaujinti navigaciją
+        // Atnaujinti navigaciją ir mygtukus
         function updateNav() {
             const authLink = document.getElementById('auth-link');
             const btnBlock = document.getElementById('btn-block');
@@ -236,17 +238,22 @@
                     location.href = 'profile.html';
                 };
 
-                // Pakeisti mygtukus
+                // Kai prisijungęs – geltonas mygtukas "Pateikti"
                 btnBlock.innerHTML = `
                     <p style="color: var(--white); margin-bottom: 15px;">Sveiki, <strong>${currentUser.name}</strong>!</p>
-                    <a href="pretention.html" class="btn btn-primary">Pateikti pretenziją</a>
-                    <button onclick="logout()" class="btn btn-secondary">Atsijungti</button>
+                    <a href="pretention.html" class="btn btn-secondary">Pateikti pretenziją</a>
+                    <button onclick="logout()" class="btn btn-primary">Atsijungti</button>
                 `;
             } else {
-                // Neprisijungęs
+                // Neprisijungęs – geltonas "Prisijungti ir pateikti", pilkas "be registracijos"
                 authLink.textContent = 'Prisijungti';
                 authLink.href = 'login.html';
                 authLink.onclick = null;
+
+                btnBlock.innerHTML = `
+                    <a href="login.html" class="btn btn-secondary">Prisijungti ir pateikti</a>
+                    <a href="pretention-anonymous.html" class="btn btn-primary">Pateikti be registracijos</a>
+                `;
             }
         }
 
@@ -262,4 +269,3 @@
     </script>
 </body>
 </html>
-
