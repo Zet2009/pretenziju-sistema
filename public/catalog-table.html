@@ -47,7 +47,8 @@
     .d-wrap { max-width: 980px; margin: 0 auto; padding: 18px; font: 14px/1.5 Arial, sans-serif; color: #111; }
     .d-head { display:flex; align-items:center; justify-content: space-between; gap:16px; margin-bottom:8px; }
     .d-head .brand { display:flex; align-items:center; gap:10px; }
-    .d-head img.logo { height:28px; }
+   .d-head img.logo { height: 36px; image-rendering: auto; }
+@media print { .d-head img.logo { height: 40px; } }
     .d-grid { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
     .d-card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
     .d-kv { display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px; }
@@ -136,7 +137,7 @@
 
   <script>
     /* ==== KONFIGAS: logotipo URL spaudai ==== */
-    const LOGO_URL = 'https://rubineta.com/wp-content/uploads/2021/02/rubineta-logo.svg';
+    const LOGO_URL = 'logo.jpg';
 
     const $ = (s, el = document) => el.querySelector(s);
 
@@ -302,7 +303,8 @@
         .d-wrap{max-width:980px;margin:0 auto;padding:18px;font:14px/1.5 Arial,sans-serif}
         .d-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px}
         .d-head .brand{display:flex;align-items:center;gap:10px}
-        .d-head img.logo{height:28px}
+        .d-head img.logo { height: 36px; image-rendering: auto; }
+@media print { .d-head img.logo { height: 40px; } }
         .muted{color:#666}
         .d-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
         .d-card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:12px}
