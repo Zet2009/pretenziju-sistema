@@ -53,21 +53,14 @@
     .list { margin:0; padding-left:18px }
     .list li{ margin:6px 0 }
 
-    /* Peržiūros sluoksnis (zoom/drag) */
-    .viewer {
-      position: fixed; inset: 0; background: rgba(0,0,0,.85);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 99999; cursor: zoom-out;
-    }
-    .viewer img {
-      max-width: 90vw; max-height: 90vh;
-      transform-origin: center center; user-select: none;
-      image-rendering: auto;
-    }
-    .viewer .hint {
-      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-      color:#fff; font: 12px/1.3 Arial, sans-serif; opacity:.8;
-    }
+    /* (rezervas; realiai naudojama detalės lange) Peržiūros sluoksnis */
+    .viewer { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; z-index: 99999; cursor: zoom-out; }
+    .viewer img { max-width: 90vw; max-height: 90vh; transform-origin: center center; user-select: none; image-rendering: auto; }
+    .viewer .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); color:#fff; font: 12px/1.3 Arial, sans-serif; opacity:.8; }
+    .viewer .toolbar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(0,0,0,.55); padding: 6px; border-radius: 8px; }
+    .viewer .toolbar button { border: 0; padding: 6px 10px; cursor: pointer; border-radius: 6px; background: #fff; font: 12px Arial, sans-serif; }
+    .viewer .toolbar button:hover { background: #f0f0f0; }
+
     @media print {
       body { background:#fff; }
       .d-card { border:0; padding:0 }
@@ -232,8 +225,9 @@
     function getAttr(p, slug){ const a=(p.attributes||[]).find(x=>x&&x.slug===slug); return a?(a.options||[]).map(o=>normalizeLtValue(o)).join(', '):''; }
     function firstImage(p){ const src=(p.images&&p.images[0])?p.images[0].src:''; return src||`data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="#eee"/></svg>')}`; }
     function fmtDate(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).replace('T',' ').replace('Z',''); return new Intl.DateTimeFormat('lt-LT',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(d); }
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"," >":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
+    /* ===== Dokumentai / Video ===== */
     function mapMetaToResources(meta = []) {
       const obj = Object.fromEntries(meta.map(x => [x.key, x.value]));
       const list = [];
@@ -249,49 +243,39 @@
       return list;
     }
 
-    /* ===== Nuotraukų dublikatai ===== */
+    /* ===== Patobulintas nuotraukų dedupe ===== */
+    function normFileName(src=''){
+      const p = src.split('?')[0].split('/').pop().toLowerCase();
+      return p
+        .replace(/-\d+x\d+(?=\.[a-z]+$)/i,'')
+        .replace(/-scaled(?=\.[a-z]+$)/,'')
+        .replace(/\((\d+)\)(?=\.[a-z]+$)/,'')
+        .replace(/[-_](copy|kopija|final|new|\d+)?(?=\.[a-z]+$)/,'')
+        .replace(/[\s]+/g,'');
+    }
     function uniqueImages(images = []) {
-      const seen = new Set(), out = [];
-      images.slice().sort((a,b)=>(a.position??0)-(b.position??0)).forEach(img=>{
-        const idKey = img && (img.id || img.image_id);
-        let src = (img && img.src) ? String(img.src) : '';
-        if (!src) return;
-        src = src.split('?')[0].replace(/-\d+x\d+(?=\.[a-z]+$)/i, '');
-        const key = idKey ? `id:${idKey}` : `src:${src}`;
-        if (seen.has(key)) return;
-        if (/placeholder|noimage|dummy/i.test(src)) return;
-        seen.add(key); out.push({...img, src});
-      });
+      const seen = new Map();
+      const out = [];
+      images
+        .slice()
+        .sort((a,b) => (a.position ?? 0) - (b.position ?? 0))
+        .forEach(img => {
+          let src = img?.src ? String(img.src) : '';
+          if (!src) return;
+          const base = normFileName(src);
+          const wh = (img?.width && img?.height) ? `${img.width}x${img.height}` : '';
+          const altKey = (img?.alt || img?.name || '').trim().toLowerCase();
+          const key = [base, wh, altKey].filter(Boolean).join('|');
+          if (seen.has(key)) return;
+          if (/placeholder|noimage|dummy/i.test(src)) return;
+          seen.set(key, src);
+          src = src.split('?')[0].replace(/-\d+x\d+(?=\.[a-z]+$)/i,'');
+          out.push({ ...img, src });
+        });
       return out;
     }
 
-    /* ===== Paprastas vaizdo peržiūros (zoom/drag) sluoksnis ===== */
-    function showImageViewer(src, alt=''){
-      const wrap = document.createElement('div'); wrap.className='viewer';
-      const img = document.createElement('img'); img.src = src; img.alt = alt;
-      const hint = document.createElement('div'); hint.className='hint';
-      hint.textContent = 'Pelės ratukas – priartinti, vilkite – perstumti, dvigubas spust. – 100%/200%, Esc – uždaryti';
-      wrap.append(img, hint);
-      document.body.appendChild(wrap);
-
-      let scale = 1, pos = {x:0, y:0}, dragging = false, start = {x:0,y:0}, startPos = {x:0,y:0};
-
-      function apply(){ img.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`; }
-      function onWheel(e){ e.preventDefault(); const factor = e.deltaY < 0 ? 1.1 : 0.9; scale = Math.max(0.5, Math.min(6, scale*factor)); apply(); }
-      function onDown(e){ dragging=true; start={x:e.clientX,y:e.clientY}; startPos={...pos}; }
-      function onMove(e){ if(!dragging) return; pos.x = startPos.x + (e.clientX-start.x); pos.y = startPos.y + (e.clientY-start.y); apply(); }
-      function onUp(){ dragging=false; }
-      function onDbl(){ scale = scale<1.5 ? 2 : 1; pos={x:0,y:0}; apply(); }
-      function close(){ window.removeEventListener('keydown', onKey); wrap.remove(); }
-      function onKey(e){ if(e.key==='Escape') close(); }
-      wrap.addEventListener('click', e => { if(e.target===wrap) close(); });
-      img.addEventListener('wheel', onWheel, {passive:false});
-      img.addEventListener('mousedown', onDown); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
-      img.addEventListener('dblclick', onDbl); window.addEventListener('keydown', onKey);
-      apply();
-    }
-
-    /* ===== Detalės – naujame lange ===== */
+    /* ===== Detalės – naujame lange su viewer ===== */
     function openDetail(product) {
       const win = window.open('', '_blank'); if (!win) { alert('Leiskite atidaryti naują langą.'); return; }
       const title = normalizeLtValue(product.name || 'Produktas');
@@ -315,6 +299,14 @@
         .d-tools{margin-top:12px;display:flex;gap:8px;align-items:center}
         .list{margin:0;padding-left:18px}
         .list li{margin:6px 0}
+
+        .viewer{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:99999;cursor:zoom-out}
+        .viewer img{max-width:90vw;max-height:90vh;transform-origin:center center;user-select:none;image-rendering:auto}
+        .viewer .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#fff;font:12px/1.3 Arial,sans-serif;opacity:.8}
+        .viewer .toolbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,0,0,.55);padding:6px;border-radius:8px}
+        .viewer .toolbar button{border:0;padding:6px 10px;cursor:pointer;border-radius:6px;background:#fff;font:12px Arial,sans-serif}
+        .viewer .toolbar button:hover{background:#f0f0f0}
+
         @media print{ body{background:#fff}.d-card{border:0;padding:0}.d-grid{gap:14px}.no-print{display:none !important}@page{margin:16mm 14mm}}
       </style>
       </head><body>
@@ -327,30 +319,79 @@
           <div class="muted">SKU: ${escapeHtml(product.sku || '')} · ID: ${product.id || ''}</div>
           <div id="content"></div>
         </div>
+
+        <script>
+          (function(){
+            window._rbShowViewer = function(src, alt){
+              const doc = document;
+              const wrap = doc.createElement('div'); wrap.className='viewer';
+              const img  = doc.createElement('img'); img.src=src; img.alt=alt||'';
+
+              const toolbar = doc.createElement('div'); toolbar.className='toolbar';
+              const btnMinus = mk('–', ()=>zoom(0.9));
+              const btnPlus  = mk('+', ()=>zoom(1.1));
+              const btnFit   = mk('Į ekraną', fitToScreen);
+              const btn100   = mk('100%', ()=>{ scale=1; center(); apply(); });
+              const btnClose = mk('×', close);
+              toolbar.append(btnMinus, btnPlus, btnFit, btn100, btnClose);
+
+              const hint = doc.createElement('div'); hint.className='hint';
+              hint.textContent = 'Ratukas – priartinti, vilkite – perstumti, dvigubas spust. – 100%/200%, Esc – uždaryti';
+
+              wrap.append(img, toolbar, hint);
+              doc.body.appendChild(wrap);
+
+              let scale=1, pos={x:0,y:0}, dragging=false, start={x:0,y:0}, startPos={x:0,y:0}, fit=1;
+
+              img.addEventListener('load', ()=>{ fit = computeFit(); scale = fit; center(); apply(); });
+
+              function mk(t, fn){ const b=doc.createElement('button'); b.type='button'; b.textContent=t; b.onclick=fn; return b; }
+              function computeFit(){
+                const vw = doc.documentElement.clientWidth*0.90;
+                const vh = doc.documentElement.clientHeight*0.90;
+                const iw = img.naturalWidth  || img.width;
+                const ih = img.naturalHeight || img.height;
+                if(!iw||!ih) return 1;
+                return Math.min(vw/iw, vh/ih);
+              }
+              function center(){ pos={x:0,y:0}; }
+              function apply(){ img.style.transform = 'translate('+pos.x+'px,'+pos.y+'px) scale('+scale+')'; }
+              function zoom(f){ const old=scale; scale = clamp(old*f, 0.5, 6); apply(); }
+              function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+              function onWheel(e){ e.preventDefault(); zoom(e.deltaY<0?1.1:0.9); }
+              function onDown(e){ dragging=true; start={x:e.clientX,y:e.clientY}; startPos={...pos}; }
+              function onMove(e){ if(!dragging) return; pos.x = startPos.x+(e.clientX-start.x); pos.y = startPos.y+(e.clientY-start.y); apply(); }
+              function onUp(){ dragging=false; }
+              function onDbl(){ scale = scale<1.5 ? 2 : 1; center(); apply(); }
+              function onKey(e){
+                if(e.key==='Escape') return close();
+                if(e.key==='+' || e.key==='=') return zoom(1.1);
+                if(e.key==='-' || e.key==='_') return zoom(0.9);
+                if(e.key==='0') { scale=1; center(); apply(); }
+                if(e.key.toLowerCase()==='f') fitToScreen();
+              }
+              function fitToScreen(){ fit = computeFit(); scale = fit || 1; center(); apply(); }
+              function close(){ window.removeEventListener('keydown', onKey); wrap.remove(); }
+
+              wrap.addEventListener('click', e=>{ if(e.target===wrap) close(); });
+              img.addEventListener('wheel', onWheel, {passive:false});
+              img.addEventListener('mousedown', onDown); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
+              img.addEventListener('dblclick', onDbl); window.addEventListener('keydown', onKey);
+            };
+          })();
+        </script>
       </body></html>`);
       win.document.close();
 
       const doc = win.document, content = doc.getElementById('content');
 
-      // Galerija su dedupe + zoom (per „postMessage“ kviečiam viewer pagrindiniame lange)
-      function uniqueImages(images = []) {
-        const seen = new Set(), out = [];
-        images.slice().sort((a,b)=>(a.position??0)-(b.position??0)).forEach(img=>{
-          const idKey = img && (img.id || img.image_id);
-          let src = (img && img.src) ? String(img.src) : '';
-          if (!src) return;
-          src = src.split('?')[0].replace(/-\d+x\d+(?=\.[a-z]+$)/i, '');
-          const key = idKey ? `id:${idKey}` : `src:${src}`;
-          if (seen.has(key)) return;
-          if (/placeholder|noimage|dummy/i.test(src)) return;
-          seen.add(key); out.push({...img, src});
-        }); return out;
-      }
       const grid = doc.createElement('div'); grid.className = 'd-grid';
       const left = doc.createElement('div'); left.className = 'd-card';
       const right = doc.createElement('div'); right.className = 'd-card';
       grid.append(left, right); content.append(grid);
 
+      // Galerija su dedupe + viewer
       const gal = doc.createElement('div'); gal.className = 'd-gal';
       const imgs = uniqueImages(product.images || []);
       if (imgs.length === 0) { const ph = doc.createElement('div'); ph.textContent = 'Nėra nuotraukų'; gal.append(ph); }
@@ -358,13 +399,13 @@
         imgs.forEach(i => {
           const img = doc.createElement('img');
           img.src = i.src; img.alt = normalizeLtValue(i.alt || product.name || '');
-          img.addEventListener('click', () => { window.opener.postMessage({type:'RB_VIEW', src: i.src, alt: img.alt}, '*'); });
+          img.addEventListener('click', () => { win._rbShowViewer(i.src, img.alt); });
           gal.append(img);
         });
       }
       left.append(gal);
 
-      // Aprašymas – jei „šiukšlė“, visai nesukuriam bloko
+      // Aprašymas – rodome tik jei ne „šiukšlė“ ir ne per trumpas
       const raw = product.description || product.short_description || '';
       let ltText = normalizeLtValue(stripHtml(raw)).trim();
       if (!/^(parts|documents|dokuments|документы)$/i.test(ltText) && ltText.split(/\s+/).length >= 3) {
@@ -396,17 +437,7 @@
       const btn = doc.createElement('button'); btn.textContent = 'Spausdinti / PDF'; btn.onclick = () => win.print();
       const lnk = doc.createElement('a'); lnk.href = link; lnk.textContent = 'Atidaryti produktą'; lnk.target = '_blank'; lnk.rel='noopener';
       tools.append(btn, lnk); content.append(tools);
-
-      // klausom žinučių (viewer) pagrindiniame lange
-      window.addEventListener('message', e => {
-        if (e.data && e.data.type === 'RB_VIEW') { /* ignore in child */ }
-      });
     }
-
-    // Pagrindinio lango viewer – priimam žinutę iš detalės lango
-    window.addEventListener('message', e => {
-      if (e.data && e.data.type === 'RB_VIEW') showImageViewer(e.data.src, e.data.alt||'');
-    });
 
     /* ===== Lentelė / puslapiavimas / filtrai / eksportas ===== */
     function renderTable(products){
@@ -463,8 +494,6 @@
       addBtn('›',Math.min(totalPages,currentPage+1),currentPage===totalPages);
       addBtn('»',totalPages,currentPage===totalPages);
     }
-
-    function hasGuide(p){ return !!getMeta(p,'repair_guide_lt'); } // redeclare for scope safety
 
     function applySearchAndSort(){
       const q=($('#q').value||'').trim().toLowerCase();
@@ -625,3 +654,4 @@
   </script>
 </body>
 </html>
+
