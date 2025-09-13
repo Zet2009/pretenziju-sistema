@@ -273,30 +273,6 @@
             border-radius: 6px;
             cursor: pointer;
         }
-        /* Puslapiavimas */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            font-size: 12px;
-        }
-        .pagination button {
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            background: white;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .pagination button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
         footer {
             text-align: center;
             margin-top: 40px;
@@ -310,8 +286,6 @@
             .filters { flex-direction: column; }
             .stats-bar { flex-direction: column; gap: 6px; }
             th, td { padding: 4px 6px; font-size: 10px; }
-            .pagination { flex-direction: column; align-items: center; }
-            .pagination button { width: 100%; max-width: 120px; }
         }
     </style>
 </head>
@@ -377,6 +351,7 @@
                 <input type="text" id="filter-city" placeholder="Miestas">
                 <input type="date" id="filter-date-from">
                 <input type="date" id="filter-date-to">
+                <!-- Pakeistas mygtukas: iš exportToCSV() į exportToExcel() -->
                 <button onclick="exportToExcel()" class="btn btn-export">Eksportuoti į Excel</button>
             </div>
             <!-- Pretenzijų lentelė -->
@@ -392,7 +367,7 @@
                         <th style="width: 10%;">Meistras</th>
                         <th style="width: 8%;">Būsena</th>
                         <th style="width: 10%;">Atsakingas</th>
-                        <th style="width: 8%;">Remonto kaina (€)</th>
+                        <th style="width: 8%;">Remonto kaina (€)</th> <!-- Naujas stulpelis -->
                         <th style="width: 10%;">Koment</th>
                     </tr>
                 </thead>
@@ -400,12 +375,6 @@
                     <tr><td colspan="11" style="text-align: center;">Kraunama...</td></tr>
                 </tbody>
             </table>
-            <!-- Puslapiavimas -->
-            <div class="pagination" id="claims-pagination">
-                <button id="prev-btn" disabled>Ankstesnis</button>
-                <span id="page-info">1 / 1</span>
-                <button id="next-btn">Kitas</button>
-            </div>
         </div>
         <!-- Skirtukas: Vartotojai -->
         <div id="users" class="tab-content">
@@ -505,10 +474,6 @@
     <script>
         // Globalus kintamasis filtrui
         let currentFilters = null;
-        // Puslapiavimo kintamieji
-        const ITEMS_PER_PAGE = 50;
-        let currentPage = 1;
-        let filteredClaims = [];
 
         // Tikriname, ar vartotojas yra administratorius
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -532,43 +497,17 @@
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            if (tabName === 'claims') {
-                loadClaims(); // Tai atnaujins puslapiavimą
-            } else if (tabName === 'feedback') {
-                loadFeedback();
-            } else if (tabName === 'users') {
-                loadUsers();
-            } else if (tabName === 'partners') {
-                loadPartners();
-            }
+            if (tabName === 'claims') loadClaims();
+            else if (tabName === 'feedback') loadFeedback();
+            else if (tabName === 'users') loadUsers();
+            else if (tabName === 'partners') loadPartners();
         }
 
-        function loadClaims(filteredClaimsParam = null) {
-            // Nustatome visus įrašus arba filtruotus
-            filteredClaims = filteredClaimsParam || JSON.parse(localStorage.getItem('claims') || '[]');
-            // Atnaujiname statistiką
-            document.getElementById('total-claims').textContent = filteredClaims.length;
-
-            // Resetuojame puslapiavimą
-            currentPage = 1;
-            renderClaimsPage();
-            updatePagination();
-        }
-
-        function renderClaimsPage() {
+        function loadClaims(filteredClaims = null) {
+            const claims = filteredClaims || JSON.parse(localStorage.getItem('claims') || '[]');
             const tbody = document.getElementById('claims-body');
             tbody.innerHTML = '';
-
-            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-            const endIndex = startIndex + ITEMS_PER_PAGE;
-            const pageClaims = filteredClaims.slice(startIndex, endIndex);
-
-            if (pageClaims.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">Nėra pretenzijų.</td></tr>';
-                return;
-            }
-
-            pageClaims.forEach(claim => {
+            claims.forEach(claim => {
                 const masterCell = claim.assignedPartner 
                     ? `<span>${claim.assignedPartner}</span>` 
                     : `<button class="btn btn-primary" onclick="showAssignModal('${claim.id}')">Priskirti meistrui</button>`;
@@ -602,11 +541,12 @@
                         </select>
                     </td>
                     <td>${responsibleCell}</td>
-                    <td>${repairCost}</td>
+                    <td>${repairCost}</td> <!-- Naujas stulpelis -->
                     <td>${commentCell}</td>
                 `;
                 tbody.appendChild(tr);
             });
+            document.getElementById('total-claims').textContent = claims.length;
         }
 
         function getStatusClass(status) {
@@ -682,7 +622,6 @@
                     <button class="btn-small btn-assign" onclick="assignToPartner('${claim.id}')">Patvirtinti ir išsiųsti partneriui</button>
                 </div>
             `;
-            // Jei jau yra prisegtų dokumentų, parodykite juos
             if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
                 tempAttachments = [...claim.qualityAttachments];
                 updateAttachmentsList();
@@ -778,7 +717,7 @@
             updateAttachmentsList();
         }
 
-        async function assignToPartner(id) {
+        function assignToPartner(id) {
             const selectElement = document.getElementById('assign-partner-select');
             const noteElement = document.getElementById('quality-note');
             const selectedPartner = selectElement.value;
@@ -973,11 +912,9 @@
             const claims = JSON.parse(localStorage.getItem('claims') || '[]');
             const claimIndex = claims.findIndex(c => c.id === id);
             if (claimIndex !== -1) {
-                // Jei laukas tuščias, nustatom null
                 claims[claimIndex].repairCost = costValue === '' ? null : parseFloat(costValue);
                 localStorage.setItem('claims', JSON.stringify(claims));
                 alert('Remonto kaina išsaugota!');
-                // Atnaujinam dabartinę puslapio dalį
                 if (currentFilters) {
                     applyFilters();
                 } else {
@@ -1067,10 +1004,13 @@
             loadClaims(filtered);
         }
 
+        // =============================
+        // EKSPORTUOTI Į EXCEL (XLSX)
+        // =============================
         function exportToExcel() {
-            const claims = filteredClaims.length > 0 ? filteredClaims : JSON.parse(localStorage.getItem('claims') || '[]');
+            const claims = currentFilters ? filteredClaims : JSON.parse(localStorage.getItem('claims') || '[]');
 
-            // Sukuriame duomenų masyvą
+            // Sukuriame duomenų masyvą su visais stulpeliais, įskaitant "Remonto kaina"
             const worksheetData = claims.map(claim => ({
                 "ID": claim.id,
                 "Data": new Date(claim.date).toLocaleDateString('lt-LT'),
@@ -1088,7 +1028,7 @@
             // Sukuriame darbaknygę
             const worksheet = XLSX.utils.json_to_sheet(worksheetData, { header: ["ID", "Data", "Vartotojas", "Miestas", "Produktas", "Problema", "Meistras", "Būsena", "Atsakingas", "Remonto kaina (€)", "Komentaras"] });
 
-            // Nustatome stulpelių plotį
+            // Nustatome stulpelių plotį (wch = character width)
             worksheet['!cols'] = [
                 { wch: 10 }, // ID
                 { wch: 12 }, // Data
@@ -1110,6 +1050,9 @@
             XLSX.writeFile(workbook, `pretenzijos_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
+        // =============================
+        // KITŲ SKIRTUKŲ LOGIKA
+        // =============================
         function loadFeedback() {
             const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
             const content = `
@@ -1381,37 +1324,6 @@
         }
 
         // -----------------------------
-        // PUSLAPIAVIMAS
-        // -----------------------------
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredClaims.length / ITEMS_PER_PAGE);
-            const pageInfo = document.getElementById('page-info');
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-
-            pageInfo.textContent = `${currentPage} / ${totalPages}`;
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
-        }
-
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderClaimsPage();
-                updatePagination();
-            }
-        });
-
-        document.getElementById('next-btn').addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredClaims.length / ITEMS_PER_PAGE);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderClaimsPage();
-                updatePagination();
-            }
-        });
-
-        // -----------------------------
         // UŽKRAUTI DUOMENIS
         // -----------------------------
         document.addEventListener('DOMContentLoaded', () => {
@@ -1447,7 +1359,8 @@
                     preferredTime: '9–11 val.',
                     status: 'Nauja',
                     qualityComment: 'Neaišku kur laša',
-                    responsible: 'Inžinierius Jonas T.'
+                    responsible: 'Inžinierius Jonas T.',
+                    repairCost: 45.50 // Štai kaip atrodys remonto kaina!
                 }];
                 localStorage.setItem('claims', JSON.stringify(testClaims));
             }
@@ -1511,7 +1424,6 @@
             loadClaims();
         });
 
-        // Rodyti ar paslėpti laukus pagal tipą
         function updateAttachmentInput() {
             const type = document.getElementById('attachment-type').value;
             const fileInput = document.getElementById('attachment-file');
@@ -1530,7 +1442,6 @@
             }
         }
 
-        // Funkcijos įkėlimo indikatoriui (jei reikia)
         function showUploadIndicator() {
             let indicator = document.getElementById('upload-indicator');
             if (!indicator) {
@@ -1558,7 +1469,6 @@
     </script>
 </body>
 </html>
-
 
 
 
