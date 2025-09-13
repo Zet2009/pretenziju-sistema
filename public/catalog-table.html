@@ -225,7 +225,7 @@
     function getAttr(p, slug){ const a=(p.attributes||[]).find(x=>x&&x.slug===slug); return a?(a.options||[]).map(o=>normalizeLtValue(o)).join(', '):''; }
     function firstImage(p){ const src=(p.images&&p.images[0])?p.images[0].src:''; return src||`data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="#eee"/></svg>')}`; }
     function fmtDate(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).replace('T',' ').replace('Z',''); return new Intl.DateTimeFormat('lt-LT',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(d); }
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"," >":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
     /* ===== Dokumentai / Video ===== */
     function mapMetaToResources(meta = []) {
@@ -380,7 +380,7 @@
               img.addEventListener('dblclick', onDbl); window.addEventListener('keydown', onKey);
             };
           })();
-        </script>
+        <\/script>
       </body></html>`);
       win.document.close();
 
@@ -654,5 +654,6 @@
   </script>
 </body>
 </html>
+
 
 
