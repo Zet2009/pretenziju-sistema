@@ -53,6 +53,7 @@
     .list { margin:0; padding-left:18px }
     .list li{ margin:6px 0 }
 
+    /* (rezervas; realiai naudojama detalės lange) Peržiūros sluoksnis */
     .viewer { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; z-index: 99999; cursor: zoom-out; }
     .viewer img { max-width: 90vw; max-height: 90vh; transform-origin: center center; user-select: none; image-rendering: auto; }
     .viewer .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); color:#fff; font: 12px/1.3 Arial, sans-serif; opacity:.8; }
@@ -60,11 +61,14 @@
     .viewer .toolbar button { border: 0; padding: 6px 10px; cursor: pointer; border-radius: 6px; background: #fff; font: 12px Arial, sans-serif; }
     .viewer .toolbar button:hover { background: #f0f0f0; }
 
-    @media print { body { background:#fff; } .d-card { border:0; padding:0 } .d-grid { gap:14px } .no-print { display:none !important; } @page { margin: 16mm 14mm; } }
+    @media print {
+      body { background:#fff; }
+      .d-card { border:0; padding:0 }
+      .d-grid { gap:14px }
+      .no-print { display:none !important; }
+      @page { margin: 16mm 14mm; }
+    }
   </style>
-
-  <!-- XLSX biblioteka (tikras .xlsx) -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.2/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <header>
@@ -74,16 +78,25 @@
         <label>Paieška (SKU arba pavadinimas)</label>
         <input id="q" type="search" placeholder="pvz., 710016 arba 'maišytuvas'"/>
       </div>
-      <div class="field"><label>Kategorija</label><select id="cat"><option value="">Visos</option></select></div>
-      <div class="field"><label>Serija</label><select id="series"><option value="">Visos</option></select></div>
-      <div class="field sm"><label>Per puslapį</label><input id="per" type="number" value="25" min="10" max="100"/></div>
+      <div class="field">
+        <label>Kategorija</label>
+        <select id="cat"><option value="">Visos</option></select>
+      </div>
+      <div class="field">
+        <label>Serija</label>
+        <select id="series"><option value="">Visos</option></select>
+      </div>
+      <div class="field sm">
+        <label>Per puslapį</label>
+        <input id="per" type="number" value="25" min="10" max="100"/>
+      </div>
       <div class="field sm"><label><input type="checkbox" id="onlyDocs"/> Tik su dokumentais</label></div>
       <div class="field sm"><label><input type="checkbox" id="onlyVideo"/> Tik su video</label></div>
       <div class="field sm"><label><input type="checkbox" id="onlyGuide"/> Turi remonto gidą</label></div>
       <div class="actions">
         <button id="load">Įkelti</button>
         <button id="exportCsv">Eksportuoti CSV</button>
-        <button id="exportXls">Eksportuoti Excel (XLSX)</button>
+        <button id="exportXls">Eksportuoti Excel (XLS)</button>
         <span id="status" class="status muted"></span>
       </div>
     </div>
@@ -116,50 +129,157 @@
   <script>
     const LOGO_URL = 'logo.jpg';
     const $ = (s, el = document) => el.querySelector(s);
+
     let allProducts = [], filtered = [];
     let currentPage = 1, sortKey = 'name', sortDir = 'asc';
 
-    /* === LT vertimas / normalizavimas === */
+    /* ===== LT vertimas / normalizavimas ===== */
     const LT_GLOSSARY = new Map([
-      ['installation manual','montavimo instrukcija'], ['maintenance manual','priežiūros vadovas'],
-      ['specification','specifikacija'], ['spare parts','atsarginės dalys'],
-      ['user manual','naudotojo vadovas'], ['repair guide','remonto instrukcija'],
-      ['troubleshooting','gedimų šalinimas'], ['video tutorial','vaizdo instrukcija'],
+      ['installation manual','montavimo instrukcija'],
+      ['maintenance manual','priežiūros vadovas'],
+      ['specification','specifikacija'],
+      ['spare parts','atsarginės dalys'],
+      ['user manual','naudotojo vadovas'],
+      ['repair guide','remonto instrukcija'],
+      ['troubleshooting','gedimų šalinimas'],
+      ['video tutorial','vaizdo instrukcija'],
       ['color','spalva'], ['series','serija'], ['model','modelis'], ['finish','apdaila'],
       ['chrome','chromas'], ['black','juoda'], ['white','balta']
     ]);
-    function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-    function preserveCase(target, src){ if(src.toUpperCase()===src) return target.toUpperCase(); if(src[0]===src[0]?.toUpperCase()) return target[0]?.toUpperCase()+target.slice(1); return target; }
-    function translateToLt(text){ if(!text) return ''; let t=String(text); LT_GLOSSARY.forEach((lt,en)=>{ t=t.replace(new RegExp('\\b'+escapeRegExp(en)+'\\b','gi'), m=>preserveCase(lt,m)); }); return t.replace(/\binstallation\b/gi,'montavimas').replace(/\bmanual\b/gi,'vadovas').replace(/\bspecs?\b/gi,'specifikacija').replace(/\brepair\b/gi,'remontas'); }
-    function pickLtFromTagged(s){ if(!s) return ''; const m=String(s).match(/\[:lt\]([\s\S]*?)(?=\[:[a-z]{2}\]|$)/i)||String(s).match(/\[lt\]([\s\S]*?)(?=\[[a-z]{2}\]|$)/i); return m?m[1].trim():''; }
-    function normalizeLtLabel(raw){ if(!raw) return ''; let s=String(raw).trim(); const t=pickLtFromTagged(s); if(t) return t; s=s.replace(/(Barcode|Warranty|Intended\s*use)/gi,'').replace(/[ЁА-Яёа-я]+/g,'').replace(/\bEAN\b/gi,'').replace(/\s+/g,' ').trim(); if(!s||s.length<2){ const L=[{re:/(Barkodas|Barcode|EAN)/i,lt:'Barkodas'},{re:/(Garantija|Warranty)/i,lt:'Garantija'},{re:/(Paskirtis|Intended\s*use)/i,lt:'Paskirtis'}]; for(const r of L) if(r.re.test(raw)) return r.lt; return raw; } return s; }
-    function normalizeLtValue(raw){ if(!raw) return ''; const t=pickLtFromTagged(raw); return translateToLt(t||String(raw)); }
+    function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    function preserveCase(target, src){
+      if(src.toUpperCase()===src) return target.toUpperCase();
+      if(src[0] && src[0]===src[0].toUpperCase()) return target.charAt(0).toUpperCase()+target.slice(1);
+      return target;
+    }
+    function translateToLt(text){
+      if(!text) return '';
+      let t = String(text);
+      LT_GLOSSARY.forEach((lt, en) => {
+        const re = new RegExp('\\b'+escapeRegExp(en)+'\\b','gi');
+        t = t.replace(re, m => preserveCase(lt, m));
+      });
+      return t.replace(/\binstallation\b/gi,'montavimas')
+              .replace(/\bmanual\b/gi,'vadovas')
+              .replace(/\bspecs?\b/gi,'specifikacija')
+              .replace(/\brepair\b/gi,'remontas');
+    }
+    function pickLtFromTagged(s){
+      if (!s) return '';
+      const text = String(s);
+      const m = text.match(/\[:lt\]([\s\S]*?)(?=\[:[a-z]{2}\]|$)/i) || text.match(/\[lt\]([\s\S]*?)(?=\[[a-z]{2}\]|$)/i);
+      return m ? m[1].trim() : '';
+    }
+    function normalizeLtLabel(raw){
+      if (!raw) return '';
+      let s = String(raw).trim();
+      const t = pickLtFromTagged(s);
+      if (t) return t;
+      s = s.replace(/(Barcode|Warranty|Intended\s*use)/gi,'')
+           .replace(/[ЁА-Яёа-я]+/g,'')
+           .replace(/\bEAN\b/gi,'')
+           .replace(/\s+/g,' ')
+           .trim();
+      if (!s || s.length < 2) {
+        const L = [{re:/(Barkodas|Barcode|EAN)/i,lt:'Barkodas'},
+                   {re:/(Garantija|Warranty)/i,lt:'Garantija'},
+                   {re:/(Paskirtis|Intended\s*use)/i,lt:'Paskirtis'}];
+        for (const r of L) if (r.re.test(raw)) return r.lt;
+        return raw;
+      }
+      return s;
+    }
+    function normalizeLtValue(raw){
+      if (!raw) return '';
+      const t = pickLtFromTagged(raw);
+      return translateToLt(t || String(raw));
+    }
 
-    /* === Saugus HTML === */
-    function cleanHTML(html){ const t=document.createElement('template'); t.innerHTML=String(html||''); t.content.querySelectorAll('script, iframe').forEach(n=>n.remove()); t.content.querySelectorAll('*').forEach(el=>{ [...el.attributes].forEach(a=>{ const n=a.name.toLowerCase(); if(n.startsWith('on')||n==='style') el.removeAttribute(a.name); if(el.tagName==='A'&&n==='href'&&!/^https?:/i.test(a.value)) el.removeAttribute('href'); }); const allowed=['P','BR','UL','OL','LI','B','I','STRONG','EM','A']; if(!allowed.includes(el.tagName)){ const span=document.createElement('span'); span.textContent=el.textContent; el.replaceWith(span); } }); return t.innerHTML.trim(); }
+    /* ===== Saugus HTML ===== */
+    function cleanHTML(html) {
+      const t = document.createElement('template');
+      t.innerHTML = String(html || '');
+      t.content.querySelectorAll('script, iframe').forEach(n => n.remove());
+      t.content.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(a => {
+          const n = a.name.toLowerCase();
+          if (n.startsWith('on') || n === 'style') el.removeAttribute(a.name);
+          if (el.tagName === 'A' && n === 'href' && !/^https?:/i.test(a.value)) el.removeAttribute('href');
+        });
+        const allowed = ['P','BR','UL','OL','LI','B','I','STRONG','EM','A'];
+        if (!allowed.includes(el.tagName)) {
+          const span = document.createElement('span');
+          span.textContent = el.textContent;
+          el.replaceWith(span);
+        }
+      });
+      return t.innerHTML.trim();
+    }
     function stripHtml(html){ const tmp=document.createElement('div'); tmp.innerHTML=html||''; return tmp.textContent||tmp.innerText||''; }
 
-    /* === Pagalbinės === */
-    function getMeta(p,key){ const m=(p.meta_data||[]).find(x=>x&&x.key===key); return m?m.value:null; }
+    /* ===== Pagalbinės ===== */
+    function getMeta(p, key){ const m=(p.meta_data||[]).find(x=>x&&x.key===key); return m?m.value:null; }
     function hasVideo(p){ const m=Object.fromEntries((p.meta_data||[]).map(x=>[x.key,x.value])); return !!(m.video_lt||m.video_en||m.video_ru||m.video_lv); }
     function hasDocs(p){ const m=Object.fromEntries((p.meta_data||[]).map(x=>[x.key,x.value])); return !!(m.montavimo_instrukcija||m.maintenance_manual||m.specification||m.attr_3d_pdf_file); }
     function hasGuide(p){ return !!getMeta(p,'repair_guide_lt'); }
-    function getAttr(p,slug){ const a=(p.attributes||[]).find(x=>x&&x.slug===slug); return a?(a.options||[]).map(o=>normalizeLtValue(o)).join(', '):''; }
+    function getAttr(p, slug){ const a=(p.attributes||[]).find(x=>x&&x.slug===slug); return a?(a.options||[]).map(o=>normalizeLtValue(o)).join(', '):''; }
     function firstImage(p){ const src=(p.images&&p.images[0])?p.images[0].src:''; return src||`data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="#eee"/></svg>')}`; }
     function fmtDate(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).replace('T',' ').replace('Z',''); return new Intl.DateTimeFormat('lt-LT',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(d); }
     function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
-    /* === Dokumentai / Video === */
-    function mapMetaToResources(meta=[]){ const obj=Object.fromEntries(meta.map(x=>[x.key,x.value])); const list=[]; const add=(url,label)=>{ if(url) list.push({url,label}); }; add(obj.montavimo_instrukcija,'Montavimo instrukcija (PDF)'); add(obj.maintenance_manual,'Priežiūros vadovas (PDF)'); add(obj.specification,'Specifikacija (PDF)'); add(obj.attr_3d_pdf_file,'3D / Techninis brėžinys (PDF)'); if(obj.video_lt) list.push({url:obj.video_lt,label:'Vaizdo instrukcija (LT)'}); if(obj.video_en) list.push({url:obj.video_en,label:'Vaizdo instrukcija (EN)'}); if(obj.video_ru) list.push({url:obj.video_ru,label:'Vaizdo instrukcija (RU)'}); if(obj.video_lv) list.push({url:obj.video_lv,label:'Vaizdo instrukcija (LV)'}); return list; }
+    /* ===== Dokumentai / Video ===== */
+    function mapMetaToResources(meta = []) {
+      const obj = Object.fromEntries(meta.map(x => [x.key, x.value]));
+      const list = [];
+      const add = (url, label) => { if(url) list.push({ url, label }); };
+      add(obj.montavimo_instrukcija, 'Montavimo instrukcija (PDF)');
+      add(obj.maintenance_manual, 'Priežiūros vadovas (PDF)');
+      add(obj.specification, 'Specifikacija (PDF)');
+      add(obj.attr_3d_pdf_file, '3D / Techninis brėžinys (PDF)');
+      if (obj.video_lt) list.push({ url: obj.video_lt, label: 'Vaizdo instrukcija (LT)' });
+      if (obj.video_en) list.push({ url: obj.video_en, label: 'Vaizdo instrukcija (EN)' });
+      if (obj.video_ru) list.push({ url: obj.video_ru, label: 'Vaizdo instrukcija (RU)' });
+      if (obj.video_lv) list.push({ url: obj.video_lv, label: 'Vaizdo instrukcija (LV)' });
+      return list;
+    }
 
-    /* === Patobulintas nuotraukų dedupe === */
-    function normFileName(src=''){ const p=src.split('?')[0].split('/').pop().toLowerCase(); return p.replace(/-\d+x\d+(?=\.[a-z]+$)/i,'').replace(/-scaled(?=\.[a-z]+$)/,'').replace(/\((\d+)\)(?=\.[a-z]+$)/,'').replace(/[-_](copy|kopija|final|new|\d+)?(?=\.[a-z]+$)/,'').replace(/\s+/g,''); }
-    function uniqueImages(images=[]){ const seen=new Map(), out=[]; images.slice().sort((a,b)=>(a.position??0)-(b.position??0)).forEach(img=>{ let src=img?.src?String(img.src):''; if(!src) return; const base=normFileName(src); const wh=(img?.width&&img?.height)?`${img.width}x${img.height}`:''; const altKey=(img?.alt||img?.name||'').trim().toLowerCase(); const key=[base,wh,altKey].filter(Boolean).join('|'); if(seen.has(key)) return; if(/placeholder|noimage|dummy/i.test(src)) return; seen.set(key,src); src=src.split('?')[0].replace(/-\d+x\d+(?=\.[a-z]+$)/i,''); out.push({...img,src}); }); return out; }
+    /* ===== Patobulintas nuotraukų dedupe ===== */
+    function normFileName(src=''){
+      const p = src.split('?')[0].split('/').pop().toLowerCase();
+      return p
+        .replace(/-\d+x\d+(?=\.[a-z]+$)/i,'')
+        .replace(/-scaled(?=\.[a-z]+$)/,'')
+        .replace(/\((\d+)\)(?=\.[a-z]+$)/,'')
+        .replace(/[-_](copy|kopija|final|new|\d+)?(?=\.[a-z]+$)/,'')
+        .replace(/[\s]+/g,'');
+    }
+    function uniqueImages(images = []) {
+      const seen = new Map();
+      const out = [];
+      images
+        .slice()
+        .sort((a,b) => (a.position ?? 0) - (b.position ?? 0))
+        .forEach(img => {
+          let src = img?.src ? String(img.src) : '';
+          if (!src) return;
+          const base = normFileName(src);
+          const wh = (img?.width && img?.height) ? `${img.width}x${img.height}` : '';
+          const altKey = (img?.alt || img?.name || '').trim().toLowerCase();
+          const key = [base, wh, altKey].filter(Boolean).join('|');
+          if (seen.has(key)) return;
+          if (/placeholder|noimage|dummy/i.test(src)) return;
+          seen.set(key, src);
+          src = src.split('?')[0].replace(/-\d+x\d+(?=\.[a-z]+$)/i,'');
+          out.push({ ...img, src });
+        });
+      return out;
+    }
 
-    /* === Detalės langas su viewer === */
-    function openDetail(product){
-      const win=window.open('','_blank'); if(!win){ alert('Leiskite atidaryti naują langą.'); return; }
-      const title=normalizeLtValue(product.name||'Produktas'); const link=product.permalink||location.href;
+    /* ===== Detalės – naujame lange su viewer ===== */
+    function openDetail(product) {
+      const win = window.open('', '_blank'); if (!win) { alert('Leiskite atidaryti naują langą.'); return; }
+      const title = normalizeLtValue(product.name || 'Produktas');
+      const link = product.permalink || location.href;
 
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
       <style>
@@ -179,12 +299,14 @@
         .d-tools{margin-top:12px;display:flex;gap:8px;align-items:center}
         .list{margin:0;padding-left:18px}
         .list li{margin:6px 0}
+
         .viewer{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:99999;cursor:zoom-out}
         .viewer img{max-width:90vw;max-height:90vh;transform-origin:center center;user-select:none;image-rendering:auto}
         .viewer .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#fff;font:12px/1.3 Arial,sans-serif;opacity:.8}
         .viewer .toolbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,0,0,.55);padding:6px;border-radius:8px}
         .viewer .toolbar button{border:0;padding:6px 10px;cursor:pointer;border-radius:6px;background:#fff;font:12px Arial,sans-serif}
         .viewer .toolbar button:hover{background:#f0f0f0}
+
         @media print{ body{background:#fff}.d-card{border:0;padding:0}.d-grid{gap:14px}.no-print{display:none !important}@page{margin:16mm 14mm}}
       </style>
       </head><body>
@@ -194,91 +316,156 @@
             <div><img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(link)}"/></div>
           </div>
           <h1>${escapeHtml(title)}</h1>
-          <div class="muted">SKU: ${escapeHtml(product.sku||'')} · ID: ${product.id||''}</div>
+          <div class="muted">SKU: ${escapeHtml(product.sku || '')} · ID: ${product.id || ''}</div>
           <div id="content"></div>
         </div>
+
         <script>
           (function(){
             window._rbShowViewer = function(src, alt){
-              const doc=document;
-              const wrap=doc.createElement('div'); wrap.className='viewer';
-              const img=doc.createElement('img'); img.src=src; img.alt=alt||'';
-              const bar=doc.createElement('div'); bar.className='toolbar';
-              const mk=(t,fn)=>{ const b=doc.createElement('button'); b.textContent=t; b.onclick=fn; return b; };
-              const btnMinus=mk('–',()=>zoom(0.9));
-              const btnPlus=mk('+',()=>zoom(1.1));
-              const btnFit=mk('Į ekraną',fit);
-              const btn100=mk('100%',()=>{scale=1;center();apply();});
-              const btnClose=mk('×',close);
-              bar.append(btnMinus,btnPlus,btnFit,btn100,btnClose);
-              const hint=doc.createElement('div'); hint.className='hint'; hint.textContent='Ratukas – priartinti, vilkite – perstumti, dvigubas spust. – 100%/200%, Esc – uždaryti';
-              wrap.append(img,bar,hint); doc.body.appendChild(wrap);
-              let scale=1,pos={x:0,y:0},drag=false,start={x:0,y:0},startPos={x:0,y:0};
-              img.addEventListener('load',()=>{ fit(); });
-              function apply(){ img.style.transform='translate('+pos.x+'px,'+pos.y+'px) scale('+scale+')'; }
+              const doc = document;
+              const wrap = doc.createElement('div'); wrap.className='viewer';
+              const img  = doc.createElement('img'); img.src=src; img.alt=alt||'';
+
+              const toolbar = doc.createElement('div'); toolbar.className='toolbar';
+              const btnMinus = mk('–', ()=>zoom(0.9));
+              const btnPlus  = mk('+', ()=>zoom(1.1));
+              const btnFit   = mk('Į ekraną', fitToScreen);
+              const btn100   = mk('100%', ()=>{ scale=1; center(); apply(); });
+              const btnClose = mk('×', close);
+              toolbar.append(btnMinus, btnPlus, btnFit, btn100, btnClose);
+
+              const hint = doc.createElement('div'); hint.className='hint';
+              hint.textContent = 'Ratukas – priartinti, vilkite – perstumti, dvigubas spust. – 100%/200%, Esc – uždaryti';
+
+              wrap.append(img, toolbar, hint);
+              doc.body.appendChild(wrap);
+
+              let scale=1, pos={x:0,y:0}, dragging=false, start={x:0,y:0}, startPos={x:0,y:0}, fit=1;
+
+              img.addEventListener('load', ()=>{ fit = computeFit(); scale = fit; center(); apply(); });
+
+              function mk(t, fn){ const b=doc.createElement('button'); b.type='button'; b.textContent=t; b.onclick=fn; return b; }
+              function computeFit(){
+                const vw = doc.documentElement.clientWidth*0.90;
+                const vh = doc.documentElement.clientHeight*0.90;
+                const iw = img.naturalWidth  || img.width;
+                const ih = img.naturalHeight || img.height;
+                if(!iw||!ih) return 1;
+                return Math.min(vw/iw, vh/ih);
+              }
               function center(){ pos={x:0,y:0}; }
-              function zoom(f){ scale=Math.max(0.5,Math.min(6,scale*f)); apply(); }
-              function fit(){ const vw=doc.documentElement.clientWidth*0.90, vh=doc.documentElement.clientHeight*0.90; const iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height; if(iw&&ih){ scale=Math.min(vw/iw,vh/ih); } center(); apply(); }
-              function close(){ window.removeEventListener('keydown',onKey); wrap.remove(); }
-              function onKey(e){ if(e.key==='Escape') close(); if(e.key==='+'||e.key==='=') zoom(1.1); if(e.key==='-'||e.key==='_') zoom(0.9); if(e.key==='0'){scale=1;center();apply();} if(e.key.toLowerCase()==='f') fit(); }
-              wrap.addEventListener('click',e=>{ if(e.target===wrap) close(); });
-              img.addEventListener('wheel',e=>{ e.preventDefault(); zoom(e.deltaY<0?1.1:0.9); },{passive:false});
-              img.addEventListener('mousedown',e=>{ drag=true; start={x:e.clientX,y:e.clientY}; startPos={...pos}; });
-              window.addEventListener('mousemove',e=>{ if(!drag) return; pos.x=startPos.x+(e.clientX-start.x); pos.y=startPos.y+(e.clientY-start.y); apply(); });
-              window.addEventListener('mouseup',()=>{ drag=false; });
-              img.addEventListener('dblclick',()=>{ scale=scale<1.5?2:1; center(); apply(); });
-              window.addEventListener('keydown',onKey);
+              function apply(){ img.style.transform = 'translate('+pos.x+'px,'+pos.y+'px) scale('+scale+')'; }
+              function zoom(f){ const old=scale; scale = clamp(old*f, 0.5, 6); apply(); }
+              function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+              function onWheel(e){ e.preventDefault(); zoom(e.deltaY<0?1.1:0.9); }
+              function onDown(e){ dragging=true; start={x:e.clientX,y:e.clientY}; startPos={...pos}; }
+              function onMove(e){ if(!dragging) return; pos.x = startPos.x+(e.clientX-start.x); pos.y = startPos.y+(e.clientY-start.y); apply(); }
+              function onUp(){ dragging=false; }
+              function onDbl(){ scale = scale<1.5 ? 2 : 1; center(); apply(); }
+              function onKey(e){
+                if(e.key==='Escape') return close();
+                if(e.key==='+' || e.key==='=') return zoom(1.1);
+                if(e.key==='-' || e.key==='_') return zoom(0.9);
+                if(e.key==='0') { scale=1; center(); apply(); }
+                if(e.key.toLowerCase()==='f') fitToScreen();
+              }
+              function fitToScreen(){ fit = computeFit(); scale = fit || 1; center(); apply(); }
+              function close(){ window.removeEventListener('keydown', onKey); wrap.remove(); }
+
+              wrap.addEventListener('click', e=>{ if(e.target===wrap) close(); });
+              img.addEventListener('wheel', onWheel, {passive:false});
+              img.addEventListener('mousedown', onDown); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
+              img.addEventListener('dblclick', onDbl); window.addEventListener('keydown', onKey);
             };
           })();
         <\/script>
       </body></html>`);
       win.document.close();
 
-      const doc=win.document, content=doc.getElementById('content');
-      const grid=doc.createElement('div'); grid.className='d-grid';
-      const left=doc.createElement('div'); left.className='d-card';
-      const right=doc.createElement('div'); right.className='d-card';
-      grid.append(left,right); content.append(grid);
+      const doc = win.document, content = doc.getElementById('content');
 
-      const gal=doc.createElement('div'); gal.className='d-gal';
-      const imgs=uniqueImages(product.images||[]);
-      if(imgs.length===0){ const ph=doc.createElement('div'); ph.textContent='Nėra nuotraukų'; gal.append(ph); }
-      else imgs.forEach(i=>{ const img=doc.createElement('img'); img.src=i.src; img.alt=normalizeLtValue(i.alt||product.name||''); img.addEventListener('click',()=>{ win._rbShowViewer(i.src,img.alt); }); gal.append(img); });
+      const grid = doc.createElement('div'); grid.className = 'd-grid';
+      const left = doc.createElement('div'); left.className = 'd-card';
+      const right = doc.createElement('div'); right.className = 'd-card';
+      grid.append(left, right); content.append(grid);
+
+      // Galerija su dedupe + viewer
+      const gal = doc.createElement('div'); gal.className = 'd-gal';
+      const imgs = uniqueImages(product.images || []);
+      if (imgs.length === 0) { const ph = doc.createElement('div'); ph.textContent = 'Nėra nuotraukų'; gal.append(ph); }
+      else {
+        imgs.forEach(i => {
+          const img = doc.createElement('img');
+          img.src = i.src; img.alt = normalizeLtValue(i.alt || product.name || '');
+          img.addEventListener('click', () => { win._rbShowViewer(i.src, img.alt); });
+          gal.append(img);
+        });
+      }
       left.append(gal);
 
-      const raw=product.description||product.short_description||''; let lt=normalizeLtValue(stripHtml(raw)).trim();
-      if(!/^(parts|documents|dokuments|документы)$/i.test(lt)&&lt.split(/\s+/).length>=3){ const desc=doc.createElement('div'); desc.innerHTML=cleanHTML(lt.replace(/\n{2,}/g,'\n').split('\n').map(p=>`<p>${escapeHtml(p)}</p>`).join('')); right.append(desc); }
+      // Aprašymas – rodome tik jei ne „šiukšlė“ ir ne per trumpas
+      const raw = product.description || product.short_description || '';
+      let ltText = normalizeLtValue(stripHtml(raw)).trim();
+      if (!/^(parts|documents|dokuments|документы)$/i.test(ltText) && ltText.split(/\s+/).length >= 3) {
+        const desc = doc.createElement('div');
+        desc.innerHTML = cleanHTML(ltText.replace(/\n{2,}/g,'\n').split('\n').map(p=>`<p>${escapeHtml(p)}</p>`).join(''));
+        right.append(desc);
+      }
 
-      const listCard=doc.createElement('div'); listCard.className='d-card'; listCard.innerHTML='<h3>Dokumentai ir video</h3>'; const ul=doc.createElement('ul'); ul.className='list'; listCard.append(ul);
-      const res=mapMetaToResources(product.meta_data||[]);
-      if(res.length===0){ const li=doc.createElement('li'); li.innerHTML='<em>Nėra dokumentų</em>'; ul.append(li); } else res.forEach(r=>{ const li=doc.createElement('li'); const a=doc.createElement('a'); a.href=r.url; a.target='_blank'; a.rel='noopener'; a.textContent=r.label; li.append(a); ul.append(li); });
+      const listCard = doc.createElement('div'); listCard.className = 'd-card';
+      listCard.innerHTML = '<h3>Dokumentai ir video</h3>';
+      const ul = doc.createElement('ul'); ul.className='list'; listCard.append(ul);
+      const resources = mapMetaToResources(product.meta_data || []);
+      if (resources.length === 0) { const li = doc.createElement('li'); li.innerHTML = '<em>Nėra dokumentų</em>'; ul.append(li); }
+      else resources.forEach(r => { const li = doc.createElement('li'); const a = doc.createElement('a'); a.href=r.url; a.target='_blank'; a.rel='noopener'; a.textContent=r.label; li.append(a); ul.append(li); });
       right.append(listCard);
 
-      const spec=doc.createElement('div'); spec.className='d-card'; spec.innerHTML='<h3>Specifikacijos</h3>'; const kv=doc.createElement('div'); kv.className='d-kv'; spec.append(kv);
-      (product.attributes||[]).forEach(a=>{ const k=doc.createElement('div'); k.className='d-k'; k.textContent=normalizeLtLabel(a?.name||''); const v=doc.createElement('div'); const opts=Array.isArray(a?.options)?a.options:[]; v.textContent=opts.map(o=>normalizeLtValue(o)).join(', '); kv.append(k,v); });
+      const spec = doc.createElement('div'); spec.className = 'd-card';
+      spec.innerHTML = '<h3>Specifikacijos</h3>';
+      const kv = doc.createElement('div'); kv.className='d-kv'; spec.append(kv);
+      (product.attributes || []).forEach(a => {
+        const k = doc.createElement('div'); k.className='d-k'; k.textContent = normalizeLtLabel(a?.name || '');
+        const v = doc.createElement('div'); const opts = Array.isArray(a?.options)?a.options:[];
+        v.textContent = opts.map(o=>normalizeLtValue(o)).join(', ');
+        kv.append(k,v);
+      });
       right.append(spec);
 
-      const tools=doc.createElement('div'); tools.className='d-tools no-print';
-      const btn=doc.createElement('button'); btn.textContent='Spausdinti / PDF'; btn.onclick=()=>win.print();
-      const lnk=doc.createElement('a'); lnk.href=link; lnk.textContent='Atidaryti produktą'; lnk.target='_blank'; lnk.rel='noopener';
-      tools.append(btn,lnk); content.append(tools);
+      const tools = doc.createElement('div'); tools.className = 'd-tools no-print';
+      const btn = doc.createElement('button'); btn.textContent = 'Spausdinti / PDF'; btn.onclick = () => win.print();
+      const lnk = doc.createElement('a'); lnk.href = link; lnk.textContent = 'Atidaryti produktą'; lnk.target = '_blank'; lnk.rel='noopener';
+      tools.append(btn, lnk); content.append(tools);
     }
 
-    /* === Lentelė / puslapiavimas / filtrai === */
+    /* ===== Lentelė / puslapiavimas / filtrai / eksportas ===== */
     function renderTable(products){
-      const tbody=$('#tbl tbody'); tbody.innerHTML='';
+      const tbody = $('#tbl tbody'); tbody.innerHTML='';
       products.forEach(p=>{
         const tr=document.createElement('tr');
-        const tdImg=document.createElement('td'); const img=document.createElement('img'); img.className='thumb'; img.loading='lazy'; img.src=firstImage(p); img.alt=normalizeLtValue(p.name||''); img.onclick=()=>openDetail(p); tdImg.append(img);
-        const tdName=document.createElement('td'); const a=document.createElement('a'); a.href='#'; a.textContent=normalizeLtValue(p.name||''); a.onclick=e=>{e.preventDefault(); openDetail(p);}; tdName.append(a);
+
+        const tdImg=document.createElement('td');
+        const img=document.createElement('img'); img.className='thumb'; img.loading='lazy';
+        img.src=firstImage(p); img.alt=normalizeLtValue(p.name||''); img.onclick=()=>openDetail(p);
+        tdImg.append(img);
+
+        const tdName=document.createElement('td');
+        const a=document.createElement('a'); a.href='#'; a.textContent=normalizeLtValue(p.name||'');
+        a.onclick=(e)=>{e.preventDefault(); openDetail(p);}; tdName.append(a);
+
         const tdSku=document.createElement('td'); tdSku.className='sku nowrap'; tdSku.textContent=p.sku||'';
-        const tdCats=document.createElement('td'); tdCats.innerHTML=(p.categories||[]).map(c=>`<span class="badge">${escapeHtml(normalizeLtValue(c.name||c.slug||''))}</span>`).join('');
+
+        const tdCats=document.createElement('td');
+        tdCats.innerHTML=(p.categories||[]).map(c=>`<span class="badge">${escapeHtml(normalizeLtValue(c.name||c.slug||''))}</span>`).join('');
+
         const tdSeries=document.createElement('td'); tdSeries.className='nowrap'; tdSeries.textContent=getAttr(p,'pa_serija')||'';
         const tdWarranty=document.createElement('td'); tdWarranty.className='nowrap'; tdWarranty.textContent=getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'';
         const tdConn=document.createElement('td'); tdConn.className='nowrap'; tdConn.textContent=getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'';
         const tdColor=document.createElement('td'); tdColor.className='nowrap'; tdColor.textContent=getAttr(p,'pa_spalva')||'';
         const tdFinish=document.createElement('td'); tdFinish.className='nowrap'; tdFinish.textContent=getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'';
         const tdUpd=document.createElement('td'); tdUpd.className='nowrap'; tdUpd.textContent=fmtDate(p.date_modified_gmt||p.date_modified||'');
+
         tr.append(tdImg,tdName,tdSku,tdCats,tdSeries,tdWarranty,tdConn,tdColor,tdFinish,tdUpd); tbody.append(tr);
       });
     }
@@ -288,13 +475,22 @@
       const totalPages=Math.ceil(filtered.length/perPage);
       const pagination=$('#pagination'); pagination.innerHTML='';
       if(totalPages<=1) return;
-      function addBtn(label,page,disabled=false,active=false){ const btn=document.createElement('button'); btn.textContent=label; if(active) btn.classList.add('active'); btn.disabled=disabled; btn.onclick=()=>{ currentPage=page; updateView(); window.scrollTo({top:0,behavior:'smooth'}); }; pagination.append(btn); }
-      function addDots(){ const s=document.createElement('span'); s.className='dots'; s.textContent='…'; pagination.append(s); }
-      const windowSize=7, half=Math.floor(windowSize/2); let start=Math.max(1,currentPage-half), end=Math.min(totalPages,start+windowSize-1); if(end-start+1<windowSize) start=Math.max(1,end-windowSize+1);
+
+      function addBtn(label,page,disabled=false,active=false){
+        const btn=document.createElement('button'); btn.textContent=label; if(active) btn.classList.add('active'); btn.disabled=disabled;
+        btn.addEventListener('click',()=>{ currentPage=page; updateView(); window.scrollTo({top:0,behavior:'smooth'}); });
+        pagination.appendChild(btn);
+      }
+      function addDots(){ const s=document.createElement('span'); s.className='dots'; s.textContent='…'; pagination.appendChild(s); }
+
+      const windowSize=7, half=Math.floor(windowSize/2);
+      let startPage=Math.max(1,currentPage-half), endPage=Math.min(totalPages,startPage+windowSize-1);
+      if(endPage-startPage+1<windowSize) startPage=Math.max(1,endPage-windowSize+1);
+
       addBtn('«',1,currentPage===1); addBtn('‹',Math.max(1,currentPage-1),currentPage===1);
-      if(start>1){ addBtn('1',1); addDots(); }
-      for(let i=start;i<=end;i++) addBtn(String(i),i,false,i===currentPage);
-      if(end<totalPages){ addDots(); addBtn(String(totalPages),totalPages); }
+      if(startPage>1){ addBtn('1',1); addDots(); }
+      for(let i=startPage;i<=endPage;i++) addBtn(String(i),i,false,i===currentPage);
+      if(endPage<totalPages){ addDots(); addBtn(String(totalPages),totalPages); }
       addBtn('›',Math.min(totalPages,currentPage+1),currentPage===totalPages);
       addBtn('»',totalPages,currentPage===totalPages);
     }
@@ -311,16 +507,31 @@
         if(needDocs && !hasDocs(p)) return false;
         if(needVideo && !hasVideo(p)) return false;
         if(needGuide && !hasGuide(p)) return false;
-        if(cat){ const m=(p.categories||[]).map(c=>(normalizeLtValue(c.name||c.slug||'')||'').toLowerCase()).some(n=>n===cat); if(!m) return false; }
-        if(ser){ const s=(getAttr(p,'pa_serija')||'').toLowerCase(); if(!s.split(',').map(x=>x.trim()).includes(ser)) return false; }
+
+        if(cat){
+          const m=(p.categories||[]).map(c=>(normalizeLtValue(c.name||c.slug||'')||'').toLowerCase()).some(n=>n===cat);
+          if(!m) return false;
+        }
+        if(ser){
+          const series=(getAttr(p,'pa_serija')||'').toLowerCase();
+          if(!series.split(',').map(s=>s.trim()).includes(ser)) return false;
+        }
+
         if(!q) return true;
         const hay=[p.sku||'', normalizeLtValue(p.name||''), ...(p.categories||[]).map(c=>normalizeLtValue(c.name||c.slug||''))].join(' ').toLowerCase();
         return hay.includes(q);
       });
 
-      const getter={ name:p=>normalizeLtValue(p.name||''), sku:p=>p.sku||'', cats:p=>(p.categories||[]).map(c=>normalizeLtValue(c.name||c.slug||'')).join(', '),
-        series:p=>getAttr(p,'pa_serija')||'', warranty:p=>getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'', conn:p=>getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'',
-        color:p=>getAttr(p,'pa_spalva')||'', finish:p=>getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'', upd:p=>new Date(p.date_modified_gmt||p.date_modified||0).getTime()
+      const getter={
+        name: p=>normalizeLtValue(p.name||''),
+        sku: p=>p.sku||'',
+        cats: p=>(p.categories||[]).map(c=>normalizeLtValue(c.name||c.slug||'')).join(', '),
+        series: p=>getAttr(p,'pa_serija')||'',
+        warranty:p=>getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'',
+        conn:p=>getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'',
+        color:p=>getAttr(p,'pa_spalva')||'',
+        finish:p=>getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'',
+        upd:p=>new Date(p.date_modified_gmt||p.date_modified||0).getTime()
       }[sortKey] || (p=>normalizeLtValue(p.name||''));
 
       filtered.sort((a,b)=>{ const A=getter(a), B=getter(b); if(A<B) return sortDir==='asc'?-1:1; if(A>B) return sortDir==='asc'?1:-1; return 0; });
@@ -332,7 +543,7 @@
       renderTable(filtered.slice(start,end)); renderPagination();
       const cat=$('#cat').value?` • Kat.: ${$('#cat').value}`:''; const ser=$('#series').value?` • Serija: ${$('#series').value}`:'';
       const flags=[ $('#onlyDocs').checked?'Dok.':'', $('#onlyVideo').checked?'Video':'', $('#onlyGuide').checked?'Gidas':'' ].filter(Boolean).join(', ');
-      $('#status').textContent=`Rasta: ${filtered.length} • Rodoma po ${perPage} • Puslapis ${currentPage}${cat}${ser}${flags?` • Filtrai: ${flags}`:''}`;
+      const f=flags?` • Filtrai: ${flags}`:''; $('#status').textContent=`Rasta: ${filtered.length} • Rodoma po ${perPage} • Puslapis ${currentPage}${cat}${ser}${f}`;
       saveState();
     }
 
@@ -349,7 +560,10 @@
 
     function populateFilters(){
       const catSel=$('#cat'), serSel=$('#series'); const cats=new Set(), series=new Set();
-      allProducts.forEach(p=>{ (p.categories||[]).forEach(c=>{ const name=normalizeLtValue(c.name||c.slug||''); if(name) cats.add(name); }); const s=getAttr(p,'pa_serija'); if(s) s.split(',').map(x=>x.trim()).filter(Boolean).forEach(v=>series.add(v)); });
+      allProducts.forEach(p=>{
+        (p.categories||[]).forEach(c=>{ const name=normalizeLtValue(c.name||c.slug||''); if(name) cats.add(name); });
+        const s=getAttr(p,'pa_serija'); if(s) s.split(',').map(x=>x.trim()).filter(Boolean).forEach(v=>series.add(v));
+      });
       const catVal=catSel.value, serVal=serSel.value;
       catSel.innerHTML='<option value="">Visos</option>'+[...cats].sort().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
       serSel.innerHTML='<option value="">Visos</option>'+[...series].sort().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
@@ -357,40 +571,64 @@
     }
 
     const SS_KEY='rubineta_faq_state_v1';
-    function saveState(){ const s={ q:$('#q').value, cat:$('#cat').value, series:$('#series').value, per:$('#per').value, onlyDocs:$('#onlyDocs').checked, onlyVideo:$('#onlyVideo').checked, onlyGuide:$('#onlyGuide').checked, sortKey, sortDir, currentPage }; try{ sessionStorage.setItem(SS_KEY, JSON.stringify(s)); }catch{} }
-    function loadState(){ try{ const raw=sessionStorage.getItem(SS_KEY); if(!raw) return; const s=JSON.parse(raw); if(s.q!=null) $('#q').value=s.q; if(s.per!=null) $('#per').value=s.per; if(s.onlyDocs!=null) $('#onlyDocs').checked=s.onlyDocs; if(s.onlyVideo!=null) $('#onlyVideo').checked=s.onlyVideo; if(s.onlyGuide!=null) $('#onlyGuide').checked=s.onlyGuide; if(s.sortKey) sortKey=s.sortKey; if(s.sortDir) sortDir=s.sortDir; if(s.currentPage) currentPage=s.currentPage; return s; }catch{} }
+    function saveState(){
+      const s={ q:$('#q').value, cat:$('#cat').value, series:$('#series').value, per:$('#per').value,
+                onlyDocs:$('#onlyDocs').checked, onlyVideo:$('#onlyVideo').checked, onlyGuide:$('#onlyGuide').checked,
+                sortKey, sortDir, currentPage };
+      try{ sessionStorage.setItem(SS_KEY, JSON.stringify(s)); }catch{}
+    }
+    function loadState(){
+      try{ const raw=sessionStorage.getItem(SS_KEY); if(!raw) return;
+        const s=JSON.parse(raw);
+        if(s.q!=null) $('#q').value=s.q; if(s.per!=null) $('#per').value=s.per;
+        if(s.onlyDocs!=null) $('#onlyDocs').checked=s.onlyDocs;
+        if(s.onlyVideo!=null) $('#onlyVideo').checked=s.onlyVideo;
+        if(s.onlyGuide!=null) $('#onlyGuide').checked=s.onlyGuide;
+        if(s.sortKey) sortKey=s.sortKey; if(s.sortDir) sortDir=s.sortDir; if(s.currentPage) currentPage=s.currentPage;
+        return s;
+      }catch{}
+    }
 
-    /* === Eksportai === */
     function rowsForExport(){
       return filtered.map(p=>({
         Pavadinimas: normalizeLtValue(p.name||''), SKU: p.sku||'',
         Kategorijos: (p.categories||[]).map(c=>normalizeLtValue(c.name||c.slug||'')).join(', '),
-        Serija: getAttr(p,'pa_serija')||'',
-        Garantija: getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'',
+        Serija: getAttr(p,'pa_serija')||'', Garantija: getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'',
         Jungtis: getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'',
-        Spalva: getAttr(p,'pa_spalva')||'',
-        Padengimas: getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'',
+        Spalva: getAttr(p,'pa_spalva')||'', Padengimas: getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'',
         Atnaujinta: fmtDate(p.date_modified_gmt||p.date_modified||'')
       }));
     }
     function downloadBlob(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},0); }
-    function exportCSV(){ const rows=rowsForExport(), headers=Object.keys(rows[0]||{Pavadinimas:'',SKU:''}); const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`; const csv=[headers.map(esc).join(',')].concat(rows.map(r=>headers.map(h=>esc(r[h])).join(','))).join('\r\n'); downloadBlob('rubineta_export.csv', new Blob([csv], {type:'text/csv;charset=utf-8'})); }
-    function exportXLSX(){ if(typeof XLSX==='undefined'){ alert('Nepavyko įkelti XLSX bibliotekos.'); return; } const rows=rowsForExport(); const ws=XLSX.utils.json_to_sheet(rows); const headers=Object.keys(rows[0]||{}); ws['!cols']=headers.map(h=>{ const maxLen=Math.max(h.length,...rows.map(r=>String(r[h]??'').length)); return {wch:Math.min(Math.max(maxLen+2,10),50)}; }); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Rubineta'); const fname=`rubineta_export_${new Date().toISOString().slice(0,10)}.xlsx`; XLSX.writeFile(wb, fname); }
+    function exportCSV(){
+      const rows=rowsForExport(), headers=Object.keys(rows[0]||{Pavadinimas:'',SKU:''});
+      const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+      const csv=[headers.map(esc).join(',')].concat(rows.map(r=>headers.map(h=>esc(r[h])).join(','))).join('\r\n');
+      downloadBlob('rubineta_export.csv', new Blob([csv], {type:'text/csv;charset=utf-8'}));
+    }
+    function exportXLS(){
+      const rows=rowsForExport(), headers=Object.keys(rows[0]||{Pavadinimas:'',SKU:''});
+      const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const table=`<table border="1"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`+
+                  rows.map(r=>`<tr>${headers.map(h=>`<td>${esc(r[h])}</td>`).join('')}</tr>`).join('')+
+                  `</tbody></table>`;
+      const html=`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${table}</body></html>`;
+      downloadBlob('rubineta_export.xls', new Blob([html], {type:'application/vnd.ms-excel'}));
+    }
 
-    /* === Duomenų užkrovimas === */
     async function loadPage(){
       const perPage=parseInt($('#per').value||'25',10);
       const alert=$('#alert'), status=$('#status'); alert.textContent=''; status.textContent='Kraunama…';
       try{
-        let data=[], page=1, hasMore=true;
+        let allData=[], page=1, hasMore=true;
         while(hasMore && page<=10){
           const res=await fetch(`/api/products?per_page=100&page=${page}&lang=lt`);
           if(!res.ok) throw new Error(`API klaida: ${res.status} ${res.statusText}`);
-          const batch=await res.json();
-          if(!Array.isArray(batch)||batch.length===0){ hasMore=false; } else { data.push(...batch); if(batch.length<100) hasMore=false; }
+          const data=await res.json();
+          if(!Array.isArray(data)||data.length===0){ hasMore=false; } else { allData.push(...data); if(data.length<100) hasMore=false; }
           page++;
         }
-        allProducts=Array.isArray(data)?data:[];
+        allProducts=Array.isArray(allData)?allData:[];
         populateFilters();
         const saved=loadState(); if(saved){ if(saved.cat) $('#cat').value=saved.cat; if(saved.series) $('#series').value=saved.series; }
         applySearchAndSort(); updateView();
@@ -400,10 +638,7 @@
       }
     }
 
-    /* === Event'ai === */
-    $('#load').onclick=loadPage;
-    $('#exportCsv').onclick=exportCSV;
-    $('#exportXls').onclick=exportXLSX;
+    $('#load').onclick=loadPage; $('#exportCsv').onclick=exportCSV; $('#exportXls').onclick=exportXLS;
     $('#q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ currentPage=1; applySearchAndSort(); updateView(); } });
     $('#q').addEventListener('input', debounce(()=>{ currentPage=1; applySearchAndSort(); updateView(); },250));
     $('#per').addEventListener('change', ()=>{ currentPage=1; updateView(); });
@@ -415,12 +650,7 @@
 
     function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
-    window.onload=()=>{ setupSorting(); const saved=loadState(); if(saved&&saved.q) $('#q').value=saved.q; loadPage(); };
+    window.onload = () => { setupSorting(); const saved=loadState(); if(saved&&saved.q) $('#q').value=saved.q; loadPage(); };
   </script>
 </body>
 </html>
-
-
-
-
-
