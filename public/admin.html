@@ -8,6 +8,7 @@
     body{margin:0;font:14px/1.4 Arial, sans-serif;color:#111;background:#fff}
     header,main{max-width:1200px;margin:0 auto;padding:12px}
     h1{margin:6px 0 12px;font-size:20px}
+    h2{margin:18px 0 8px;font-size:18px}
     .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:10px}
     .controls .field{display:flex;flex-direction:column;min-width:160px}
     .controls label{font-size:12px;color:#555;margin-bottom:2px}
@@ -15,6 +16,7 @@
     .btn{cursor:pointer;border:1px solid #ccc;background:#fff}
     .btn-primary{background:#007cba;color:#fff;border-color:#007cba}
     .btn-primary:hover{background:#0a6ea8}
+    .btn-danger{background:#c62828;color:#fff;border-color:#c62828}
     .muted{color:#666}
 
     table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
@@ -43,14 +45,25 @@
     #status-dropdown{position:absolute;top:100%;left:0;z-index:10;background:#fff;border:1px solid #ccc;border-radius:6px;padding:8px;display:none;min-width:240px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
     #status-dropdown label{display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:13px}
 
-    /* modal mini */
+    /* modal */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000}
-    .modal .box{background:#fff;border-radius:8px;padding:14px;max-width:520px;width:92%}
+    .modal .box{background:#fff;border-radius:8px;padding:14px;max-width:560px;width:92%}
     .modal .box h3{margin:0 0 8px}
+    .modal .box .row{display:flex;gap:8px;margin:6px 0}
+    .modal .box .row > *{flex:1}
     .modal .box .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .modal input,.modal select,.modal textarea{width:100%;padding:6px 8px;font-size:13px}
 
     /* upload progress bubble */
     #upload-progress{position:fixed;right:12px;bottom:12px;background:#000c;color:#fff;padding:8px 10px;border-radius:8px;font:12px Arial;z-index:9999}
+
+    /* partners table */
+    .card{border:1px solid #ddd;border-radius:8px;padding:10px;margin:12px 0}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+    .grid .col-4{grid-column:span 4}
+    .grid .col-6{grid-column:span 6}
+    .grid .col-12{grid-column:span 12}
+    .chip{display:inline-block;padding:2px 6px;border:1px solid #ddd;border-radius:12px;font-size:12px;margin:2px 4px 0 0;background:#fafafa}
   </style>
 </head>
 <body>
@@ -61,19 +74,19 @@
   <div class="controls">
     <div class="field" style="min-width:220px">
       <label>Produktas</label>
-      <input id="filter-product" type="search" placeholder="pvz., maišytuvas">
+      <input id="filter-product" type="search" placeholder="pvz., maišytuvas" />
     </div>
     <div class="field" style="min-width:180px">
       <label>Miestas</label>
-      <input id="filter-city" type="search" placeholder="pvz., Vilnius">
+      <input id="filter-city" type="search" placeholder="pvz., Vilnius" />
     </div>
     <div class="field">
       <label>Nuo (data)</label>
-      <input id="filter-date-from" type="date">
+      <input id="filter-date-from" type="date" />
     </div>
     <div class="field">
       <label>Iki (data)</label>
-      <input id="filter-date-to" type="date">
+      <input id="filter-date-to" type="date" />
     </div>
     <div class="field">
       <label>Būsena</label>
@@ -104,7 +117,9 @@
   <!-- KPI -->
   <div id="claims-kpi"></div>
 
-  <div class="toolbar muted">Įrašų iš viso: <span id="total-claims">0</span></div>
+  <div class="toolbar muted">
+    Įrašų iš viso: <span id="total-claims">0</span>
+  </div>
 </header>
 
 <main>
@@ -112,32 +127,69 @@
   <table id="claims" aria-live="polite">
     <thead>
       <tr>
-        <th style="width:8%" data-sort="id">ID</th>
-        <th style="width:10%" data-sort="date">Data</th>
-        <th style="width:14%">Kontaktas</th>
+        <th style="width:7%" data-sort="id">ID</th>
+        <th style="width:9%" data-sort="date">Data</th>
+        <th style="width:13%">Kontaktas</th>
         <th style="width:10%" data-sort="city">Miestas</th>
         <th style="width:16%">Produktas</th>
-        <th style="width:18%">Aprašymas</th>
-        <th style="width:10%">Meistras</th>
+        <th style="width:16%">Aprašymas</th>
+        <th style="width:12%">Meistras</th>
         <th style="width:12%" data-sort="status">Būsena</th>
         <th style="width:12%">Atsakingas</th>
         <th style="width:14%">Komentaras</th>
         <th style="width:12%">Remonto kaštai (EUR)</th>
+        <th style="width:12%">Veiksmai</th>
       </tr>
     </thead>
     <tbody id="claims-body"></tbody>
   </table>
 
   <div id="claims-pager"></div>
+
+  <!-- ================== PARTNERIAI (CRUD) ================== -->
+  <h2>Serviso partneriai</h2>
+  <div class="card">
+    <div class="grid">
+      <div class="col-4">
+        <label>Paieška</label>
+        <input id="partners-q" type="search" placeholder="pavadinimas, miestas, el. paštas, tel." />
+      </div>
+      <div class="col-4">
+        <label>Miestas</label>
+        <input id="partners-city" type="search" placeholder="pvz., Kaunas" />
+      </div>
+      <div class="col-4" style="display:flex;align-items:flex-end;gap:8px">
+        <button class="btn" onclick="filterPartners()">Filtruoti</button>
+        <button class="btn" onclick="resetPartnersFilter()">Išvalyti</button>
+        <button class="btn btn-primary" onclick="openPartnerModal()">Pridėti partnerį</button>
+      </div>
+    </div>
+
+    <table style="margin-top:10px">
+      <thead>
+        <tr>
+          <th style="width:24%">Pavadinimas</th>
+          <th style="width:14%">Miestas</th>
+          <th style="width:22%">El. paštas</th>
+          <th style="width:14%">Telefonas</th>
+          <th style="width:26%">Žymos</th>
+          <th style="width:14%">Veiksmai</th>
+        </tr>
+      </thead>
+      <tbody id="partners-body"></tbody>
+    </table>
+  </div>
 </main>
 
 <!-- Modal: priskirti meistrui -->
 <div class="modal" id="assign-modal">
   <div class="box">
     <h3>Priskirti meistrui</h3>
-    <div>
-      <label>Pasirinkite partnerį</label>
-      <select id="assign-partner-select" style="width:100%;padding:6px;margin-top:4px"></select>
+    <div class="row">
+      <div>
+        <label>Partneris</label>
+        <select id="assign-partner-select"></select>
+      </div>
     </div>
     <div class="actions">
       <button class="btn" onclick="closeAssignModal()">Atšaukti</button>
@@ -150,9 +202,11 @@
 <div class="modal" id="responsible-modal">
   <div class="box">
     <h3>Paskirti atsakingą</h3>
-    <div>
-      <label>Vardas ir pavardė</label>
-      <input id="responsible-name" type="text" style="width:100%;padding:6px;margin-top:4px" placeholder="pvz., Jonas Jonaitis">
+    <div class="row">
+      <div>
+        <label>Vardas ir pavardė</label>
+        <input id="responsible-name" type="text" placeholder="pvz., Jonas Jonaitis" />
+      </div>
     </div>
     <div class="actions">
       <button class="btn" onclick="closeResponsibleModal()">Atšaukti</button>
@@ -161,55 +215,75 @@
   </div>
 </div>
 
+<!-- Modal: partnerio įvedimas/redagavimas -->
+<div class="modal" id="partner-modal">
+  <div class="box">
+    <h3 id="partner-modal-title">Naujas partneris</h3>
+    <div class="row">
+      <div><label>Pavadinimas</label><input id="edit-partner-name" type="text" /></div>
+      <div><label>Miestas</label><input id="edit-partner-city" type="text" /></div>
+    </div>
+    <div class="row">
+      <div><label>El. paštas</label><input id="edit-partner-email" type="email" /></div>
+      <div><label>Telefonas</label><input id="edit-partner-phone" type="tel" /></div>
+    </div>
+    <div class="row">
+      <div class="col-12"><label>Žymos (kableliais)</label><input id="edit-partner-tags" type="text" placeholder="pvz., santechnika, garantija" /></div>
+    </div>
+    <input id="edit-partner-id" type="hidden" />
+    <div class="actions">
+      <button class="btn" onclick="closePartnerModal()">Atšaukti</button>
+      <button class="btn btn-primary" onclick="savePartner()">Išsaugoti</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: įkelti dokumentą (Cloudinary pavyzdys) -->
+<div class="modal" id="upload-modal">
+  <div class="box">
+    <h3>Prisegti dokumentą</h3>
+    <div class="row">
+      <div>
+        <input id="upload-file" type="file" />
+        <div class="muted" style="margin-top:6px">Leidžiami: JPG/PNG/WebP, PDF, MP4/WebM. Max 15 MB.</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="closeUploadModal()">Atšaukti</button>
+      <button class="btn btn-primary" onclick="startUpload()">Įkelti</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  /* ====== BŪSENA (filtrai, rikiavimas, puslapiai) ====== */
+  /* ========= BŪSENA ========= */
   let currentFilters = null;
   let sortKey = 'date';   // 'id' | 'date' | 'status' | 'city'
   let sortDir = 'desc';   // 'asc' | 'desc'
   let page = 1;
   let perPage = 50;
 
-  /* ====== DEMO: seed duomenys, jei localStorage tuščias ====== */
+  let assignTargetId = null;
+  let responsibleTargetId = null;
+  let uploadTargetId = null;
+
+  /* ========= DEMO SEED ========= */
   (function seedIfEmpty(){
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     if (!claims.length) {
       const demo = [
-        {
-          id: 'CLM-0001',
-          date: new Date(Date.now()-86400000*5).toISOString(),
-          contact: {name:'Petras', surname:'Petrauskas', email:'p.petrauskas@example.com', phone:'+37060000001', city:'Vilnius'},
-          product: 'Maišytuvas ECO 101',
-          description: 'Laša iš snapo, slėgio svyravimai.',
-          status: 'Nauja',
-          assignedPartner: '',
-          responsible: '',
-          qualityComment: '',
-          repairCost: ''
-        },
-        {
-          id: 'CLM-0002',
-          date: new Date(Date.now()-86400000*2).toISOString(),
-          contact: {name:'Dalia', surname:'Daliūtė', email:'d.daliute@example.com', phone:'+37060000002', city:'Kaunas'},
-          product: 'Dušo komplektas PRO 220',
-          description: 'Skylamas laikiklis, reikia keisti detalę.',
-          status: 'Perduota servisui',
-          assignedPartner: 'UAB Meistrai LT',
-          responsible: 'Jonas Jonaitis',
-          qualityComment: 'Laukiame detalių.',
-          repairCost: 35.50
-        },
-        {
-          id: 'CLM-0003',
-          date: new Date().toISOString(),
-          contact: {name:'Rūta', surname:'Rūtaitė', email:'r.rutaite@example.com', phone:'+37060000003', city:'Klaipėda'},
-          product: 'Sifonas CLICK-CLACK',
-          description: 'Neužsidaro, mechanizmas stringa.',
-          status: 'Laukia patvirtinimo',
-          assignedPartner: '',
-          responsible: '',
-          qualityComment: '',
-          repairCost: ''
-        }
+        { id:'CLM-0001', date:new Date(Date.now()-86400000*5).toISOString(),
+          contact:{name:'Petras',surname:'Petrauskas',email:'p.petrauskas@example.com',phone:'+37060000001',city:'Vilnius'},
+          product:'Maišytuvas ECO 101', description:'Laša iš snapo, slėgio svyravimai.',
+          status:'Nauja', assignedPartner:'', responsible:'', qualityComment:'', repairCost:'', attachments:[] },
+        { id:'CLM-0002', date:new Date(Date.now()-86400000*2).toISOString(),
+          contact:{name:'Dalia',surname:'Daliūtė',email:'d.daliute@example.com',phone:'+37060000002',city:'Kaunas'},
+          product:'Dušo komplektas PRO 220', description:'Skylamas laikiklis, reikia keisti detalę.',
+          status:'Perduota servisui', assignedPartner:'UAB Meistrai LT', responsible:'Jonas Jonaitis', qualityComment:'Laukiame detalių.', repairCost:35.50, attachments:[] },
+        { id:'CLM-0003', date:new Date().toISOString(),
+          contact:{name:'Rūta',surname:'Rūtaitė',email:'r.rutaite@example.com',phone:'+37060000003',city:'Klaipėda'},
+          product:'Sifonas CLICK-CLACK', description:'Neužsidaro, mechanizmas stringa.',
+          status:'Laukia patvirtinimo', assignedPartner:'', responsible:'', qualityComment:'', repairCost:'', attachments:[] }
       ];
       localStorage.setItem('claims', JSON.stringify(demo));
     }
@@ -217,24 +291,25 @@
     const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
     if (!partners.length) {
       const seedPartners = [
-        { id: 'PART-001', name:'UAB Meistrai LT', city:'Vilnius', email:'kontaktas@meistrailt.lt', phone:'+37061234567' },
-        { id: 'PART-002', name:'MB Santechnika PRO', city:'Kaunas', email:'info@santechnika.pro', phone:'+37061234568' }
+        { id:'PART-001', name:'UAB Meistrai LT', city:'Vilnius', email:'kontaktas@meistrailt.lt', phone:'+37061234567', tags:['garantija','santechnika'] },
+        { id:'PART-002', name:'MB Santechnika PRO', city:'Kaunas', email:'info@santechnika.pro', phone:'+37061234568', tags:['montavimas'] }
       ];
       localStorage.setItem('servicePartners', JSON.stringify(seedPartners));
     }
   })();
 
-  /* Vienkartinė migracija: garantuoti partnerių ID */
+  /* Vienkartinė migracija: partneriams garantuoti ID */
   (function ensurePartnerIds(){
     const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
     let changed = false;
     partners.forEach(p=>{
       if (!p.id) { p.id = 'PART-' + Date.now() + Math.random().toString(36).slice(2,6); changed=true; }
+      if (!Array.isArray(p.tags)) p.tags = [];
     });
     if (changed) localStorage.setItem('servicePartners', JSON.stringify(partners));
   })();
 
-  /* ====== Pagalbinės ====== */
+  /* ========= Pagalbinės ========= */
   function getStatusClass(st){
     switch(st){
       case 'Nauja': return 'new';
@@ -251,8 +326,6 @@
     const dd = document.getElementById('status-dropdown');
     dd.style.display = (dd.style.display === 'block' ? 'none' : 'block');
   }
-
-  // Uždaryti dropdown paspaudus už ribų
   document.addEventListener('click', (e) => {
     const menu = document.getElementById('status-dropdown');
     const btn = document.querySelector('.dropdown-status-filter > button');
@@ -302,17 +375,15 @@
     page = 1;
     loadClaims(filtered);
 
-    // atnaujinti skaitiklį ant mygtuko
     const count = selectedStatuses.filter(v=>v!=='').length;
     const btn = document.querySelector('.dropdown-status-filter > button');
     if (btn) btn.textContent = `Filtruoti pagal būseną ${count ? `(${count})` : ''} ▼`;
 
-    // uždaryti dropdown
     const dropdown = document.getElementById('status-dropdown');
     if (dropdown) dropdown.style.display = 'none';
   }
 
-  /* ====== Lentelė, rikiavimas, puslapiai ====== */
+  /* ========= Lentelė ========= */
   function loadClaims(filteredClaims = null) {
     const claimsAll = filteredClaims || JSON.parse(localStorage.getItem('claims') || '[]');
 
@@ -381,6 +452,10 @@
             onblur="saveRepairCost('${claim.id}', this.value)"
           />
         </td>
+        <td class="nowrap">
+          <button class="btn" onclick="openUploadModal('${claim.id}')">Prisegti</button>
+          ${claim.assignedPartner ? `<button class="btn" onclick="sendClaimToPartnerViaEmail('${claim.id}')">Siųsti el. paštu</button>` : ''}
+        </td>
       `;
       tbody.appendChild(tr);
     });
@@ -419,7 +494,6 @@
     mk('»', total, page===total);
   }
 
-  // Rikiavimas pagal antraštes
   document.addEventListener('click', (e)=>{
     const th = e.target.closest('th[data-sort]');
     if (!th) return;
@@ -431,7 +505,56 @@
     if (currentFilters) applyFilters(); else loadClaims();
   });
 
-  /* ====== CSV eksportas (filtruotas) ====== */
+  function updateStatusDirectly(id, newStatus){
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (!claim) return;
+    claim.status = newStatus;
+    claim.history = Array.isArray(claim.history) ? claim.history : [];
+    claim.history.push({ user: 'Admin', time: new Date().toISOString(), action: `Būsena pakeista į "${newStatus}"` });
+    localStorage.setItem('claims', JSON.stringify(claims));
+    if (currentFilters) applyFilters(); else loadClaims();
+  }
+
+  function saveRepairCost(id, raw) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (!claim) return;
+
+    const v = String(raw ?? '').replace(',', '.').trim();
+    const num = v === '' ? '' : Number(v);
+
+    if (v !== '' && (!isFinite(num) || num < 0)) {
+      alert('Įveskite teisingą sumą (teigiamas skaičius, pvz., 25.50).');
+      if (currentFilters) applyFilters(); else loadClaims();
+      return;
+    }
+    claim.repairCost = (v === '' ? '' : Number(num.toFixed(2)));
+    localStorage.setItem('claims', JSON.stringify(claims));
+
+    const base = (currentFilters ? (function filterWith(cfg, items){
+      const { product, city, dateFrom, dateTo, selectedStatuses } = cfg;
+      const showAll = selectedStatuses.includes('');
+      const fromTs = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : null;
+      const toTs   = dateTo   ? new Date(dateTo   + 'T23:59:59').getTime() : null;
+      return items.filter(c=>{
+        const matchesStatus = showAll || selectedStatuses.includes(c.status);
+        const matchesProduct = !product || (c.product||'').toLowerCase().includes(product);
+        const matchesCity = !city || ((c.contact?.city)||'').toLowerCase().includes(city);
+        const ts = new Date(c.date).getTime();
+        const matchesDate = (!fromTs || ts >= fromTs) && (!toTs || ts <= toTs);
+        return matchesStatus && matchesProduct && matchesCity && matchesDate;
+      });
+    })(currentFilters, claims) : claims);
+    renderKPI(base);
+  }
+
+  function viewClaimDetails(id){
+    // Nukreipiame į atskirą peržiūrą (jei turi claim-view.html)
+    window.open(`claim-view.html?id=${encodeURIComponent(id)}`, '_blank');
+  }
+
+  /* ========= CSV eksportas ========= */
   function exportToCSV() {
     const all = JSON.parse(localStorage.getItem('claims') || '[]');
 
@@ -453,8 +576,7 @@
     const headers = [
       'ID','Data','Vardas','Pavardė','El. paštas','Telefonas',
       'Produktas','Aprašymas','Būsena','Miestas',
-      'Priskirtas meistras','Komentaras',
-      'Remonto kaštai (EUR)'
+      'Priskirtas meistras','Komentaras','Remonto kaštai (EUR)'
     ];
 
     const rows = source.map(c => [
@@ -483,7 +605,7 @@
     URL.revokeObjectURL(url);
   }
 
-  /* ====== KPI (įskaitant remonto sumą) ====== */
+  /* ========= KPI ========= */
   function renderKPI(list){
     const el = document.getElementById('claims-kpi'); if(!el) return;
     const total = list.length;
@@ -505,61 +627,91 @@
     `;
   }
 
-  /* ====== Remonto kaštų įvedimas ====== */
-  function saveRepairCost(id, raw) {
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const claim = claims.find(c => c.id === id);
-    if (!claim) return;
-
-    const v = String(raw ?? '').replace(',', '.').trim();
-    const num = v === '' ? '' : Number(v);
-
-    if (v !== '' && (!isFinite(num) || num < 0)) {
-      alert('Įveskite teisingą sumą (teigiamas skaičius, pvz., 25.50).');
-      if (currentFilters) applyFilters(); else loadClaims();
-      return;
-    }
-    claim.repairCost = (v === '' ? '' : Number(num.toFixed(2)));
-    localStorage.setItem('claims', JSON.stringify(claims));
-
-    // atnaujinti KPI sumą pagal aktyvų sąrašą
-    const base = (currentFilters ? (function filterWith(cfg, items){
-      const { product, city, dateFrom, dateTo, selectedStatuses } = cfg;
-      const showAll = selectedStatuses.includes('');
-      const fromTs = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : null;
-      const toTs   = dateTo   ? new Date(dateTo   + 'T23:59:59').getTime() : null;
-      return items.filter(c=>{
-        const matchesStatus = showAll || selectedStatuses.includes(c.status);
-        const matchesProduct = !product || (c.product||'').toLowerCase().includes(product);
-        const matchesCity = !city || ((c.contact?.city)||'').toLowerCase().includes(city);
-        const ts = new Date(c.date).getTime();
-        const matchesDate = (!fromTs || ts >= fromTs) && (!toTs || ts <= toTs);
-        return matchesStatus && matchesProduct && matchesCity && matchesDate;
-      });
-    })(currentFilters, claims) : claims);
-    renderKPI(base);
+  /* ========= Partnerių valdymas ========= */
+  function renderPartners(list=null){
+    const partners = list || JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    const tb = document.getElementById('partners-body');
+    tb.innerHTML = '';
+    partners.forEach(p=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.name}</td>
+        <td>${p.city || ''}</td>
+        <td>${p.email || ''}</td>
+        <td>${p.phone || ''}</td>
+        <td>${(p.tags||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</td>
+        <td class="nowrap">
+          <button class="btn" onclick="editPartner('${p.id}')">Redaguoti</button>
+          <button class="btn btn-danger" onclick="deletePartner('${p.id}')">Šalinti</button>
+        </td>
+      `;
+      tb.appendChild(tr);
+    });
+  }
+  function filterPartners(){
+    const q=(document.getElementById('partners-q').value||'').toLowerCase();
+    const city=(document.getElementById('partners-city').value||'').toLowerCase();
+    const list = JSON.parse(localStorage.getItem('servicePartners') || '[]').filter(p=>{
+      const hay=[p.name,p.email,p.phone,(p.tags||[]).join(','),(p.city||'')].join(' ').toLowerCase();
+      if (q && !hay.includes(q)) return false;
+      if (city && !(p.city||'').toLowerCase().includes(city)) return false;
+      return true;
+    });
+    renderPartners(list);
+  }
+  function resetPartnersFilter(){
+    document.getElementById('partners-q').value='';
+    document.getElementById('partners-city').value='';
+    renderPartners();
+  }
+  function openPartnerModal(){
+    document.getElementById('partner-modal-title').textContent='Naujas partneris';
+    document.getElementById('edit-partner-id').value='';
+    document.getElementById('edit-partner-name').value='';
+    document.getElementById('edit-partner-city').value='';
+    document.getElementById('edit-partner-email').value='';
+    document.getElementById('edit-partner-phone').value='';
+    document.getElementById('edit-partner-tags').value='';
+    document.getElementById('partner-modal').style.display='flex';
+  }
+  function closePartnerModal(){ document.getElementById('partner-modal').style.display='none'; }
+  function savePartner(){
+    const id = document.getElementById('edit-partner-id').value || ('PART-' + Date.now() + Math.random().toString(36).slice(2,6));
+    const p = {
+      id,
+      name: (document.getElementById('edit-partner-name').value||'').trim(),
+      city: (document.getElementById('edit-partner-city').value||'').trim(),
+      email:(document.getElementById('edit-partner-email').value||'').trim(),
+      phone:(document.getElementById('edit-partner-phone').value||'').trim(),
+      tags: (document.getElementById('edit-partner-tags').value||'').split(',').map(s=>s.trim()).filter(Boolean)
+    };
+    const arr = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    const idx = arr.findIndex(x=>x.id===id);
+    if (idx>=0) arr[idx]=p; else arr.push(p);
+    localStorage.setItem('servicePartners', JSON.stringify(arr));
+    closePartnerModal();
+    renderPartners();
+  }
+  function editPartner(id){
+    const arr = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    const p = arr.find(x=>x.id===id); if(!p) return;
+    document.getElementById('partner-modal-title').textContent='Redaguoti partnerį';
+    document.getElementById('edit-partner-id').value=p.id;
+    document.getElementById('edit-partner-name').value=p.name||'';
+    document.getElementById('edit-partner-city').value=p.city||'';
+    document.getElementById('edit-partner-email').value=p.email||'';
+    document.getElementById('edit-partner-phone').value=p.phone||'';
+    document.getElementById('edit-partner-tags').value=(p.tags||[]).join(', ');
+    document.getElementById('partner-modal').style.display='flex';
+  }
+  function deletePartner(id){
+    if(!confirm('Tikrai šalinti partnerį?')) return;
+    const arr = JSON.parse(localStorage.getItem('servicePartners') || '[]').filter(p=>p.id!==id);
+    localStorage.setItem('servicePartners', JSON.stringify(arr));
+    renderPartners();
   }
 
-  /* ====== Būsenos keitimas tiesiai iš lentelės ====== */
-  function updateStatusDirectly(id, newStatus){
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const claim = claims.find(c => c.id === id);
-    if (!claim) return;
-    claim.status = newStatus;
-    // audit trail (paprastas pavyzdys)
-    claim.history = Array.isArray(claim.history) ? claim.history : [];
-    claim.history.push({ user: 'Admin', time: new Date().toISOString(), action: `Būsena pakeista į "${newStatus}"` });
-    localStorage.setItem('claims', JSON.stringify(claims));
-    if (currentFilters) applyFilters(); else loadClaims();
-  }
-
-  /* ====== Peržiūra (stub) ====== */
-  function viewClaimDetails(id){
-    alert('Peržiūra atskirai: ' + id + '\n(Jei turi claim-view.html – gali nukreipti į tą puslapį su ?id='+encodeURIComponent(id)+')');
-  }
-
-  /* ====== Partnerių priskyrimas ====== */
-  let assignTargetId = null;
+  /* ========= Priskyrimo modalis ========= */
   function showAssignModal(id){
     assignTargetId = id;
     const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
@@ -573,13 +725,17 @@
     if (!assignTargetId) return closeAssignModal();
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const c = claims.find(x=>x.id===assignTargetId);
-    if (c){ c.assignedPartner = val || ''; localStorage.setItem('claims', JSON.stringify(claims)); }
+    if (c){
+      c.assignedPartner = val || '';
+      c.history = Array.isArray(c.history)? c.history : [];
+      c.history.push({ user:'Admin', time:new Date().toISOString(), action: (val?`Priskirtas partneris: ${val}`:'Partneris nuimtas') });
+      localStorage.setItem('claims', JSON.stringify(claims));
+    }
     closeAssignModal();
     if (currentFilters) applyFilters(); else loadClaims();
   }
 
-  /* ====== Atsakingo paskyrimas ====== */
-  let responsibleTargetId = null;
+  /* ========= Atsakingo paskyrimas ========= */
   function showResponsibleModal(id){
     responsibleTargetId = id;
     document.getElementById('responsible-name').value = '';
@@ -591,14 +747,21 @@
     if (!responsibleTargetId) return closeResponsibleModal();
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const c = claims.find(x=>x.id===responsibleTargetId);
-    if (c){ c.responsible = val; localStorage.setItem('claims', JSON.stringify(claims)); }
+    if (c){
+      c.responsible = val;
+      c.history = Array.isArray(c.history)? c.history : [];
+      c.history.push({ user:'Admin', time:new Date().toISOString(), action: `Paskirtas atsakingas: ${val||'—'}` });
+      localStorage.setItem('claims', JSON.stringify(claims));
+    }
     closeResponsibleModal();
     if (currentFilters) applyFilters(); else loadClaims();
   }
 
-  /* ====== Failų įkėlimas (Cloudinary pavyzdys) su validacija ir progresu ====== */
+  /* ========= Failų įkėlimas (Cloudinary pavyzdys) ========= */
   function showUploadIndicator(){
-    const el = document.createElement('div'); el.id='upload-progress'; el.textContent='Įkeliama…'; document.body.appendChild(el);
+    let el = document.getElementById('upload-progress');
+    if (!el){ el = document.createElement('div'); el.id='upload-progress'; document.body.appendChild(el); }
+    el.textContent='Įkeliama…';
   }
   function hideUploadIndicator(){ const el = document.getElementById('upload-progress'); if (el) el.remove(); }
 
@@ -640,11 +803,136 @@
     xhr.send(formData);
   }
 
-  /* ====== Init ====== */
+  function openUploadModal(claimId){
+    uploadTargetId = claimId;
+    document.getElementById('upload-file').value = '';
+    document.getElementById('upload-modal').style.display='flex';
+  }
+  function closeUploadModal(){ document.getElementById('upload-modal').style.display='none'; uploadTargetId = null; }
+  function startUpload(){
+    const file = document.getElementById('upload-file').files[0];
+    if (!uploadTargetId) return closeUploadModal();
+    uploadToCloudinary(file, (url)=>{
+      const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+      const c = claims.find(x=>x.id===uploadTargetId);
+      if (c){
+        c.attachments = Array.isArray(c.attachments) ? c.attachments : [];
+        c.attachments.push({ url, name: file.name, time: new Date().toISOString() });
+        c.history = Array.isArray(c.history) ? c.history : [];
+        c.history.push({ user:'Admin', time:new Date().toISOString(), action:`Prisegtas dokumentas: ${file.name}` });
+        localStorage.setItem('claims', JSON.stringify(claims));
+      }
+      closeUploadModal();
+      if (currentFilters) applyFilters(); else loadClaims();
+    }, (err)=>{
+      alert(err.message || 'Klaida įkeliant failą');
+    });
+  }
+
+  /* ========= Laiško ruošinys partneriui ========= */
+  function sendClaimToPartnerViaEmail(id){
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c=>c.id===id); if(!claim) return;
+
+    const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    const p = partners.find(x=>x.name === claim.assignedPartner);
+    const to = p?.email || '';
+
+    const subject = encodeURIComponent(`Pretenzija ${claim.id} – ${claim.product}`);
+    const link = location.origin + `/claim-view.html?id=${encodeURIComponent(claim.id)}`;
+    const att = (claim.attachments||[]).map(a=>a.url).join('\n');
+    const body = encodeURIComponent(
+`Sveiki,
+Praśome perimti pretenziją ${claim.id} (${claim.product}).
+
+Klientas: ${claim.contact.name} ${claim.contact.surname}, ${claim.contact.phone}, ${claim.contact.email}
+Miestas: ${claim.contact.city}
+Aprašymas: ${claim.description}
+
+Peržiūra: ${link}
+Prisegti dokumentai:
+${att || '—'}
+
+Pagarbiai,
+Kokybės skyrius`
+    );
+
+    // mailto – paprasčiausias kelias; serverinį siuntimą pridėsite vėliau
+    window.location.href = `mailto:${encodeURIComponent(to)}?subject=${subject}&body=${body}`;
+  }
+
+  /* ========= INIT ========= */
+  function renderKPIAndClaims(){ if (currentFilters) applyFilters(); else loadClaims(); }
+  function setupPartnersUI(){ renderPartners(); }
+
   window.onload = function(){
-    loadClaims();
+    renderKPIAndClaims();
+    setupPartnersUI();
   };
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
