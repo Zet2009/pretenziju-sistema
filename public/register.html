@@ -187,14 +187,6 @@
             flex: 1;
             padding: 8px;
         }
-        .country-flag {
-            display: inline-block;
-            width: 20px;
-            height: 15px;
-            margin-right: 8px;
-            vertical-align: middle;
-            background-size: cover;
-        }
     </style>
 </head>
 <body>
@@ -213,41 +205,40 @@
         <div class="country-selector">
             <label for="country">Šalis:</label>
             <select id="country">
-                <option value="LT" selected>Lietuva</option>
-                <option value="UK">Jungtinė Karalystė</option>
-                <option value="PL">Lenkija</option>
-                <option value="EE">Estija</option>
-                <option value="LV">Latvija</option>
-                <option value="BY">Baltarusija</option>
-                <option value="UA">Ukraina</option>
-                <option value="BIH">Bosnija ir Hercegovina</option>
-                <option value="KZ">Kazachstanas</option>
-                <option value="DE">Vokietija</option>
-                <option value="FR">Prancūzija</option>
+                <option value="lt" selected>Lietuva</option>
+                <option value="lv">Latvija</option>
+                <option value="ee">Estija</option>
+                <option value="pl">Lenkija</option>
+                <option value="ua">Ukraina</option>
+                <option value="by">Baltarusija</option>
+                <option value="ba">Bosnija ir Hercegovina</option>
+                <option value="kz">Kazachstanas</option>
+                <option value="de">Vokietija</option>
+                <option value="fr">Prancūzija</option>
             </select>
         </div>
         
         <div class="provider-info">
-            <strong>OpenStreetMap Nominatim</strong> – Nemokama, atviro kodo adresų paieškos sistema. Palaiko visas pasirinktas šalis.
+            Adresų paieška veikia per tavo serverį.
         </div>
 
         <form id="register-form">
             <div class="form-group">
                 <label for="name">Vardas *</label>
-                <input type="text" id="name" required>
+                <input type="text" id="name" required autocomplete="given-name">
             </div>
             <div class="form-group">
                 <label for="surname">Pavardė *</label>
-                <input type="text" id="surname" required>
+                <input type="text" id="surname" required autocomplete="family-name">
             </div>
             <div class="form-group">
                 <label for="email">El. paštas *</label>
-                <input type="email" id="email" required>
+                <input type="email" id="email" required autocomplete="email">
                 <span id="email-validation" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label for="password">Slaptažodis *</label>
-                <input type="password" id="password" required>
+                <input type="password" id="password" required autocomplete="new-password">
                 <span id="password-validation" class="validation-message"></span>
             </div>
             <div class="form-group">
@@ -266,18 +257,18 @@
             </div>
             <div class="form-group">
                 <label for="phone">Telefonas *</label>
-                <input type="tel" id="phone" required>
+                <input type="tel" id="phone" required autocomplete="tel">
                 <span id="phone-validation" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label for="street">Adresas (gatvė, namas, butas) *</label>
-                <input type="text" id="street" required>
+                <input type="text" id="street" required autocomplete="address-line1">
             </div>
 
-            <!-- MIESTAS su OpenStreetMap Nominatim integracija -->
+            <!-- MIESTAS per tavo serverį -->
             <div class="form-group">
                 <label for="city">Miestas *</label>
-                <input type="text" id="city" name="city" required autocomplete="off" placeholder="Pradėkite rašyti miestą...">
+                <input type="text" id="city" required autocomplete="address-level2" placeholder="Pradėkite rašyti miestą...">
                 <div class="search-icon">🔍</div>
                 <span id="city-validation" class="validation-message"></span>
                 <div id="city-suggestions" class="suggestions-container" style="display: none;"></div>
@@ -285,17 +276,13 @@
 
             <div class="form-group">
                 <label for="postal">Pašto kodas *</label>
-                <input type="text" id="postal" required>
+                <input type="text" id="postal" required autocomplete="postal-code">
             </div>
             <button type="submit" class="btn" id="submit-btn">
                 <span id="btn-text">Registruotis</span>
                 <span id="btn-loading" style="display:none;"><span class="loading-spinner"></span> Registruojama...</span>
             </button>
         </form>
-        
-        <div class="nominatim-credit">
-            Adresų paieška veikia su <a href="https://nominatim.openstreetmap.org/" target="_blank">OpenStreetMap Nominatim</a>
-        </div>
         
         <div class="links">
             <p>Jau turite paskyrą? <a href="login.html">Prisijungti</a></p>
@@ -307,82 +294,38 @@
     </footer>
 
     <script>
-        // Šalių konfigūracija
-        const countries = {
-            LT: { name: "Lietuva", code: "lt", language: "lt" },
-            UK: { name: "Jungtinė Karalystė", code: "gb", language: "en" },
-            PL: { name: "Lenkija", code: "pl", language: "pl" },
-            EE: { name: "Estija", code: "ee", language: "et" },
-            LV: { name: "Latvija", code: "lv", language: "lv" },
-            BY: { name: "Baltarusija", code: "by", language: "be" },
-            UA: { name: "Ukraina", code: "ua", language: "uk" },
-            BIH: { name: "Bosnija ir Hercegovina", code: "ba", language: "bs" },
-            KZ: { name: "Kazachstanas", code: "kz", language: "kk" },
-            DE: { name: "Vokietija", code: "de", language: "de" },
-            FR: { name: "Prancūzija", code: "fr", language: "fr" }
-        };
-
-        // Dabartinė pasirinkta šalis
-        let currentCountry = "LT";
-
-        // OpenStreetMap Nominatim paieškos funkcija
-        const initNominatimSearch = () => {
+        // === Inicijuoti miestų paiešką per tavo serverį ===
+        const initCitySearch = () => {
             const cityInput = document.getElementById('city');
             const validationSpan = document.getElementById('city-validation');
             const suggestionsContainer = document.getElementById('city-suggestions');
-            
-            // Funkcija, kuri atidėtinai vykdo paiešką
+
             function debounce(func, wait) {
                 let timeout;
                 return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
                     clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
                 };
             }
 
-            // Rodyti pasiūlymus
             function showSuggestions(suggestions) {
                 suggestionsContainer.innerHTML = '';
-                
                 if (suggestions.length > 0) {
                     suggestionsContainer.style.display = 'block';
                     suggestions.forEach(place => {
                         const div = document.createElement('div');
                         div.className = 'suggestion-item';
-                        
-                        // Formatavimas pagal šalį
-                        let displayText = place.display_name;
-                        if (place.address) {
-                            if (place.address.city || place.address.town || place.address.village) {
-                                const cityName = place.address.city || place.address.town || place.address.village;
-                                const countryName = place.address.country || countries[currentCountry].name;
-                                displayText = `${cityName}, ${countryName}`;
-                            }
-                        }
-                        
-                        div.innerHTML = `
-                            <div><strong>${displayText.split(',')[0]}</strong></div>
-                            <div style="font-size: 12px; color: #666;">${displayText.split(',').slice(1).join(',')}</div>
-                        `;
-                        
-                        div.addEventListener('click', function() {
-                            const cityName = place.address.city || place.address.town || place.address.village || place.display_name.split(',')[0];
-                            cityInput.value = cityName;
-                            cityInput.setAttribute('data-lat', place.lat);
-                            cityInput.setAttribute('data-lng', place.lon);
+                        const displayText = place.admin1 
+                            ? `${place.name} (${place.admin1})` 
+                            : place.name;
+                        div.textContent = displayText;
+                        div.addEventListener('click', () => {
+                            cityInput.value = place.name;
                             cityInput.setAttribute('data-valid', 'true');
+                            document.getElementById('postal').value = place.postal || '';
                             suggestionsContainer.style.display = 'none';
                             validationSpan.textContent = 'Miestas patvirtintas';
                             validationSpan.className = 'validation-message validation-success';
-                            
-                            // Jei randame pašto kodą, užpildome
-                            if (place.address && place.address.postcode) {
-                                document.getElementById('postal').value = place.address.postcode;
-                            }
                         });
                         suggestionsContainer.appendChild(div);
                     });
@@ -391,103 +334,62 @@
                 }
             }
 
-            // Paieškos funkcija naudojant Nominatim API
-            const searchCities = debounce(async function() {
+            const searchCities = debounce(async () => {
                 const value = cityInput.value.trim();
-                const countryConfig = countries[currentCountry];
-                
+                const country = document.getElementById('country').value;
+
                 if (value.length < 2) {
                     suggestionsContainer.style.display = 'none';
-                    validationSpan.textContent = 'Įveskite bent 2 raides paieškai';
+                    validationSpan.textContent = 'Įveskite bent 2 raides';
                     validationSpan.className = 'validation-message validation-error';
                     return;
                 }
-                
+
                 try {
                     validationSpan.textContent = 'Ieškoma...';
                     validationSpan.className = 'validation-message';
-                    
-                    // Kreipiamės į OpenStreetMap Nominatim API
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&countrycodes=${countryConfig.code}&limit=5&addressdetails=1&accept-language=${countryConfig.language}`
-                    );
-                    
-                    if (!response.ok) {
-                        throw new Error('API užklausa nepavyko');
-                    }
-                    
+
+                    const url = new URL('/api/cities', window.location.origin);
+                    url.searchParams.append('q', value);
+                    url.searchParams.append('country', country);
+
+                    const response = await fetch(url);
                     const data = await response.json();
-                    
+
                     showSuggestions(data);
-                    
+
                     if (data.length === 0) {
-                        validationSpan.textContent = 'Miestas nerastas. Bandykite kitą pavadinimą.';
+                        validationSpan.textContent = 'Miestas nerastas.';
                         validationSpan.className = 'validation-message validation-error';
                     } else {
-                        validationSpan.textContent = 'Rasta ' + data.length + ' atitikmenų. Pasirinkite iš sąrašo.';
+                        validationSpan.textContent = `Rasta ${data.length} rezultatų.`;
                         validationSpan.className = 'validation-message validation-success';
                     }
-                } catch (error) {
-                    console.error('Klaida naudojant Nominatim API:', error);
-                    validationSpan.textContent = 'Paieška laikinai neveikia. Įveskite miestą rankiniu būdu.';
+                } catch (err) {
+                    console.error('Klaida:', err);
+                    validationSpan.textContent = 'Serverio klaida. Bandykite vėliau.';
                     validationSpan.className = 'validation-message validation-error';
                     suggestionsContainer.style.display = 'none';
                 }
             }, 500);
 
-            // Įvykių tvirtinimas
             cityInput.addEventListener('input', searchCities);
-            
-            cityInput.addEventListener('focus', function() {
-                const value = this.value.trim();
-                if (value.length >= 2) {
-                    searchCities();
-                }
-            });
+            cityInput.addEventListener('focus', () => cityInput.value.length >= 2 && searchCities());
 
-            // Paslėpti pasiūlymus kai pele spustelima kitur
-            document.addEventListener('click', function(e) {
-                if (e.target !== cityInput && !suggestionsContainer.contains(e.target)) {
+            document.addEventListener('click', e => {
+                if (!cityInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
                     suggestionsContainer.style.display = 'none';
                 }
             });
 
-            // Patikrinimas, ar miestas yra validus
-            cityInput.addEventListener('blur', function() {
-                const value = this.value.trim();
-                suggestionsContainer.style.display = 'none';
-                
-                if (value.length === 0) {
-                    validationSpan.textContent = '';
-                    return;
-                }
-                
-                // Paprastas validacijos patikrinimas
-                if (value.length < 2) {
-                    validationSpan.textContent = 'Per trumpas miesto pavadinimas';
+            cityInput.addEventListener('blur', () => {
+                const value = cityInput.value.trim();
+                if (value && !cityInput.getAttribute('data-valid')) {
+                    validationSpan.textContent = 'Pasirinkite miestą iš sąrašo.';
                     validationSpan.className = 'validation-message validation-error';
-                    this.setAttribute('data-valid', 'false');
-                } else {
-                    validationSpan.textContent = 'Miestas priimtas';
-                    validationSpan.className = 'validation-message validation-success';
-                    this.setAttribute('data-valid', 'true');
                 }
             });
         };
-
-        // Atnaujinti šalį
-        function updateCountry() {
-            const countrySelect = document.getElementById('country');
-            currentCountry = countrySelect.value;
-            
-            // Atnaujinti paiešką
-            initNominatimSearch();
-            
-            // Atnaujinti informaciją
-            document.querySelector('.provider-info').innerHTML = `
-                <strong>OpenStreetMap Nominatim</strong> – Nemokama, atviro kodo adresų paieškos sistema. Dabar ieškoma: <strong>${countries[currentCountry].name}</strong>.
-            `;
-        }
 
         // Perjungti dokumento lauką pagal vaidmenį
         function toggleDocumentField() {
@@ -499,11 +401,11 @@
         function uploadToCloudinary(file, onSuccess, onError) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr');
+            formData.append('upload_preset', 'r6wao0fr'); // Keisk į savo
 
             let uploadUrl;
             if (file.type.startsWith('image/')) {
-                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload'; // be tarpų!
             } else if (file.type.startsWith('video/')) {
                 uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
             } else {
@@ -526,10 +428,10 @@
                 .catch(onError);
         }
 
-        // Registracijos funkcija
+        // Registracija
         async function register(event) {
             event.preventDefault();
-            
+
             document.getElementById('btn-text').style.display = 'none';
             document.getElementById('btn-loading').style.display = 'inline';
             document.getElementById('submit-btn').disabled = true;
@@ -543,61 +445,46 @@
             const street = document.getElementById('street').value.trim();
             const city = document.getElementById('city').value.trim();
             const postal = document.getElementById('postal').value.trim();
-            
-            if (document.getElementById('city').getAttribute('data-valid') === 'false') {
-                document.getElementById('city-validation').textContent = 'Įveskite teisingą miesto pavadinimą';
+            const country = document.getElementById('country').value;
+
+            if (!city) {
+                document.getElementById('city-validation').textContent = 'Pasirinkite miestą';
                 document.getElementById('city-validation').className = 'validation-message validation-error';
-                
                 document.getElementById('btn-text').style.display = 'inline';
                 document.getElementById('btn-loading').style.display = 'none';
                 document.getElementById('submit-btn').disabled = false;
-                
                 return;
             }
 
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (users.some(u => u.email === email)) {
                 alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
-                
                 document.getElementById('btn-text').style.display = 'inline';
                 document.getElementById('btn-loading').style.display = 'none';
                 document.getElementById('submit-btn').disabled = false;
-                
                 return;
             }
 
             const newUser = {
                 id: 'USR-' + Date.now(),
-                name,
-                surname,
-                email,
-                password,
-                role,
-                country: currentCountry,
+                name, surname, email, password, role, country,
                 status: role === 'installer' ? 'pending' : 'active',
                 createdAt: new Date().toISOString(),
-                phone,
-                street,
-                city,
-                postal,
-                lat: document.getElementById('city').getAttribute('data-lat') || '',
-                lng: document.getElementById('city').getAttribute('data-lng') || '',
+                phone, street, city, postal,
                 documents: []
             };
 
-            const fileInput = document.getElementById('document');
-            const file = fileInput.files[0];
+            const file = document.getElementById('document').files[0];
 
             if (role === 'installer' && file) {
-                uploadToCloudinary(file, (documentData) => {
-                    newUser.documents.push(documentData);
+                uploadToCloudinary(file, (doc) => {
+                    newUser.documents.push(doc);
                     users.push(newUser);
                     localStorage.setItem('users', JSON.stringify(users));
                     alert('Registracija sėkminga! Laukite patvirtinimo.');
                     location.href = 'login.html';
                 }, () => {
-                    alert('Nepavyko įkelti dokumento. Bandykite dar kartą.');
-                    
+                    alert('Nepavyko įkelti dokumento.');
                     document.getElementById('btn-text').style.display = 'inline';
                     document.getElementById('btn-loading').style.display = 'none';
                     document.getElementById('submit-btn').disabled = false;
@@ -610,50 +497,10 @@
             }
         }
 
-        // Įkelti puslapį
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicijuoti OpenStreetMap Nominatim paiešką
-            initNominatimSearch();
-            
-            // Šalies pasirinkimo įvykis
-            document.getElementById('country').addEventListener('change', updateCountry);
-            
+        // Paleisti
+        document.addEventListener('DOMContentLoaded', () => {
+            initCitySearch();
             toggleDocumentField();
-            
-            document.getElementById('email').addEventListener('blur', function() {
-                const email = this.value.trim();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                
-                if (!emailRegex.test(email)) {
-                    document.getElementById('email-validation').textContent = 'Įveskite teisingą el. pašto adresą';
-                    document.getElementById('email-validation').className = 'validation-message validation-error';
-                } else {
-                    document.getElementById('email-validation').textContent = '';
-                }
-            });
-
-            document.getElementById('password').addEventListener('input', function() {
-                const password = this.value;
-                if (password.length < 8) {
-                    document.getElementById('password-validation').textContent = 'Slaptažodis turi būti bent 8 simbolių';
-                    document.getElementById('password-validation').className = 'validation-message validation-error';
-                } else {
-                    document.getElementById('password-validation').textContent = '';
-                }
-            });
-
-            document.getElementById('phone').addEventListener('blur', function() {
-                const phone = this.value.trim();
-                const phoneRegex = /^\+?[0-9]{8,12}$/;
-                
-                if (!phoneRegex.test(phone)) {
-                    document.getElementById('phone-validation').textContent = 'Įveskite teisingą telefono numerį';
-                    document.getElementById('phone-validation').className = 'validation-message validation-error';
-                } else {
-                    document.getElementById('phone-validation').textContent = '';
-                }
-            });
-
             document.getElementById('role').addEventListener('change', toggleDocumentField);
             document.getElementById('register-form').addEventListener('submit', register);
         });
