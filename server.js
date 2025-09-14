@@ -391,7 +391,61 @@ app.get('/api/cities', async (req, res) => {
     res.status(500).json({ error: 'Nepavyko gauti duomenų' });
   }
 });
+// === Miestų paieška per Nominatim (OpenStreetMap) ===
+app.get('/api/cities-nominatim', async (req, res) => {
+    const { q, country } = req.query;
 
+    if (!q || q.length < 2) {
+        return res.json([]);
+    }
+
+    try {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+
+        // Parametrai pagal dokumentaciją
+        url.searchParams.append('q', q);
+        if (country) url.searchParams.append('country', country);
+        url.searchParams.append('format', 'json');
+        url.searchParams.append('addressdetails', '1');
+        url.searchParams.append('limit', '10');
+        url.searchParams.append('city', ''); // tik miestai
+
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Rubineta Pretenziju Sistema https://pretenzijos-sistema.onrender.com'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Filtruojam tik miestus, miestelius, kaimus
+        const cities = data
+            .filter(item => {
+                const type = item.type;
+                return ['city', 'town', 'village', 'hamlet'].includes(type);
+            })
+            .map(item => {
+                const address = item.address;
+                return {
+                    name: address.city || address.town || address.village || address.hamlet,
+                    admin1: address.state || address.county,
+                    country: address.country_code?.toUpperCase(),
+                    lat: item.lat,
+                    lon: item.lon
+                };
+            })
+            .filter(c => c.name); // tik su vardu
+
+        res.json(cities);
+    } catch (err) {
+        console.error('Nominatim klaida:', err.message);
+        res.status(500).json({ error: 'Nepavyko gauti miestų' });
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 // === Paleidžiame serverį ===
