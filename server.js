@@ -7,12 +7,11 @@ require('dotenv').config();
 
 const app = express();
 
-// Išsamiau sukonfigūruokite CORS
+// === IŠTAISYTI CORS: pašalinti baltus tarpus ===
 const corsOptions = {
   origin: [
-    'https://pretenzijos-sistema.onrender.com',
-   // 'https://pretenziju-sistema.onrender.com',
-    'http://localhost:3000' // lokaliam testavimui
+    'https://pretenzijos-sistema.onrender.com', // ← be tarpų!
+    'http://localhost:3000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -206,11 +205,11 @@ app.post('/notify-quality', async (req, res) => {
         console.error('Klaida siunčiant kokybės darbuotojui:', error);
         res.status(500).json({ success: false, error: error.message });
     }
-});-
+});
 
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
-    const { email, claimId, feedbackLink } = req.body; // Pakeista iš customerEmail į email
+    const { email, claimId, feedbackLink } = req.body;
 
     if (!email || !claimId || !feedbackLink) {
         return res.status(400).json({ 
@@ -221,7 +220,7 @@ app.post('/send-feedback-survey', async (req, res) => {
 
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
-        to: email, // Pakeista iš customerEmail į email
+        to: email,
         subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
         text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
     };
@@ -236,9 +235,7 @@ app.post('/send-feedback-survey', async (req, res) => {
     }
 });
 
-
-
-    // === 4. Laiškas klientui ir kokybės darbuotojui – kai meistras pažymi kaip išspręstą ===
+// === 4. Laiškas klientui ir kokybės darbuotojui – kai meistras pažymi kaip išspręstą ===
 app.post('/notify-resolved', async (req, res) => {
     const { claimId, customerEmail, customerName, productName } = req.body;
 
@@ -268,7 +265,7 @@ app.post('/notify-resolved', async (req, res) => {
     }
 });
 
-    // === Laiškas klientui – būsenos keitimas ===
+// === Laiškas klientui – būsenos keitimas ===
 app.post('/notify-status-change', async (req, res) => {
     const { claimId, customerEmail, customerName, status } = req.body;
 
@@ -303,6 +300,7 @@ app.post('/notify-status-change', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // === Miestų ir gatvių paieška per LVĢMC Vietovardžius API ===
 app.get('/api/cities-lvgmc', async (req, res) => {
     const { q } = req.query;
@@ -312,7 +310,7 @@ app.get('/api/cities-lvgmc', async (req, res) => {
     }
 
     try {
-        // Paieška pagal vietovę (miestą)
+        // ✅ Teisingas URL be tarpų!
         const url = `https://vietovardziai.lt/api/v1/places?name=${encodeURIComponent(q)}&limit=20`;
 
         const response = await fetch(url);
@@ -345,7 +343,9 @@ app.get('/api/cities-lvgmc', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
+// === PORT: svarbu! Render tikisi 10000 ===
+const PORT = process.env.PORT || 10000; // ← pakeista nuo 3000 į 10000
+
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
