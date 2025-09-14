@@ -5,8 +5,12 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const fetch = require('node-fetch');   // HTTP užklausoms (Geonames, rubineta.com)
 const LRU = require('lru-cache');      // paprastas atminties cache
+
+
 require('dotenv').config();
+
 const app = express();
+
 // Išsamiau sukonfigūruokite CORS
 const corsOptions = {
   origin: [
@@ -18,11 +22,14 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
+
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static('public'));
+
 // Įtraukite OPTIONS užklausų apdorojimą (svarbu CORS preflight užklausoms)
 app.options('*', cors(corsOptions));
+
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -33,6 +40,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS  // tavo 16 simbolių App Password
     }
 });
+
 // Patikriname, ar prisijungimas prie Gmail veikia
 transporter.verify((error, success) => {
     if (error) {
@@ -57,6 +65,7 @@ app.post('/send-password-reset', async (req, res) => {
         subject: 'Atkurti slaptažodį – Rubineta',
         text: `Sveiki,\n\nJūs paprašėte atkurti slaptažodį.\n\nSpauskite nuorodą, kad nustatytumėte naują:\n${resetLink}\n\nNuoroda galioja 1 valandą.\n\nJei to nedarėte – galite ignoruoti šį laišką.\n\nPagarbiai,\nRubineta komanda`
     };
+
     try {
         await transporter.sendMail(mailOptions);
         res.json({ success: true });
@@ -65,6 +74,8 @@ app.post('/send-password-reset', async (req, res) => {
         res.status(500).json({ success: false, error: 'Nepavyko išsiųsti laiško' });
     }
 });
+
+
 // === 1. Laiškas klientui – patvirtinimas, kad pretenzija priimta ===
 app.post('/send-confirmation', async (req, res) => {
     const { email, claimId, language = 'lt', isRegistered = false } = req.body;
@@ -95,6 +106,7 @@ app.post('/send-confirmation', async (req, res) => {
                 : `Sveiki,\n\nJūsų pretenzija #${claimId} sėkmingai priimta.\nAtsakysime per 24 valandas.\nInformuojame, kad galite pasiteirauti apie būseną pateikdami šį ID: ${claimId}\n\nPagarbiai,\nRubineta kokybės komanda`
         },
     };
+
     const lang = templates[language] ? language : 'lt';
     const { subject, body } = templates[lang];
 
@@ -104,6 +116,7 @@ app.post('/send-confirmation', async (req, res) => {
         subject,
         text: body
     };
+
     try {
         await transporter.sendMail(mailOptions);
         res.json({ success: true, message: 'Laiškas išsiųstas' });
@@ -112,12 +125,15 @@ app.post('/send-confirmation', async (req, res) => {
         res.status(500).json({ success: false, error: 'Nepavyko išsiųsti laiško klientui' });
     }
 });
+
 // === 2. Laiškas meistrui – kai priskiriama pretenzija ===
 app.post('/send-to-partner', async (req, res) => {
     const { claimId, partnerEmail, partnerContactPerson, note, attachments = [], claimLink, customer } = req.body;
+
     let body = `Sveiki, ${partnerContactPerson},\n\nJums priskirta pretenzija:\n`;
     body += `- ID: ${claimId}\n`;
     body += `- Rekomendacija: ${note || 'Nėra papildomų pastabų'}\n\n`;
+
     // --- Kliento kontaktai ---
     if (customer) {
         body += `🔹 **KONTAKTINĖ INFORMACIJA**\n`;
@@ -126,6 +142,7 @@ app.post('/send-to-partner', async (req, res) => {
         body += `- El. paštas: ${customer.email}\n`;
         body += `- Adresas: ${customer.street}, ${customer.city}, ${customer.postal}\n\n`;
     }
+
     // Prisegti dokumentai
     body += `Prisegti dokumentai:\n`;
     if (attachments.length > 0) {
@@ -135,17 +152,21 @@ app.post('/send-to-partner', async (req, res) => {
     } else {
         body += `- Nėra pridėtų dokumentų\n`;
     }
+
     // Nuoroda meistrui
     if (claimLink) {
         body += `\nPeržiūrėti visą užduotį: ${claimLink}\n\n`;
     }
+
     body += `Prašome išspręsti problemą ir atnaujinti būseną sistemoje.\n\nGeriausios sveikatos,\nRubineta kokybės komanda\ninfo@rubineta.lt\n+370 612 34567`;
+
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
         to: partnerEmail,
         subject: `Pretenzija ${claimId} – perduota jūsų aptarnavimui`,
         text: body
     };
+
     try {
         await transporter.sendMail(mailOptions);
         res.json({ success: true });
@@ -154,15 +175,18 @@ app.post('/send-to-partner', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // === 3. Laiškas kokybės darbuotojui – kai ateina nauja pretenzija ===
 app.post('/notify-quality', async (req, res) => {
     const { claimId } = req.body;
+
     const mailOptions = {
         from: `"Sistema" <${process.env.EMAIL_USER}>`,
         to: process.env.QUALITY_EMAIL,
         subject: `🔔 Nauja pretenzija #${claimId}`,
         text: `Sveiki,\n\nSistema gavo naują pretenziją: #${claimId}\nPrašome peržiūrėti administratoriaus zonoje: https://pretenzijos-sistema.onrender.com/admin.html`
     };
+
     try {
         await transporter.sendMail(mailOptions);
         res.json({ success: true, message: 'Pranešimas išsiųstas kokybės darbuotojui' });
@@ -171,6 +195,7 @@ app.post('/notify-quality', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
     const { email, claimId, feedbackLink } = req.body; // Pakeista iš customerEmail į email
@@ -181,12 +206,14 @@ app.post('/send-feedback-survey', async (req, res) => {
             error: 'Trūksta būtinų duomenų: email, claimId arba feedbackLink' 
         });
     }
+
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
         to: email, // Pakeista iš customerEmail į email
         subject: `Įvertinkite mūsų aptarnavimą – pretenzija #${claimId}`,
         text: `Ačiū, kad pasinaudojote mūsų paslaugomis!\n\nPrašome trumpai įvertinti aptarnavimą:\n${feedbackLink}\n\nJūsų nuomonė mums svarbi.\n\nPagarbiai,\nRubineta kokybės komanda`
     };
+
     try {
         await transporter.sendMail(mailOptions);
         console.log('✅ Apklausos laiškas išsiųstas klientui:', email);
@@ -196,9 +223,13 @@ app.post('/send-feedback-survey', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
+
     // === 4. Laiškas klientui ir kokybės darbuotojui – kai meistras pažymi kaip išspręstą ===
 app.post('/notify-resolved', async (req, res) => {
     const { claimId, customerEmail, customerName, productName } = req.body;
+
     // 1. Laiškas klientui
     const customerMail = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
@@ -206,6 +237,7 @@ app.post('/notify-resolved', async (req, res) => {
         subject: `✅ Jūsų pretenzija #${claimId} išspręsta`,
         text: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} (produktas: ${productName}) yra išspręsta.\nDėkojame, kad pasirinkote Rubineta.\n\nPagarbiai,\nRubineta kokybės komanda\ninfo@rubineta.lt\n+370 612 34567`
     };
+
     // 2. Laiškas kokybės darbuotojui
     const qualityMail = {
         from: `"Meistras" <${process.env.EMAIL_USER}>`,
@@ -213,6 +245,7 @@ app.post('/notify-resolved', async (req, res) => {
         subject: `🔧 Meistras išsprendė pretenziją #${claimId}`,
         text: `Meistras pranešė, kad pretenzija #${claimId} (produktas: ${productName}) yra išspręsta.\nPrašome patikrinti ir uždaryti užduotį sistemoje.\n\nPeržiūrėti: https://pretenzijos-sistema.onrender.com/claim-view.html?id=${claimId}`
     };
+
     try {
         await transporter.sendMail(customerMail);
         await transporter.sendMail(qualityMail);
@@ -222,9 +255,11 @@ app.post('/notify-resolved', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
     // === Laiškas klientui – būsenos keitimas ===
 app.post('/notify-status-change', async (req, res) => {
     const { claimId, customerEmail, customerName, status } = req.body;
+
     const templates = {
         'Perduota servisui': {
             subject: `Pretenzija #${claimId} – perduota servisui`,
@@ -235,16 +270,19 @@ app.post('/notify-status-change', async (req, res) => {
             body: `Sveiki, ${customerName},\n\nJūsų pretenzija #${claimId} yra išspręsta.\nDėkojame, kad pasirinkote Rubineta.\n\nPagarbiai,\nRubineta kokybės komanda`
         }
     };
+
     const template = templates[status] || {
         subject: `Pretenzija #${claimId} – būsena pasikeitė`,
         body: `Sveiki, ${customerName},\n\nJūsų pretenzijos #${claimId} būsena pasikeitė į: ${status}.\n\nPagarbiai,\nRubineta kokybės komanda`
     };
+
     const mailOptions = {
         from: `"Rubineta Pretenzijos" <${process.env.EMAIL_USER}>`,
         to: customerEmail,
         subject: template.subject,
         text: template.body
     };
+
     try {
         await transporter.sendMail(mailOptions);
         res.json({ success: true });
@@ -257,13 +295,16 @@ app.post('/notify-status-change', async (req, res) => {
 app.get('/api/countries', (req, res) => {
   res.json(['LT', 'LV', 'EE', 'PL', 'UA', 'BY']);
 });
+
 // Miestų/gyvenviečių sąrašas per Geonames (be pašto kodo)
 app.get('/api/cities', async (req, res) => {
   const country = (req.query.country || 'LT').toUpperCase();
   const q = (req.query.q || '').trim();
+
   if (!process.env.GEONAMES_USERNAME) {
     return res.status(500).json({ error: 'Trūksta GEONAMES_USERNAME .env faile' });
   }
+
   const cacheKey = `cities:${country}`;
   let cities = cache.get(cacheKey);
 
@@ -272,14 +313,17 @@ app.get('/api/cities', async (req, res) => {
       const url =
         `http://api.geonames.org/searchJSON?country=${country}` +
         `&featureClass=P&maxRows=1000&username=${encodeURIComponent(process.env.GEONAMES_USERNAME)}`;
+
       const r = await fetch(url);
       if (!r.ok) return res.status(502).json({ error: 'Geonames klaida' });
       const data = await r.json();
+
       cities = (data.geonames || []).map(p => ({
         name: p.name,
         admin1: p.adminName1,
         country: p.countryCode
       }));
+
       // pašalinam dublikatus pagal name+admin1
       const seen = new Set();
       cities = cities.filter(c => {
@@ -288,18 +332,23 @@ app.get('/api/cities', async (req, res) => {
         seen.add(key);
         return true;
       });
+
       cache.set(cacheKey, cities);
     }
+
     // jei pateiktas q – filtruojam pagal pradžią (case-insensitive)
     const out = q
       ? cities.filter(c => c.name.toLowerCase().startsWith(q.toLowerCase()))
       : cities;
+
     res.json(out.slice(0, 50)); // max 50 pasiūlymų
   } catch (err) {
     console.error('Geonames fetch klaida:', err);
     res.status(500).json({ error: 'Nepavyko gauti duomenų' });
   }
 });
+
+
 const PORT = process.env.PORT || 3000;
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
