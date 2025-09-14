@@ -10,7 +10,6 @@ require('dotenv').config();
 
 const app = express();
 
-// === IŠTAISYTI CORS: be baltų tarpų ===
 const corsOptions = {
   origin: [
     'https://pretenzijos-sistema.onrender.com',
@@ -31,30 +30,6 @@ const cache = new LRU({
   max: 5000,
   ttl: 24 * 60 * 60 * 1000 // 24 valandos
 });
-
-// API proxy maršrutas į rubineta.com
-app.get('/api/products', async (req, res) => {
-    try {
-        const { per_page = 25, page = 1, lang = 'lt' } = req.query;
-
-        const url = `https://rubineta.com/ru/wp-json/wc/v3/products?consumer_key=ck_ba4ea3a1372bfe158019acd0fb541def80d55f47&consumer_secret=cs_3008445c92b783c6b63717e0b64cae31d60f570e&per_page=${per_page}&page=${page}&lang=${lang}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        // Filtruoti tik lietuviškus produktus
-        const lithuanianProducts = Array.isArray(data)
-            ? data.filter(p => p.permalink && !/\/(ru|en|pl|lv)\//.test(p.permalink))
-            : [];
-
-        res.json(lithuanianProducts);
-    } catch (error) {
-        console.error('Klaida kviečiant rubineta.com API:', error);
-        res.status(500).json({ error: 'Nepavyko gauti produktų' });
-    }
-});
-
-
 
 // === Nodemailer transporter (Gmail) ===
 const transporter = nodemailer.createTransport({
@@ -325,61 +300,77 @@ app.post('/notify-status-change', async (req, res) => {
   }
 });
 
-// === Miestų paieška per Geonames ===
+// === API: Miestai + Pašto kodas (hibridas) ===
 app.get('/api/cities', async (req, res) => {
-  const country = (req.query.country || 'LT').toUpperCase();
-  const q = (req.query.q || '').trim();
+  const { q, country } = req.query;
+  const query = (q || '').trim();
+  const countryCode = (country || 'lt').toLowerCase();
 
-  if (!process.env.GEONAMES_USERNAME) {
-    return res.status(500).json({ error: 'Trūksta GEONAMES_USERNAME .env faile' });
-  }
-
-  const cacheKey = `cities:${country}`;
-  let cities = cache.get(cacheKey);
+  if (query.length < 2) return res.json([]);
 
   try {
-    if (!cities) {
-      const url = `http://api.geonames.org/searchJSON?country=${country}&featureClass=P&maxRows=1000&username=${encodeURIComponent(process.env.GEONAMES_USERNAME)}`;
-      const r = await fetch(url);
-      if (!r.ok) return res.status(502).json({ error: 'Geonames klaida' });
-      const data = await r.json();
+    let cities = [];
 
-      cities = (data.geonames || []).map(p => ({
-        name: p.name,
-        admin1: p.adminName1,
-        country: p.countryCode
-      }));
+    if (countryCode === 'lt') {
+      // 🔹 LIETUVA: postit.lt
+      const url = `https://api.postit.lt/v2/?city=${encodeURIComponent(query)}&key=postit.lt-examplekey`;
+      const response = await fetch(url);
+      const data = await response.json();
 
-      const seen = new Set();
-      cities = cities.filter(c => {
-        const key = `${c.name}||${c.admin1}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+      if (data.success && Array.isArray(data.data)) {
+        cities = data.data.map(item => ({
+          name: item.city,
+          admin1: item.municipality,
+          postal: item.post_code,
+          country: 'LT'
+        }));
+      }
+    } else {
+      // 🔹 KITOS ŠALYS: Geonames
+      const username = process.env.GEONAMES_USERNAME;
+      if (!username) return res.status(500).json({ error: 'No GEONAMES_USERNAME' });
 
-      cache.set(cacheKey, cities);
+      const cacheKey = `cities:${countryCode}`;
+      let cached = cache.get(cacheKey);
+
+      if (!cached) {
+        const url = `http://api.geonames.org/searchJSON?country=${countryCode.toUpperCase()}&featureClass=P&maxRows=1000&username=${encodeURIComponent(username)}`;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`Geonames HTTP ${r.status}`);
+        const data = await r.json();
+
+        cached = (data.geonames || []).map(p => ({
+          name: p.name,
+          admin1: p.adminName1,
+          country: p.countryCode
+        }));
+
+        const seen = new Set();
+        cached = cached.filter(c => {
+          const key = `${c.name}||${c.admin1}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        cache.set(cacheKey, cached);
+      }
+
+      cities = cached.filter(c => c.name.toLowerCase().startsWith(query.toLowerCase()));
     }
 
-    const out = q
-      ? cities.filter(c => c.name.toLowerCase().startsWith(q.toLowerCase()))
-      : cities;
+    // Filtruojam pagal įvestį
+    const filtered = cities.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
 
-    res.json(out.slice(0, 50));
+    res.json(filtered.slice(0, 50));
   } catch (err) {
-    console.error('Geonames fetch klaida:', err);
+    console.error('Klaida gaunant miestus:', err.message);
     res.status(500).json({ error: 'Nepavyko gauti duomenų' });
   }
 });
 
-// === Palaikomos šalys ===
-app.get('/api/countries', (req, res) => {
-  res.json(['LT', 'LV', 'EE', 'PL', 'UA', 'BY']);
-});
-
-// === PORT ir paleidimas ===
+// === Paleidžiamas serveris ===
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
 });
