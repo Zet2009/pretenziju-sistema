@@ -115,75 +115,75 @@
     <main>
         <h1>Registruotis</h1>
         <form id="register-form" onsubmit="register(event)">
-    <div class="form-group">
-        <label for="name">Vardas *</label>
-        <input type="text" id="name" name="name" autocomplete="given-name" required>
-    </div>
-    <div class="form-group">
-        <label for="surname">Pavardė *</label>
-        <input type="text" id="surname" name="surname" autocomplete="family-name" required>
-    </div>
-    <div class="form-group">
-        <label for="email">El. paštas *</label>
-        <input type="email" id="email" name="email" autocomplete="email" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Slaptažodis *</label>
-        <input type="password" id="password" name="password" autocomplete="new-password" required>
-    </div>
-    <div class="form-group">
-        <label for="role">Veiklos tipas *</label>
-        <select id="role" name="role" onchange="toggleDocumentField()">
-            <option value="customer">Galutinis vartotojas</option>
-            <option value="installer">Montuotojas</option>
-            <option value="dealer">Prekybininkas</option>
-            <option value="designer">Projektuotojas</option>
-            <option value="other">Kita</option>
-        </select>
-    </div>
-    <div class="form-group" id="document-field">
-        <label for="document">Įkelkite dokumentą (PDF, nuotrauka)</label>
-        <input type="file" id="document" name="document" accept=".pdf,image/*">
-    </div>
-    <div class="form-group">
-        <label for="phone">Telefonas *</label>
-        <input type="tel" id="phone" name="phone" autocomplete="tel" required>
-    </div>
-    <div class="form-group">
-        <label for="street">Adresas (gatvė, namas, butas) *</label>
-        <input type="text" id="street" name="street" autocomplete="address-line1" required>
-    </div>
+            <div class="form-group">
+                <label for="name">Vardas *</label>
+                <input type="text" id="name" name="name" autocomplete="given-name" required>
+            </div>
+            <div class="form-group">
+                <label for="surname">Pavardė *</label>
+                <input type="text" id="surname" name="surname" autocomplete="family-name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">El. paštas *</label>
+                <input type="email" id="email" name="email" autocomplete="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Slaptažodis *</label>
+                <input type="password" id="password" name="password" autocomplete="new-password" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Veiklos tipas *</label>
+                <select id="role" name="role" onchange="toggleDocumentField()">
+                    <option value="customer">Galutinis vartotojas</option>
+                    <option value="installer">Montuotojas</option>
+                    <option value="dealer">Prekybininkas</option>
+                    <option value="designer">Projektuotojas</option>
+                    <option value="other">Kita</option>
+                </select>
+            </div>
+            <div class="form-group" id="document-field">
+                <label for="document">Įkelkite dokumentą (PDF, nuotrauka)</label>
+                <input type="file" id="document" name="document" accept=".pdf,image/*">
+            </div>
+            <div class="form-group">
+                <label for="phone">Telefonas *</label>
+                <input type="tel" id="phone" name="phone" autocomplete="tel" required>
+            </div>
+            <div class="form-group">
+                <label for="street">Adresas (gatvė, namas, butas) *</label>
+                <input type="text" id="street" name="street" autocomplete="address-line1" required>
+            </div>
 
-    <!-- ŠALIS -->
-    <div class="form-group">
-        <label for="country">Šalis *</label>
-        <select id="country" name="country" autocomplete="country" required>
-            <option value="">Pasirinkite šalį</option>
-            <option value="lt">Lietuva</option>
-            <option value="lv">Latvija</option>
-            <option value="ee">Estija</option>
-            <option value="by">Baltarusija</option>
-            <option value="kz">Kazachstanas</option>
-            <option value="ba">Bosnija ir Hercegovina</option>
-            <option value="pl">Lenkija</option>
-            <option value="ua">Ukraina</option>
-            <option value="ru">Rusija</option>
-        </select>
-    </div>
+            <!-- ŠALIS -->
+            <div class="form-group">
+                <label for="country">Šalis *</label>
+                <select id="country" name="country" autocomplete="country" required>
+                    <option value="">Pasirinkite šalį</option>
+                    <option value="lt">Lietuva</option>
+                    <option value="lv">Latvija</option>
+                    <option value="ee">Estija</option>
+                    <option value="by">Baltarusija</option>
+                    <option value="kz">Kazachstanas</option>
+                    <option value="ba">Bosnija ir Hercegovina</option>
+                    <option value="pl">Lenkija</option>
+                    <option value="ua">Ukraina</option>
+                    <option value="ru">Rusija</option>
+                </select>
+            </div>
 
-    <!-- MIESTAS -->
-    <div class="form-group">
-        <label for="city">Miestas *</label>
-        <input type="text" id="city" name="city" list="city-suggestions" autocomplete="address-level2" required>
-        <datalist id="city-suggestions"></datalist>
-    </div>
+            <!-- MIESTAS SU NOMINATIM -->
+            <div class="form-group">
+                <label for="city">Miestas *</label>
+                <input type="text" id="city" name="city" list="city-suggestions" autocomplete="address-level2" required>
+                <datalist id="city-suggestions"></datalist>
+            </div>
 
-    <div class="form-group">
-        <label for="postal">Pašto kodas *</label>
-        <input type="text" id="postal" name="postal" autocomplete="postal-code" required>
-    </div>
-    <button type="submit" class="btn">Registruotis</button>
-</form>
+            <div class="form-group">
+                <label for="postal">Pašto kodas *</label>
+                <input type="text" id="postal" name="postal" autocomplete="postal-code" required>
+            </div>
+            <button type="submit" class="btn">Registruotis</button>
+        </form>
         <div class="links">
             <p>Jau turite paskyrą? <a href="login.html">Prisijungti</a></p>
         </div>
@@ -194,13 +194,11 @@
     </footer>
 
     <script>
-        // Perjungti dokumento lauką pagal vaidmenį
         function toggleDocumentField() {
             const role = document.getElementById('role').value;
             document.getElementById('document-field').style.display = role === 'installer' ? 'block' : 'none';
         }
 
-        // Įkelti failą į Cloudinary
         function uploadToCloudinary(file, onSuccess, onError) {
             const formData = new FormData();
             formData.append('file', file);
@@ -229,7 +227,6 @@
                 .catch(onError);
         }
 
-        // Registracijos funkcija
         async function register(event) {
             event.preventDefault();
 
@@ -244,11 +241,9 @@
             const country = document.getElementById('country').value;
             const postal = document.getElementById('postal').value.trim();
 
-            // Išskiriame miestą iš "Miestas (Rajonas)"
             const m = cityRaw.match(/^(.+?)(?:\s*\((.+)\))?$/);
             const cityName = m ? m[1].trim() : cityRaw;
 
-            // Tikriname, ar miestas egzistuoja
             const isValidCity = await validateCityExact(cityName, country);
             if (!isValidCity) {
                 const cityInput = document.getElementById('city');
@@ -259,14 +254,12 @@
                 document.getElementById('city').setCustomValidity('');
             }
 
-            // Patikrinti, ar toks el. paštas jau egzistuoja
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (users.some(u => u.email === email)) {
                 alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
                 return;
             }
 
-            // Sukurti naują vartotoją
             const newUser = {
                 id: 'USR-' + Date.now(),
                 name, surname, email, password, role,
@@ -297,7 +290,6 @@
             }
         }
 
-        // === AUTOCOMPLETE SU /api/cities-nominatim ===
         (function initAutocomplete() {
             const input = document.getElementById('city');
             const datalist = document.getElementById('city-suggestions');
@@ -318,7 +310,7 @@
                 try {
                     const url = new URL('/api/cities-nominatim', window.location.origin);
                     url.searchParams.append('q', query);
-                    if (country) url.searchParams.append('countrycodes', country);
+                    if (country) url.searchParams.append('country', country); // ✅ Naudojame 'country'
 
                     const response = await fetch(url);
                     const cities = await response.json();
