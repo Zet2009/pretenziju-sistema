@@ -154,11 +154,28 @@
                 <input type="text" id="street" required>
             </div>
 
-            <!-- MIESTAS -->
+            <!-- ŠALIS -->
+            <div class="form-group">
+                <label for="country">Šalis *</label>
+                <select id="country" required>
+                    <option value="">Pasirinkite šalį</option>
+                    <option value="lt">Lietuva</option>
+                    <option value="lv">Latvija</option>
+                    <option value="ee">Estija</option>
+                    <option value="by">Baltarusija</option>
+                    <option value="kz">Kazachstanas</option>
+                    <option value="ba">Bosnija ir Hercegovina</option>
+                    <option value="pl">Lenkija</option>
+                    <option value="ua">Ukraina</option>
+                    <option value="ru">Rusija</option>
+                </select>
+            </div>
+
+            <!-- MIESTAS SU ALGOLIA -->
             <div class="form-group">
                 <label for="city">Miestas *</label>
-                <input type="text" id="city" name="city" list="lt-locations" required autocomplete="off">
-                <datalist id="lt-locations"></datalist>
+                <input type="text" id="city" name="city" list="city-suggestions" required autocomplete="off">
+                <datalist id="city-suggestions"></datalist>
             </div>
 
             <div class="form-group">
@@ -177,6 +194,10 @@
     </footer>
 
     <script>
+        // === TAU REIKIA ČIA ĮRAŠYTI SAVO RAKTUS ===
+        const ALGOLIA_APP_ID = '7AQE50SO07';           // Pvz: "latency"
+        const ALGOLIA_API_KEY = 'ccf354890605dec64ee63cf3ffcf729a';  // Pvz: "b9a7c80fc6..."
+
         // Perjungti dokumento lauką pagal vaidmenį
         function toggleDocumentField() {
             const role = document.getElementById('role').value;
@@ -187,7 +208,7 @@
         function uploadToCloudinary(file, onSuccess, onError) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr'); // Keisk į savo
+            formData.append('upload_preset', 'r6wao0fr');
 
             let uploadUrl;
             if (file.type.startsWith('image/')) {
@@ -226,16 +247,16 @@
             const phone = document.getElementById('phone').value.trim();
             const street = document.getElementById('street').value.trim();
             const cityRaw = document.getElementById('city').value.trim();
+            const country = document.getElementById('country').value;
             const postal = document.getElementById('postal').value.trim();
 
-            // Išskiriam "Miestas (Rajonas)" -> city + region
+            // Išskiriame miestą iš "Miestas (Rajonas)"
             const m = cityRaw.match(/^(.+?)(?:\s*\((.+)\))?$/);
-            const city = m ? m[1].trim() : cityRaw;
-            const region = m && m[2] ? m[2].trim() : '';
+            const cityName = m ? m[1].trim() : cityRaw;
 
-            // Patikrinam, kad miestas pasirinktas iš siūlomo sąrašo
-            const ok = await validateCityExact(city);
-            if (!ok) {
+            // Tikriname, ar miestas egzistuoja Algolia duomenyse
+            const isValidCity = await validateCityExact(cityName, country);
+            if (!isValidCity) {
                 const cityInput = document.getElementById('city');
                 cityInput.setCustomValidity('Pasirinkite miestą iš siūlomo sąrašo.');
                 cityInput.reportValidity();
@@ -263,8 +284,8 @@
                 createdAt: new Date().toISOString(),
                 phone,
                 street,
-                city,           // švarus miestas
-                region,         // apskritis/rajonas (jei buvo parinktas)
+                city: cityName,
+                country,
                 postal,
                 documents: []
             };
@@ -272,7 +293,6 @@
             const fileInput = document.getElementById('document');
             const file = fileInput.files[0];
 
-            // Jei montuotojas ir įkeltas dokumentas – įkelk į Cloudinary
             if (role === 'installer' && file) {
                 uploadToCloudinary(file, (documentData) => {
                     newUser.documents.push(documentData);
@@ -290,61 +310,107 @@
                 location.href = 'login.html';
             }
         }
-    </script>
 
-    <!-- Miestų/kaimų autocomplete + tikslus validavimas -->
-    <script>
-    (function(){
-      const COUNTRY = 'LT';
-      const input = document.getElementById('city');
-      const dl = document.getElementById('lt-locations');
-      let lastList = []; // paskutiniai pasiūlymai tiksliai validacijai
+        // === Miestų autoužpildymas ir validacija su Algolia ===
+        (function initCityAutocomplete() {
+            const input = document.getElementById('city');
+            const datalist = document.getElementById('city-suggestions');
+            let lastResults = [];
 
-      function debounce(fn, ms){ let t; return function(...a){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a), ms); }; }
+            const debounce = (fn, delay) => {
+                let timer;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fn.apply(this, args), delay);
+                };
+            };
 
-      async function fetchCities(q){
-        if (!q || q.length < 2) return [];
-        try{
-          const r = await fetch(`/api/cities?country=${COUNTRY}&q=${encodeURIComponent(q)}`);
-          if (!r.ok) return [];
-          const list = await r.json();
-          return Array.isArray(list) ? list : [];
-        }catch(e){ return []; }
-      }
+            async function searchCities(query) {
+                const country = document.getElementById('country').value;
+                if (query.length < 2) return [];
 
-      const onType = debounce(async () => {
-        const q = (input.value||'').trim();
-        if (q.length < 2){ dl.innerHTML=''; lastList=[]; return; }
-        const list = await fetchCities(q);
-        lastList = list;
-        dl.innerHTML = list.map(c => `<option value="${c.name}${c.admin1?(' ('+c.admin1+')'):''}">`).join('');
-      }, 250);
+                const body = {
+                    query,
+                    type: 'city',
+                    hitsPerPage: 10
+                };
 
-      input.addEventListener('input', onType);
-      input.addEventListener('focus', () => { const v=(input.value||'').trim(); if (v.length>=2) onType(); });
+                if (country) {
+                    body.countries = [country];
+                }
 
-      // tikslus patikrinimas (naudojama register() ir blur metu)
-      window.validateCityExact = async function(cityName){
-        const q = String(cityName||'').trim();
-        if (q.length < 2) return false;
-        // jei paskutiniame sąraše nėra, pasiklausiam API dar kartą
-        if (!lastList.length){
-          lastList = await fetchCities(q);
-        }
-        const needle = q.toLowerCase();
-        return lastList.some(item => (item.name||'').toLowerCase() === needle);
-      };
+                try {
+                    const response = await fetch('https://places-dsn.algolia.net/1/places/query', {
+                        method: 'POST',
+                        headers: {
+                            'X-Algolia-Application-Id': ALGOLIA_APP_ID,
+                            'X-Algolia-API-Key': ALGOLIA_API_KEY,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    });
 
-      // UX: jei išeina iš lauko – bandome validuoti
-      input.addEventListener('blur', async () => {
-        const raw = (input.value||'').trim();
-        const m = raw.match(/^(.+?)(?:\s*\((.+)\))?$/);
-        const city = m ? m[1].trim() : raw;
-        const ok = await window.validateCityExact(city);
-        input.setCustomValidity(ok ? '' : 'Pasirinkite miestą iš siūlomo sąrašo.');
-      });
-    })();
+                    if (!response.ok) throw new Error('API klaida');
+                    const data = await response.json();
+                    return data.hits || [];
+                } catch (err) {
+                    console.error('Algolia klaida:', err);
+                    return [];
+                }
+            }
+
+            const handleInput = debounce(async () => {
+                const q = input.value.trim();
+                if (q.length < 2) {
+                    datalist.innerHTML = '';
+                    lastResults = [];
+                    return;
+                }
+
+                const results = await searchCities(q);
+                lastResults = results;
+
+                datalist.innerHTML = results.map(hit => {
+                    const name = hit.locale_names?.[0] || '';
+                    const admin = hit.administrative?.[0] || '';
+                    const display = admin ? `${name} (${admin})` : name;
+                    return `<option value="${display}">`;
+                }).join('');
+            }, 300);
+
+            input.addEventListener('input', handleInput);
+            input.addEventListener('focus', () => {
+                if (input.value.length >= 2) handleInput();
+            });
+
+            window.validateCityExact = async function(cityName, countryCode) {
+                const q = cityName.trim().toLowerCase();
+                if (q.length < 2) return false;
+
+                // Bandome iš karto patikrinti paskutiniuose rezultatuose
+                if (lastResults.length > 0) {
+                    return lastResults.some(hit =>
+                        (hit.locale_names?.[0] || '').toLowerCase().trim() === q
+                    );
+                }
+
+                // Jei nieko nėra – darome papildomą užklausą
+                const results = await searchCities(q);
+                return results.some(hit =>
+                    (hit.locale_names?.[0] || '').toLowerCase().trim() === q
+                );
+            };
+
+            input.addEventListener('blur', async () => {
+                const rawValue = input.value.trim();
+                const match = rawValue.match(/^(.+?)(?:\s*\((.+)\))?$/);
+                const cityName = match ? match[1].trim() : rawValue;
+                const countryValue = document.getElementById('country').value;
+
+                const isValid = await window.validateCityExact(cityName, countryValue);
+                input.setCustomValidity(isValid ? '' : 'Pasirinkite miestą iš siūlomo sąrašo.');
+            });
+        })();
     </script>
 </body>
 </html>
-
