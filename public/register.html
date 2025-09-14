@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registruotis – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-theme-classic@1.7.5/dist/theme.min.css">
     <style>
         :root {
             --primary: #2D2D2D;
@@ -17,8 +16,6 @@
             --white: #FFFFFF;
             --gray: #757575;
             --font: 'Roboto', 'Arial', sans-serif;
-            --error: #e74c3c;
-            --success: #2ecc71;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -57,7 +54,7 @@
             text-align: center;
             font-weight: 500;
         }
-        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group { margin-bottom: 20px; }
         label {
             display: block;
             margin-bottom: 8px;
@@ -91,12 +88,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        .btn:disabled {
-            background: var(--gray);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
         .links { margin-top: 20px; text-align: center; font-size: 14px; color: var(--gray); }
         .links a { color: var(--primary); text-decoration: none; font-weight: 500; }
         .links a:hover { text-decoration: underline; }
@@ -108,77 +99,6 @@
             border-top: 1px solid #dee2e6;
             padding-top: 20px;
             background: var(--secondary);
-        }
-        .validation-message {
-            font-size: 14px;
-            margin-top: 5px;
-            display: block;
-        }
-        .validation-error { color: var(--error); }
-        .validation-success { color: var(--success); }
-        .ap-input-icon { position: absolute; right: 12px; top: 38px; }
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: var(--white);
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        /* Algolia Autocomplete stiliaus pritaikymas */
-        .ap-suggestion { 
-            padding: 10px 15px; 
-            border-bottom: 1px solid #eee;
-        }
-        .ap-name {
-            font-weight: 500;
-        }
-        .ap-address {
-            font-size: 12px;
-            color: var(--gray);
-        }
-        .ap-footer { display: none; }
-        /* Atsarginio varianto stilius */
-        .suggestions-container {
-            position: absolute;
-            width: 100%;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 0 0 6px 6px;
-            border-top: none;
-            z-index: 1000;
-            max-height: 200px;
-            overflow-y: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .suggestion-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        }
-        .suggestion-item:hover {
-            background-color: #f5f5f5;
-        }
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
-        .search-icon {
-            position: absolute;
-            right: 12px;
-            top: 38px;
-            color: var(--gray);
-        }
-        .info-message {
-            background-color: #e7f3ff;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            border-left: 4px solid #0066cc;
         }
     </style>
 </head>
@@ -194,12 +114,7 @@
 
     <main>
         <h1>Registruotis</h1>
-        
-        <div class="info-message">
-            <strong>Atnaujinta adresų paieška:</strong> Dabar naudojame naujausią Algolia Places API versiją, kuri užtikrina geresnį veikimą ir patikimumą.
-        </div>
-        
-        <form id="register-form">
+        <form id="register-form" onsubmit="register(event)">
             <div class="form-group">
                 <label for="name">Vardas *</label>
                 <input type="text" id="name" required>
@@ -211,16 +126,14 @@
             <div class="form-group">
                 <label for="email">El. paštas *</label>
                 <input type="email" id="email" required>
-                <span id="email-validation" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label for="password">Slaptažodis *</label>
                 <input type="password" id="password" required>
-                <span id="password-validation" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label for="role">Veiklos tipas *</label>
-                <select id="role">
+                <select id="role" onchange="toggleDocumentField()">
                     <option value="customer">Galutinis vartotojas</option>
                     <option value="installer">Montuotojas</option>
                     <option value="dealer">Prekybininkas</option>
@@ -235,30 +148,41 @@
             <div class="form-group">
                 <label for="phone">Telefonas *</label>
                 <input type="tel" id="phone" required>
-                <span id="phone-validation" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label for="street">Adresas (gatvė, namas, butas) *</label>
                 <input type="text" id="street" required>
             </div>
 
-            <!-- MIESTAS su atnaujinta Algolia Places integracija -->
+            <!-- ŠALIS -->
+            <div class="form-group">
+                <label for="country">Šalis *</label>
+                <select id="country" required>
+                    <option value="">Pasirinkite šalį</option>
+                    <option value="lt">Lietuva</option>
+                    <option value="lv">Latvija</option>
+                    <option value="ee">Estija</option>
+                    <option value="by">Baltarusija</option>
+                    <option value="kz">Kazachstanas</option>
+                    <option value="ba">Bosnija ir Hercegovina</option>
+                    <option value="pl">Lenkija</option>
+                    <option value="ua">Ukraina</option>
+                    <option value="ru">Rusija</option>
+                </select>
+            </div>
+
+            <!-- MIESTAS SU ALGOLIA -->
             <div class="form-group">
                 <label for="city">Miestas *</label>
-                <input type="search" id="city" name="city" required autocomplete="off" placeholder="Pradėkite rašyti miestą...">
-                <div class="search-icon">🔍</div>
-                <span id="city-validation" class="validation-message"></span>
-                <div id="city-suggestions" class="suggestions-container" style="display: none;"></div>
+                <input type="text" id="city" name="city" list="city-suggestions" required autocomplete="off">
+                <datalist id="city-suggestions"></datalist>
             </div>
 
             <div class="form-group">
                 <label for="postal">Pašto kodas *</label>
                 <input type="text" id="postal" required>
             </div>
-            <button type="submit" class="btn" id="submit-btn">
-                <span id="btn-text">Registruotis</span>
-                <span id="btn-loading" style="display:none;"><span class="loading-spinner"></span> Registruojama...</span>
-            </button>
+            <button type="submit" class="btn">Registruotis</button>
         </form>
         <div class="links">
             <p>Jau turite paskyrą? <a href="login.html">Prisijungti</a></p>
@@ -269,205 +193,10 @@
         © 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt
     </footer>
 
-    <!-- Naujausia Algolia Autocomplete biblioteka -->
-    <script src="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-plugin-algolia-insights"></script>
-    
     <script>
-        // Vietinė miestų duomenų bazė kaip atsarginis variantas
-        const lithuanianCities = [
-            "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys", "Alytus",
-            "Marijampolė", "Mažeikiai", "Jonava", "Utena", "Kėdainiai", "Telšiai",
-            "Visaginas", "Tauragė", "Ukmergė", "Plungė", "Kretinga", "Palanga",
-            "Radviliškis", "Šilutė", "Biržai", "Gargždai", "Elektrėnai", "Kuršėnai",
-            "Garliava", "Jurbarkas", "Raseiniai", "Naujoji Akmenė", "Anykščiai",
-            "Lentvaris", "Grigiškės", "Prienai", "Joniškis", "Kelmė", "Kaišiadorys",
-            "Pasvalys", "Kupiškis", "Zarasai", "Skuodas", "Kazlų Rūda", "Širvintos",
-            "Molėtai", "Šalčininkai", "Šakiai", "Ignalina", "Pabradė", "Nemenčinė",
-            "Pakruojis", "Švenčionys", "Trakai", "Vievis", "Lazdijai", "Kalvarija",
-            "Rietavas", "Žiežmariai", "Eišiškės", "Ariogala", "Venta", "Šeduva",
-            "Birštonas", "Akmenė", "Tytuvėnai", "Rūdiškės", "Vilkaviškis", "Varniai",
-            "Seda", "Viekšniai", "Nida", "Ramygala", "Pandėlys", "Baltoji Vokė",
-            "Dūkštas", "Daugai", "Obeliai", "Vadžgirys", "Antazavė", "Salantai"
-        ];
-
-        // Algolia Places konfigūracija
-        const initAlgoliaPlaces = () => {
-            try {
-                // Inicijuojame Algolia Autocomplete
-                const autocomplete = autocompleteJs({
-                    container: '#city',
-                    placeholder: 'Pradėkite rašyti miestą...',
-                    getSources({ query }) {
-                        return [{
-                            sourceId: 'places',
-                            getItems() {
-                                // Naudojame Algolia Places API tiesiogiai
-                                return fetch(
-                                    `https://places-dsn.algolia.net/1/places/query`,
-                                    {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-Algolia-Application-Id': '7AQE50SO07',
-                                            'X-Algolia-API-Key': 'ccf354890605dec64ee63cf3ffcf729a'
-                                        },
-                                        body: JSON.stringify({
-                                            query: query,
-                                            type: 'city',
-                                            countries: ['lt'],
-                                            language: 'lt',
-                                            hitsPerPage: 5
-                                        })
-                                    }
-                                )
-                                .then(response => response.json())
-                                .then(data => {
-                                    return data.hits || [];
-                                })
-                                .catch(error => {
-                                    console.error('Algolia Places klaida:', error);
-                                    // Grąžiname tuščią masyvą, kad nebūtų klaidų
-                                    return [];
-                                });
-                            },
-                            templates: {
-                                item({ item }) {
-                                    return `
-                                        <div class="ap-suggestion">
-                                            <div class="ap-name">${item.locale_names[0]}</div>
-                                            <div class="ap-address">${item.country}, ${item.administrative && item.administrative[0] ? item.administrative[0] : ''}</div>
-                                        </div>
-                                    `;
-                                },
-                                noResults() {
-                                    return 'Nieko nerasta. Bandykite kitą paieškos užklausą.';
-                                }
-                            },
-                            onSelect({ item }) {
-                                document.getElementById('city').value = item.locale_names[0];
-                                document.getElementById('city').setAttribute('data-lat', item._geoloc.lat);
-                                document.getElementById('city').setAttribute('data-lng', item._geoloc.lng);
-                                document.getElementById('city').setAttribute('data-valid', 'true');
-                                
-                                if (item.postcode && item.postcode[0] && !document.getElementById('postal').value) {
-                                    document.getElementById('postal').value = item.postcode[0];
-                                }
-                                
-                                document.getElementById('city-validation').textContent = 'Miestas patvirtintas';
-                                document.getElementById('city-validation').className = 'validation-message validation-success';
-                            }
-                        }];
-                    }
-                });
-                
-                return true;
-            } catch (error) {
-                console.error('Nepavyko inicijuoti Algolia Places:', error);
-                return false;
-            }
-        };
-
-        // Atsarginis paieškos variantas
-        const initFallbackSearch = () => {
-            const cityInput = document.getElementById('city');
-            const validationSpan = document.getElementById('city-validation');
-            const suggestionsContainer = document.getElementById('city-suggestions');
-            
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            function showSuggestions(suggestions) {
-                suggestionsContainer.innerHTML = '';
-                
-                if (suggestions.length > 0) {
-                    suggestionsContainer.style.display = 'block';
-                    suggestions.forEach(city => {
-                        const div = document.createElement('div');
-                        div.className = 'suggestion-item';
-                        div.textContent = city;
-                        div.addEventListener('click', function() {
-                            cityInput.value = city;
-                            cityInput.setAttribute('data-valid', 'true');
-                            suggestionsContainer.style.display = 'none';
-                            validationSpan.textContent = 'Miestas patvirtintas';
-                            validationSpan.className = 'validation-message validation-success';
-                        });
-                        suggestionsContainer.appendChild(div);
-                    });
-                } else {
-                    suggestionsContainer.style.display = 'none';
-                }
-            }
-
-            const searchCities = debounce(function() {
-                const value = cityInput.value.toLowerCase().trim();
-                
-                if (value.length < 2) {
-                    suggestionsContainer.style.display = 'none';
-                    validationSpan.textContent = '';
-                    return;
-                }
-                
-                const filtered = lithuanianCities.filter(city => 
-                    city.toLowerCase().includes(value)
-                );
-                
-                showSuggestions(filtered);
-                
-                if (filtered.length === 0) {
-                    validationSpan.textContent = 'Miestas nerastas. Įveskite kitą pavadinimą.';
-                    validationSpan.className = 'validation-message validation-error';
-                } else {
-                    validationSpan.textContent = 'Rasta ' + filtered.length + ' atitikmenų. Pasirinkite iš sąrašo.';
-                    validationSpan.className = 'validation-message validation-success';
-                }
-            }, 300);
-
-            cityInput.addEventListener('input', searchCities);
-            
-            cityInput.addEventListener('focus', function() {
-                const value = this.value.toLowerCase().trim();
-                if (value.length >= 2) {
-                    searchCities();
-                }
-            });
-
-            document.addEventListener('click', function(e) {
-                if (e.target !== cityInput && !suggestionsContainer.contains(e.target)) {
-                    suggestionsContainer.style.display = 'none';
-                }
-            });
-
-            cityInput.addEventListener('blur', function() {
-                const value = this.value.trim();
-                suggestionsContainer.style.display = 'none';
-                
-                if (value.length === 0) {
-                    validationSpan.textContent = '';
-                    return;
-                }
-                
-                if (!lithuanianCities.some(city => city.toLowerCase() === value.toLowerCase())) {
-                    validationSpan.textContent = 'Pasirinkite miestą iš siūlomo sąrašo';
-                    validationSpan.className = 'validation-message validation-error';
-                    this.setAttribute('data-valid', 'false');
-                } else {
-                    validationSpan.textContent = 'Miestas patvirtintas';
-                    validationSpan.className = 'validation-message validation-success';
-                    this.setAttribute('data-valid', 'true');
-                }
-            });
-        };
+        // === TAU REIKIA ČIA ĮRAŠYTI SAVO RAKTUS ===
+        const ALGOLIA_APP_ID = '7AQE50SO07';           // Pvz: "latency"
+        const ALGOLIA_API_KEY = 'ccf354890605dec64ee63cf3ffcf729a';  // Pvz: "b9a7c80fc6..."
 
         // Perjungti dokumento lauką pagal vaidmenį
         function toggleDocumentField() {
@@ -509,10 +238,6 @@
         // Registracijos funkcija
         async function register(event) {
             event.preventDefault();
-            
-            document.getElementById('btn-text').style.display = 'none';
-            document.getElementById('btn-loading').style.display = 'inline';
-            document.getElementById('submit-btn').disabled = true;
 
             const name = document.getElementById('name').value.trim();
             const surname = document.getElementById('surname').value.trim();
@@ -521,31 +246,33 @@
             const role = document.getElementById('role').value;
             const phone = document.getElementById('phone').value.trim();
             const street = document.getElementById('street').value.trim();
-            const city = document.getElementById('city').value.trim();
+            const cityRaw = document.getElementById('city').value.trim();
+            const country = document.getElementById('country').value;
             const postal = document.getElementById('postal').value.trim();
-            
-            if (document.getElementById('city').getAttribute('data-valid') === 'false') {
-                document.getElementById('city-validation').textContent = 'Pasirinkite miestą iš siūlomo sąrašo';
-                document.getElementById('city-validation').className = 'validation-message validation-error';
-                
-                document.getElementById('btn-text').style.display = 'inline';
-                document.getElementById('btn-loading').style.display = 'none';
-                document.getElementById('submit-btn').disabled = false;
-                
+
+            // Išskiriame miestą iš "Miestas (Rajonas)"
+            const m = cityRaw.match(/^(.+?)(?:\s*\((.+)\))?$/);
+            const cityName = m ? m[1].trim() : cityRaw;
+
+            // Tikriname, ar miestas egzistuoja Algolia duomenyse
+            const isValidCity = await validateCityExact(cityName, country);
+            if (!isValidCity) {
+                const cityInput = document.getElementById('city');
+                cityInput.setCustomValidity('Pasirinkite miestą iš siūlomo sąrašo.');
+                cityInput.reportValidity();
                 return;
+            } else {
+                document.getElementById('city').setCustomValidity('');
             }
 
+            // Patikrinti, ar toks el. paštas jau egzistuoja
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (users.some(u => u.email === email)) {
                 alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
-                
-                document.getElementById('btn-text').style.display = 'inline';
-                document.getElementById('btn-loading').style.display = 'none';
-                document.getElementById('submit-btn').disabled = false;
-                
                 return;
             }
 
+            // Sukurti naują vartotoją
             const newUser = {
                 id: 'USR-' + Date.now(),
                 name,
@@ -557,10 +284,9 @@
                 createdAt: new Date().toISOString(),
                 phone,
                 street,
-                city,
+                city: cityName,
+                country,
                 postal,
-                lat: document.getElementById('city').getAttribute('data-lat'),
-                lng: document.getElementById('city').getAttribute('data-lng'),
                 documents: []
             };
 
@@ -576,10 +302,6 @@
                     location.href = 'login.html';
                 }, () => {
                     alert('Nepavyko įkelti dokumento. Bandykite dar kartą.');
-                    
-                    document.getElementById('btn-text').style.display = 'inline';
-                    document.getElementById('btn-loading').style.display = 'none';
-                    document.getElementById('submit-btn').disabled = false;
                 });
             } else {
                 users.push(newUser);
@@ -589,56 +311,86 @@
             }
         }
 
-        // Įkelti puslapį
-        document.addEventListener('DOMContentLoaded', function() {
-            // Bandome inicijuoti Algolia Places
-            const algoliaSuccess = initAlgoliaPlaces();
-            
-            // Jei Algolia nepavyko, įjungiame atsarginį variantą
-            if (!algoliaSuccess) {
-                console.log('Naudojamas atsarginis paieškos variantas');
-                initFallbackSearch();
-            }
-            
-            toggleDocumentField();
-            
-            document.getElementById('email').addEventListener('blur', function() {
-                const email = this.value.trim();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                
-                if (!emailRegex.test(email)) {
-                    document.getElementById('email-validation').textContent = 'Įveskite teisingą el. pašto adresą';
-                    document.getElementById('email-validation').className = 'validation-message validation-error';
-                } else {
-                    document.getElementById('email-validation').textContent = '';
+        // === Miestų autoužpildymas ir validacija su Algolia ===
+        (function initCityAutocomplete() {
+            const input = document.getElementById('city');
+            const datalist = document.getElementById('city-suggestions');
+            let lastResults = [];
+
+            const debounce = (fn, delay) => {
+                let timer;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fn.apply(this, args), delay);
+                };
+            };
+
+async function searchCities(query) {
+    const country = document.getElementById('country').value;
+    if (query.length < 2) return [];
+
+    try {
+        const response = await fetch(`/api/cities-algolia?q=${encodeURIComponent(query)}&country=${country}`);
+        const cities = await response.json();
+        return Array.isArray(cities) ? cities : [];
+    } catch (err) {
+        console.error('Klaida:', err);
+        return [];
+    }
+}
+
+            const handleInput = debounce(async () => {
+                const q = input.value.trim();
+                if (q.length < 2) {
+                    datalist.innerHTML = '';
+                    lastResults = [];
+                    return;
                 }
+
+                const results = await searchCities(q);
+                lastResults = results;
+
+                datalist.innerHTML = results.map(hit => {
+                    const name = hit.locale_names?.[0] || '';
+                    const admin = hit.administrative?.[0] || '';
+                    const display = admin ? `${name} (${admin})` : name;
+                    return `<option value="${display}">`;
+                }).join('');
+            }, 300);
+
+            input.addEventListener('input', handleInput);
+            input.addEventListener('focus', () => {
+                if (input.value.length >= 2) handleInput();
             });
 
-            document.getElementById('password').addEventListener('input', function() {
-                const password = this.value;
-                if (password.length < 8) {
-                    document.getElementById('password-validation').textContent = 'Slaptažodis turi būti bent 8 simbolių';
-                    document.getElementById('password-validation').className = 'validation-message validation-error';
-                } else {
-                    document.getElementById('password-validation').textContent = '';
-                }
-            });
+            window.validateCityExact = async function(cityName, countryCode) {
+                const q = cityName.trim().toLowerCase();
+                if (q.length < 2) return false;
 
-            document.getElementById('phone').addEventListener('blur', function() {
-                const phone = this.value.trim();
-                const phoneRegex = /^\+?[0-9]{8,12}$/;
-                
-                if (!phoneRegex.test(phone)) {
-                    document.getElementById('phone-validation').textContent = 'Įveskite teisingą telefono numerį';
-                    document.getElementById('phone-validation').className = 'validation-message validation-error';
-                } else {
-                    document.getElementById('phone-validation').textContent = '';
+                // Bandome iš karto patikrinti paskutiniuose rezultatuose
+                if (lastResults.length > 0) {
+                    return lastResults.some(hit =>
+                        (hit.locale_names?.[0] || '').toLowerCase().trim() === q
+                    );
                 }
-            });
 
-            document.getElementById('role').addEventListener('change', toggleDocumentField);
-            document.getElementById('register-form').addEventListener('submit', register);
-        });
+                // Jei nieko nėra – darome papildomą užklausą
+                const results = await searchCities(q);
+                return results.some(hit =>
+                    (hit.locale_names?.[0] || '').toLowerCase().trim() === q
+                );
+            };
+
+            input.addEventListener('blur', async () => {
+                const rawValue = input.value.trim();
+                const match = rawValue.match(/^(.+?)(?:\s*\((.+)\))?$/);
+                const cityName = match ? match[1].trim() : rawValue;
+                const countryValue = document.getElementById('country').value;
+
+                const isValid = await window.validateCityExact(cityName, countryValue);
+                input.setCustomValidity(isValid ? '' : 'Pasirinkite miestą iš siūlomo sąrašo.');
+            });
+        })();
     </script>
 </body>
 </html>
