@@ -326,38 +326,37 @@
             };
 
             async function searchCities(query) {
-                const country = document.getElementById('country').value;
-                if (query.length < 2) return [];
+    const country = document.getElementById('country').value;
+    if (query.length < 2) return [];
 
-                const body = {
-                    query,
-                    type: 'city',
-                    hitsPerPage: 10
-                };
+    const params = {
+        query,
+        type: 'city',
+        hitsPerPage: 10
+    };
 
-                if (country) {
-                    body.countries = [country];
-                }
+    if (country) {
+        params.countries = [country];
+    }
 
-                try {
-                    const response = await fetch('https://places-dsn.algolia.net/1/places/query', {
-                        method: 'POST',
-                        headers: {
-                            'X-Algolia-Application-Id': ALGOLIA_APP_ID,
-                            'X-Algolia-API-Key': ALGOLIA_API_KEY,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(body)
-                    });
+    try {
+        const response = await fetch(`https://places-dsn.algolia.net/1/places/query?x-algolia-agent=Algolia%20for%20vanilla%20JavaScript%20(lite)&x-algolia-application-id=${ALGOLIA_APP_ID}&x-algolia-api-key=${ALGOLIA_API_KEY}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(params)
+        });
 
-                    if (!response.ok) throw new Error('API klaida');
-                    const data = await response.json();
-                    return data.hits || [];
-                } catch (err) {
-                    console.error('Algolia klaida:', err);
-                    return [];
-                }
-            }
+        if (!response.ok) throw new Error('API klaida');
+
+        const data = await response.json();
+        return data.hits || [];
+    } catch (err) {
+        console.error('Algolia klaida:', err);
+        return [];
+    }
+}
 
             const handleInput = debounce(async () => {
                 const q = input.value.trim();
