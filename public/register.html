@@ -353,8 +353,9 @@
                     url.searchParams.append('q', value);
                     url.searchParams.append('country', country);
 
-                    const response = await fetch(url);
-                    const data = await response.json();
+if (!response.headers.get('content-type')?.includes('application/json')) {
+    throw new Error('Atsakymas nėra JSON');
+}
 
                     showSuggestions(data);
 
