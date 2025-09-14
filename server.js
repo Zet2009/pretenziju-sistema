@@ -299,7 +299,57 @@ app.post('/notify-status-change', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+// === Miestų/gyvenviečių sąrašas per Geonames (be pašto kodo) ===
+app.get('/api/cities', async (req, res) => {
+    const country = (req.query.country || 'LT').toUpperCase();
+    const q = (req.query.q || '').trim();
 
+    if (!process.env.GEONAMES_USERNAME) {
+        return res.status(500).json({ error: 'Trūksta GEONAMES_USERNAME .env faile' });
+    }
+
+    const cacheKey = `cities:${country}`;
+    let cities = cache.get(cacheKey);
+
+    try {
+        if (!cities) {
+            const url =
+                `http://api.geonames.org/searchJSON?country=${country}` +
+                `&featureClass=P&maxRows=1000&username=${encodeURIComponent(process.env.GEONAMES_USERNAME)}`;
+
+            const r = await fetch(url);
+            if (!r.ok) return res.status(502).json({ error: 'Geonames klaida' });
+            const data = await r.json();
+
+            cities = (data.geonames || []).map(p => ({
+                name: p.name,
+                admin1: p.adminName1,
+                country: p.countryCode
+            }));
+
+            // Pašalinam dublikatus
+            const seen = new Set();
+            cities = cities.filter(c => {
+                const key = `${c.name}||${c.admin1}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            cache.set(cacheKey, cities);
+        }
+
+        // Filtravimas pagal paieškos frazę
+        const out = q
+            ? cities.filter(c => c.name.toLowerCase().startsWith(q.toLowerCase()))
+            : cities;
+
+        res.json(out.slice(0, 50));
+    } catch (err) {
+        console.error('Geonames fetch klaida:', err);
+        res.status(500).json({ error: 'Nepavyko gauti duomenų' });
+    }
+});
 // === Miestų ir gatvių paieška per LVĢMC Vietovardžius API ===
 //app.get('/api/cities-lvgmc', async (req, res) => {
  //   const { q } = req.query;
