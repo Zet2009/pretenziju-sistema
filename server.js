@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const fetch = require('node-fetch');   // HTTP užklausoms (Geonames, rubineta.com)
+const LRU = require('lru-cache');      // paprastas atminties cache
+
+
 require('dotenv').config();
 
 const app = express();
@@ -45,7 +49,11 @@ transporter.verify((error, success) => {
         console.log('✅ SMTP serveris pasiruošęs siųsti laiškus');
     }
 });
-
+// 24h cache Geonames atsakymams (kad neperspausti API)
+const cache = new LRU({
+  max: 5000,
+  ttl: 24 * 60 * 60 * 1000
+});
 
 // === Siųsti slaptažodžio atkūrimo laišką ===
 app.post('/send-password-reset', async (req, res) => {
@@ -186,7 +194,7 @@ app.post('/notify-quality', async (req, res) => {
         console.error('Klaida siunčiant kokybės darbuotojui:', error);
         res.status(500).json({ success: false, error: error.message });
     }
-});-
+});
 
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
@@ -282,6 +290,114 @@ app.post('/notify-status-change', async (req, res) => {
         console.error('Klaida siunčiant klientui:', error);
         res.status(500).json({ success: false, error: error.message });
     }
+});
+
+// === Miestų paieška per Nominatim (OpenStreetMap) ===
+app.get('/api/cities-nominatim', async (req, res) => {
+    const { q, country } = req.query;
+
+    if (!q || q.length < 2) return res.json([]);
+
+    try {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+
+        // Pagrindinė paieška
+        url.searchParams.append('q', q);
+        url.searchParams.append('format', 'json');
+        url.searchParams.append('addressdetails', '1');
+        url.searchParams.append('limit', '10');
+        url.searchParams.append('city', '');
+
+        // ✅ Svarbu: naudoti 'country', o ne 'countrycodes'
+        if (country) {
+            url.searchParams.append('country', country.toLowerCase());
+        }
+
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Rubineta Pretenziju Sistema - info@rubineta.lt'
+            }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+
+        // Filtruojam tik miestus, miestelius, kaimus
+        const cities = data
+            .filter(item => ['city', 'town', 'village'].includes(item.type))
+            .map(item => ({
+                name: item.address.city || item.address.town || item.address.village,
+                admin1: item.address.state || item.address.county,
+                country: item.address.country_code?.toUpperCase(),
+                lat: item.lat,
+                lon: item.lon
+            }))
+            .filter(c => c.name);
+
+        res.json(cities);
+    } catch (err) {
+        console.error('Nominatim klaida:', err.message);
+        res.status(500).json({ error: 'Nepavyko gauti miestų' });
+    }
+});
+
+
+// Palaikomos šalys (galėsi plėsti)
+app.get('/api/countries', (req, res) => {
+  res.json(['LT', 'LV', 'EE', 'PL', 'UA', 'BY']);
+});
+
+// Miestų/gyvenviečių sąrašas per Geonames (be pašto kodo)
+app.get('/api/cities', async (req, res) => {
+  const country = (req.query.country || 'LT').toUpperCase();
+  const q = (req.query.q || '').trim();
+
+  if (!process.env.GEONAMES_USERNAME) {
+    return res.status(500).json({ error: 'Trūksta GEONAMES_USERNAME .env faile' });
+  }
+
+  const cacheKey = `cities:${country}`;
+  let cities = cache.get(cacheKey);
+
+  try {
+    if (!cities) {
+      const url =
+        `http://api.geonames.org/searchJSON?country=${country}` +
+        `&featureClass=P&maxRows=1000&username=${encodeURIComponent(process.env.GEONAMES_USERNAME)}`;
+
+      const r = await fetch(url);
+      if (!r.ok) return res.status(502).json({ error: 'Geonames klaida' });
+      const data = await r.json();
+
+      cities = (data.geonames || []).map(p => ({
+        name: p.name,
+        admin1: p.adminName1,
+        country: p.countryCode
+      }));
+
+      // pašalinam dublikatus pagal name+admin1
+      const seen = new Set();
+      cities = cities.filter(c => {
+        const key = `${c.name}||${c.admin1}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      cache.set(cacheKey, cities);
+    }
+
+    // jei pateiktas q – filtruojam pagal pradžią (case-insensitive)
+    const out = q
+      ? cities.filter(c => c.name.toLowerCase().startsWith(q.toLowerCase()))
+      : cities;
+
+    res.json(out.slice(0, 50)); // max 50 pasiūlymų
+  } catch (err) {
+    console.error('Geonames fetch klaida:', err);
+    res.status(500).json({ error: 'Nepavyko gauti duomenų' });
+  }
 });
 
 
