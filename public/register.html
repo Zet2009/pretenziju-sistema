@@ -322,6 +322,61 @@
   input.addEventListener('input', onType);
 })();
 </script>
+<script>
+(function(){
+  const COUNTRY = 'LT';
+  const cityInput = document.getElementById('city');
+  const form = cityInput?.form;
+
+  if (!cityInput || !form) return;
+
+  // Iš "Miestas (Rajonas)" paimame tik miestą
+  function parseCity(raw){
+    const m = String(raw||'').trim().match(/^(.+?)(?:\s*\((.+)\))?$/);
+    return {
+      city: m ? m[1].trim() : String(raw||'').trim(),
+      admin1: m && m[2] ? m[2].trim() : ''
+    };
+  }
+
+  async function isValidCityName(name){
+    const q = name.trim();
+    if (q.length < 2) return false;              // bent 2 raidės
+    try{
+      const r = await fetch(`/api/cities?country=${COUNTRY}&q=${encodeURIComponent(q)}`);
+      if (!r.ok) return false;
+      const list = await r.json();               // [{name, admin1, country}...]
+      const needle = q.toLowerCase();
+      // validuojam: turi būti bent vienas elementas, kurio vardas sutampa case-insensitive
+      return list.some(item => (item.name||'').toLowerCase() === needle);
+    }catch(e){ return false; }
+  }
+
+  async function validateCity(){
+    const { city } = parseCity(cityInput.value);
+    const ok = await isValidCityName(city);
+    if (!ok){
+      cityInput.setCustomValidity('Pasirinkite miestą iš siūlomo sąrašo.');
+      cityInput.reportValidity();
+      return false;
+    }
+    cityInput.setCustomValidity('');
+    return true;
+  }
+
+  // Tikrinam "blur" metu ir prieš submit
+  cityInput.addEventListener('blur', validateCity);
+
+  form.addEventListener('submit', async (e)=>{
+    const ok = await validateCity();
+    if (!ok){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+})();
+</script>
 
 
 </body>
