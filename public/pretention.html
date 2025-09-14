@@ -625,5 +625,70 @@
             }
         });
     </script>
+    <!-- Added: Vietovės (miestas/kaimas/rajonas) autocomplete per /api/cities -->
+<script>
+(function(){
+  const COUNTRY = 'LT'; // gali būti pasirinktas iš <select>, jei vėliau praplėsi
+
+  function debounce(fn, ms){
+    let t; return function(...args){ clearTimeout(t); t = setTimeout(()=>fn.apply(this,args), ms); };
+  }
+
+  function ensureLocationInput(){
+    const selectors = ['#location','#profile-city','#city','input[name=city]','input[name=miestas]'];
+    for (const s of selectors){
+      const el = document.querySelector(s);
+      if (el) return el;
+    }
+    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Miestas|Vietovė/i.test(l.textContent||''));
+    for (const lb of labels){
+      const input = lb.parentElement && lb.parentElement.querySelector('input');
+      if (input) return input;
+    }
+    const form = document.querySelector('form') || document.body;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <label style="display:block;margin-top:12px;font-weight:600">Vietovė</label>
+      <input id="location" list="locations" required style="padding:10px;border:1px solid #ddd;border-radius:8px;width:100%">
+    `;
+    form.insertBefore(wrap, form.firstChild);
+    return wrap.querySelector('input');
+  }
+
+  function ensureDatalist(){
+    let dl = document.getElementById('locations');
+    if (!dl){
+      dl = document.createElement('datalist');
+      dl.id = 'locations';
+      document.body.appendChild(dl);
+    }
+    return dl;
+  }
+
+  const input = ensureLocationInput();
+  const dl = ensureDatalist();
+  if (input && !input.getAttribute('list')) input.setAttribute('list','locations');
+
+  async function fetchCities(q){
+    if (!q) return [];
+    try{
+      const r = await fetch(`/api/cities?country=${COUNTRY}&q=${encodeURIComponent(q)}`);
+      if (!r.ok) return [];
+      const list = await r.json();
+      return Array.isArray(list) ? list : [];
+    }catch(e){ return []; }
+  }
+
+  const onType = debounce(async () => {
+    const q = (input.value||'').trim();
+    if (!q) return;
+    const list = await fetchCities(q);
+    dl.innerHTML = list.map(c => `<option value="${(c.name||'')}${c.admin1?(' ('+c.admin1+')'):''}">`).join('');
+  }, 250);
+
+  input.addEventListener('input', onType);
+})();
+</script>
+
 </body>
 </html>
