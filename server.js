@@ -295,7 +295,51 @@ app.post('/notify-status-change', async (req, res) => {
 app.get('/api/countries', (req, res) => {
   res.json(['LT', 'LV', 'EE', 'PL', 'UA', 'BY']);
 });
+// === Miestų paieška per Algolia (proxy) ===
+app.get('/api/cities-algolia', async (req, res) => {
+    const { q, country } = req.query;
 
+    if (!q || q.length < 2) {
+        return res.json([]);
+    }
+
+    try {
+        const response = await fetch('https://places-dsn.algolia.net/1/places/query', {
+            method: 'POST',
+            headers: {
+                'X-Algolia-Application-Id': process.env.ALGOLIA_APP_ID,
+                'X-Algolia-API-Key': process.env.ALGOLIA_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: q,
+                type: 'city',
+                countries: country ? [country.toLowerCase()] : undefined,
+                hitsPerPage: 20
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Algolia error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Supaprastinti rezultatus, kad atitiktų frontend formatą
+        const cities = data.hits.map(hit => ({
+            name: hit.locale_names[0],
+            admin1: hit.administrative[0], // rajonas / apskritis
+            country: hit.country_code.toUpperCase(),
+            lat: hit._geoloc?.lat,
+            lng: hit._geoloc?.lng
+        }));
+
+        res.json(cities);
+    } catch (err) {
+        console.error('Algolia klaida:', err.message);
+        res.status(500).json({ error: 'Nepavyko gauti miestų' });
+    }
+});
 // Miestų/gyvenviečių sąrašas per Geonames (be pašto kodo)
 app.get('/api/cities', async (req, res) => {
   const country = (req.query.country || 'LT').toUpperCase();
