@@ -378,6 +378,91 @@
 })();
 </script>
 
+<script>
+(function(){
+  function ready(fn){ if (document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    const COUNTRY = 'LT';
+    // 1) surandam / sukuriam lauką + datalist
+    let cityInput = document.getElementById('city');
+    if (!cityInput){
+      // bandome pagal label "Miestas"
+      const lbl = Array.from(document.querySelectorAll('label')).find(l=>/Miestas/i.test(l.textContent||''));
+      if (lbl){
+        cityInput = lbl.parentElement && lbl.parentElement.querySelector('input');
+      }
+    }
+    if (!cityInput){
+      console.warn('[cities] Neradau miesto įvesties. Patikrink id="city" / label „Miestas“.');
+      return;
+    }
+    let dl = document.getElementById('lt-locations');
+    if (!dl){
+      dl = document.createElement('datalist');
+      dl.id = 'lt-locations';
+      document.body.appendChild(dl);
+    }
+    if (!cityInput.getAttribute('list')) cityInput.setAttribute('list','lt-locations');
+
+    // 2) pagalba: debounce ir fetch
+    function debounce(fn, ms){ let t; return function(...a){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a), ms); }; }
+
+    async function queryCities(q){
+      if (!q || q.length < 2){ dl.innerHTML=''; return; }
+      const url = `/api/cities?country=${COUNTRY}&q=${encodeURIComponent(q)}`;
+      console.log('[cities] fetch:', url);
+      try{
+        const r = await fetch(url);
+        if (!r.ok){
+          console.error('[cities] HTTP klaida', r.status);
+          dl.innerHTML='';
+          return;
+        }
+        const list = await r.json();
+        console.log('[cities] gauta įrašų:', Array.isArray(list)?list.length:0);
+        dl.innerHTML = (Array.isArray(list)?list:[])
+          .map(c=>`<option value="${(c.name||'')}${c.admin1?(' ('+c.admin1+')'):''}">`).join('');
+      }catch(e){
+        console.error('[cities] fetch klaida:', e);
+        dl.innerHTML='';
+      }
+    }
+
+    const onType = debounce(()=> queryCities(cityInput.value.trim()), 250);
+    cityInput.addEventListener('input', onType);
+    cityInput.addEventListener('focus', ()=> { if ((cityInput.value||'').length>=2) queryCities(cityInput.value.trim()); });
+
+    // 3) validatorius (jei vartotojas įrašo bet ką)
+    async function validateCity(){
+      const raw = String(cityInput.value||'').trim();
+      if (raw.length<2){ cityInput.setCustomValidity(''); return true; }
+      // paimam tik miestą iš "Miestas (Rajonas)"
+      const m = raw.match(/^(.+?)(?:\s*\((.+)\))?$/);
+      const city = m ? m[1].trim() : raw;
+      try{
+        const r = await fetch(`/api/cities?country=${COUNTRY}&q=${encodeURIComponent(city)}`);
+        const list = Array.isArray(await r.json()) ? await r.json() : [];
+        const ok = list.some(item => (item.name||'').toLowerCase() === city.toLowerCase());
+        if (!ok){
+          cityInput.setCustomValidity('Pasirinkite miestą iš siūlomo sąrašo.');
+          cityInput.reportValidity();
+          return false;
+        }
+        cityInput.setCustomValidity('');
+        return true;
+      }catch(_){
+        // jei API nepasiekiamas – neblokuojam, bet išloginam
+        console.warn('[cities] validate: API nepasiekiamas – neužblokuota.');
+        cityInput.setCustomValidity('');
+        return true;
+      }
+    }
+    cityInput.addEventListener('blur', validateCity);
+    cityInput.form && cityInput.form.addEventListener('submit', async (e)=>{ const ok = await validateCity(); if(!ok){ e.preventDefault(); e.stopPropagation(); }});
+    console.log('[cities] Autocomplete aktyvuotas.');
+  });
+})();
+</script>
 
 </body>
 </html>
