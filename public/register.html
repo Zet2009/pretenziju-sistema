@@ -55,6 +55,8 @@
             font-weight: 500;
         }
         .form-group { margin-bottom: 20px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 560px){ .row { grid-template-columns: 1fr; } }
         label {
             display: block;
             margin-bottom: 8px;
@@ -117,23 +119,23 @@
         <form id="register-form" onsubmit="register(event)">
             <div class="form-group">
                 <label for="name">Vardas *</label>
-                <input type="text" id="name" name="name" autocomplete="given-name" required>
+                <input type="text" id="name" required>
             </div>
             <div class="form-group">
                 <label for="surname">Pavardė *</label>
-                <input type="text" id="surname" name="surname" autocomplete="family-name" required>
+                <input type="text" id="surname" required>
             </div>
             <div class="form-group">
                 <label for="email">El. paštas *</label>
-                <input type="email" id="email" name="email" autocomplete="email" required>
+                <input type="email" id="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Slaptažodis *</label>
-                <input type="password" id="password" name="password" autocomplete="new-password" required>
+                <input type="password" id="password" required>
             </div>
             <div class="form-group">
                 <label for="role">Veiklos tipas *</label>
-                <select id="role" name="role" onchange="toggleDocumentField()">
+                <select id="role" onchange="toggleDocumentField()">
                     <option value="customer">Galutinis vartotojas</option>
                     <option value="installer">Montuotojas</option>
                     <option value="dealer">Prekybininkas</option>
@@ -143,44 +145,44 @@
             </div>
             <div class="form-group" id="document-field">
                 <label for="document">Įkelkite dokumentą (PDF, nuotrauka)</label>
-                <input type="file" id="document" name="document" accept=".pdf,image/*">
+                <input type="file" id="document" accept=".pdf,image/*">
             </div>
             <div class="form-group">
                 <label for="phone">Telefonas *</label>
-                <input type="tel" id="phone" name="phone" autocomplete="tel" required>
+                <input type="tel" id="phone" required>
             </div>
             <div class="form-group">
                 <label for="street">Adresas (gatvė, namas, butas) *</label>
-                <input type="text" id="street" name="street" autocomplete="address-line1" required>
+                <input type="text" id="street" required>
             </div>
 
-            <!-- ŠALIS -->
-            <div class="form-group">
-                <label for="country">Šalis *</label>
-                <select id="country" name="country" autocomplete="country" required>
-                    <option value="">Pasirinkite šalį</option>
-                    <option value="lt">Lietuva</option>
-                    <option value="lv">Latvija</option>
-                    <option value="ee">Estija</option>
-                    <option value="by">Baltarusija</option>
-                    <option value="kz">Kazachstanas</option>
-                    <option value="ba">Bosnija ir Hercegovina</option>
-                    <option value="pl">Lenkija</option>
-                    <option value="ua">Ukraina</option>
-                    <option value="ru">Rusija</option>
-                </select>
-            </div>
-
-            <!-- MIESTAS SU NOMINATIM -->
-            <div class="form-group">
-                <label for="city">Miestas *</label>
-                <input type="text" id="city" name="city" list="city-suggestions" autocomplete="address-level2" required>
-                <datalist id="city-suggestions"></datalist>
+            <!-- Šalis + Miestas -->
+            <div class="row">
+              <div class="form-group">
+                  <label for="country">Šalis *</label>
+                  <select id="country" required>
+                    <!-- ISO-2 kodai; gali pridėti daugiau -->
+                    <option value="LT" selected>Lithuania (LT)</option>
+                    <option value="LV">Latvia (LV)</option>
+                    <option value="EE">Estonia (EE)</option>
+                    <option value="PL">Poland (PL)</option>
+                    <option value="CZ">Czechia (CZ)</option>
+                    <option value="UA">Ukraine (UA)</option>
+                    <option value="BY">Belarus (BY)</option>
+                    <option value="GB">United Kingdom (UK)</option>
+                    <option value="BA">Bosnia and Herzegovina (BIH)</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="city">Vietovė / Miestas *</label>
+                  <input type="text" id="city" name="city" list="lt-locations" required autocomplete="off" placeholder="Pradėkite rašyti...">
+                  <datalist id="lt-locations"></datalist>
+              </div>
             </div>
 
             <div class="form-group">
                 <label for="postal">Pašto kodas *</label>
-                <input type="text" id="postal" name="postal" autocomplete="postal-code" required>
+                <input type="text" id="postal" required>
             </div>
             <button type="submit" class="btn">Registruotis</button>
         </form>
@@ -194,19 +196,23 @@
     </footer>
 
     <script>
+        // Perjungti dokumento lauką pagal vaidmenį
         function toggleDocumentField() {
             const role = document.getElementById('role').value;
             document.getElementById('document-field').style.display = role === 'installer' ? 'block' : 'none';
         }
 
+        // Įkelti failą į Cloudinary
         function uploadToCloudinary(file, onSuccess, onError) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr');
+            formData.append('upload_preset', 'r6wao0fr'); // Keisk į savo
 
             let uploadUrl;
             if (file.type.startsWith('image/')) {
                 uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
+            } else if (file.type.startsWith('video/')) {
+                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
             } else {
                 uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
             }
@@ -227,6 +233,7 @@
                 .catch(onError);
         }
 
+        // === Registracijos funkcija (išlaikyta tavo logika) ===
         async function register(event) {
             event.preventDefault();
 
@@ -237,35 +244,49 @@
             const role = document.getElementById('role').value;
             const phone = document.getElementById('phone').value.trim();
             const street = document.getElementById('street').value.trim();
-            const cityRaw = document.getElementById('city').value.trim();
             const country = document.getElementById('country').value;
+            const cityRaw = document.getElementById('city').value.trim();
             const postal = document.getElementById('postal').value.trim();
 
+            // "Miestas (Regionas)" -> city + region
             const m = cityRaw.match(/^(.+?)(?:\s*\((.+)\))?$/);
-            const cityName = m ? m[1].trim() : cityRaw;
+            const city = m ? m[1].trim() : cityRaw;
+            const region = m && m[2] ? m[2].trim() : '';
 
-            const isValidCity = await validateCityExact(cityName, country);
-            if (!isValidCity) {
+            // Tikslus miesto patikrinimas pagal pasirinktą šalį
+            const ok = await validateCityExact(country, city);
+            if (!ok) {
                 const cityInput = document.getElementById('city');
-                cityInput.setCustomValidity('Pasirinkite miestą iš siūlomo sąrašo.');
+                cityInput.setCustomValidity('Pasirinkite vietovę iš siūlomo sąrašo.');
                 cityInput.reportValidity();
                 return;
             } else {
                 document.getElementById('city').setCustomValidity('');
             }
 
+            // El. pašto dublikato patikra
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             if (users.some(u => u.email === email)) {
                 alert('Vartotojas su šiuo el. paštu jau egzistuoja.');
                 return;
             }
 
+            // Naujas vartotojas
             const newUser = {
                 id: 'USR-' + Date.now(),
-                name, surname, email, password, role,
+                name,
+                surname,
+                email,
+                password,
+                role,
                 status: role === 'installer' ? 'pending' : 'active',
                 createdAt: new Date().toISOString(),
-                phone, street, city: cityName, country, postal,
+                phone,
+                street,
+                country,       // nauja: šalis
+                city,          // švarus miestas
+                region,        // apskritis/rajonas (jei buvo)
+                postal,
                 documents: []
             };
 
@@ -289,83 +310,71 @@
                 location.href = 'login.html';
             }
         }
+    </script>
 
-        (function initAutocomplete() {
-            const input = document.getElementById('city');
-            const datalist = document.getElementById('city-suggestions');
-            let lastResults = [];
+    <!-- === Daugišalis miestų autocomplete + tikslus validavimas === -->
+    <script>
+    (function(){
+      const countrySelect = document.getElementById('country');
+      const input = document.getElementById('city');
+      const dl = document.getElementById('lt-locations');
+      let lastList = [];
 
-            const debounce = (fn, delay) => {
-                let timer;
-                return (...args) => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => fn.apply(this, args), delay);
-                };
-            };
+      function debounce(fn, ms){ let t; return function(...a){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a), ms); }; }
 
-            async function searchCities(query) {
-                const country = document.getElementById('country').value;
-                if (query.length < 2) return [];
+      async function fetchCities(country, q){
+        if (!q || q.length < 2) return [];
+        try{
+          const r = await fetch(`/api/cities?country=${encodeURIComponent(country)}&q=${encodeURIComponent(q)}`);
+          if (!r.ok) return [];
+          const list = await r.json();
+          return Array.isArray(list) ? list : [];
+        }catch(e){ return []; }
+      }
 
-                try {
-                    const url = new URL('/api/cities-nominatim', window.location.origin);
-                    url.searchParams.append('q', query);
-                    if (country) url.searchParams.append('country', country); // ✅ Naudojame 'country'
+      const onType = debounce(async () => {
+        const q = (input.value||'').trim();
+        const country = countrySelect.value || 'LT';
+        if (q.length < 2){ dl.innerHTML=''; lastList=[]; return; }
+        const list = await fetchCities(country, q);
+        lastList = list;
+        dl.innerHTML = list.map(c => `<option value="${c.name}${c.admin1?(' ('+c.admin1+')'):''}">`).join('');
+      }, 250);
 
-                    const response = await fetch(url);
-                    const cities = await response.json();
-                    return Array.isArray(cities) ? cities : [];
-                } catch (err) {
-                    console.error('Klaida:', err);
-                    return [];
-                }
-            }
+      input.addEventListener('input', onType);
+      input.addEventListener('focus', () => { const v=(input.value||'').trim(); if (v.length>=2) onType(); });
 
-            const handleInput = debounce(async () => {
-                const q = input.value.trim();
-                if (q.length < 2) {
-                    datalist.innerHTML = '';
-                    lastResults = [];
-                    return;
-                }
+      // Įrankinė validacijai: tikslus sutapimas su pavadinimu toje šalyje
+      window.validateCityExact = async function(country, cityName){
+        const q = String(cityName||'').trim();
+        if (q.length < 2) return false;
+        if (!lastList.length){
+          lastList = await fetchCities(country, q);
+        }
+        const needle = q.toLowerCase();
+        return lastList.some(item => (item.name||'').toLowerCase() === needle);
+      };
 
-                const results = await searchCities(q);
-                lastResults = results;
+      // Keičiant šalį – išvalom lauką ir pasiūlymus
+      countrySelect.addEventListener('change', () => {
+        input.value = '';
+        dl.innerHTML = '';
+        lastList = [];
+        input.setCustomValidity('');
+      });
 
-                datalist.innerHTML = results.map(c => {
-                    const display = c.admin1 ? `${c.name} (${c.admin1})` : c.name;
-                    return `<option value="${display}">`;
-                }).join('');
-            }, 300);
-
-            input.addEventListener('input', handleInput);
-            input.addEventListener('focus', () => {
-                if (input.value.length >= 2) handleInput();
-            });
-
-            window.validateCityExact = async function(cityName, countryCode) {
-                const q = cityName.trim().toLowerCase();
-                if (q.length < 2) return false;
-
-                if (lastResults.length > 0) {
-                    return lastResults.some(c => c.name.toLowerCase() === q);
-                }
-
-                const results = await searchCities(q);
-                return results.some(c => c.name.toLowerCase() === q);
-            };
-
-            input.addEventListener('blur', async () => {
-                const raw = input.value.trim();
-                const match = raw.match(/^(.+?)(?:\s*\((.+)\))?$/);
-                const cityName = match ? match[1].trim() : raw;
-                const countryValue = document.getElementById('country').value;
-
-                const ok = await window.validateCityExact(cityName, countryValue);
-                input.setCustomValidity(ok ? '' : 'Pasirinkite miestą iš siūlomo sąrašo.');
-            });
-        })();
+      // „blur“ validacija
+      input.addEventListener('blur', async () => {
+        const raw = (input.value||'').trim();
+        if (!raw) { input.setCustomValidity(''); return; }
+        const m = raw.match(/^(.+?)(?:\s*\((.+)\))?$/);
+        const city = m ? m[1].trim() : raw;
+        const ok = await window.validateCityExact(countrySelect.value || 'LT', city);
+        input.setCustomValidity(ok ? '' : 'Pasirinkite vietovę iš siūlomo sąrašo.');
+      });
+    })();
     </script>
 </body>
 </html>
+
 
