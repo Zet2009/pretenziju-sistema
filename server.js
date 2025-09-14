@@ -7,7 +7,6 @@ require('dotenv').config();
 
 const app = express();
 
-// === IŠTAISYTI CORS: pašalinti baltus tarpus ===
 const corsOptions = {
   origin: [
     'https://pretenzijos-sistema.onrender.com', // ← be tarpų!
@@ -302,46 +301,46 @@ app.post('/notify-status-change', async (req, res) => {
 });
 
 // === Miestų ir gatvių paieška per LVĢMC Vietovardžius API ===
-app.get('/api/cities-lvgmc', async (req, res) => {
-    const { q } = req.query;
-
-    if (!q || q.length < 2) {
-        return res.json([]);
-    }
-
-    try {
-        // ✅ Teisingas URL be tarpų!
-        const url = `https://vietovardziai.lt/api/v1/places?name=${encodeURIComponent(q)}&limit=20`;
-
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Filtruojam tik miestus, miestelius, kaimus
-        const cities = data.features
-            .filter(f => ['city', 'town', 'village'].includes(f.properties.type))
-            .map(f => {
-                const props = f.properties;
-                return {
-                    name: props.name,
-                    admin1: props.county,         // Apskritis
-                    district: props.municipality, // Savivaldybė
-                    country: 'LT',
-                    postal: props.postcode || '',
-                    lat: f.geometry.coordinates[1],
-                    lon: f.geometry.coordinates[0]
-                };
-            });
-
-        res.json(cities);
-    } catch (err) {
-        console.error('Vietovardžiai.lt klaida:', err.message);
-        res.status(500).json({ error: 'Nepavyko gauti duomenų iš LVĢMC' });
-    }
-});
+//app.get('/api/cities-lvgmc', async (req, res) => {
+ //   const { q } = req.query;
+//
+//    if (!q || q.length < 2) {
+//        return res.json([]);
+ //   }
+//
+//    try {
+//        // ✅ Teisingas URL be tarpų!
+ //       const url = `https://vietovardziai.lt/api/v1/places?name=${encodeURIComponent(q)}&limit=20`;
+//
+  //      const response = await fetch(url);
+ //       if (!response.ok) {
+ //           throw new Error(`HTTP ${response.status}`);
+//        }
+//
+ //       const data = await response.json();
+//
+//        // Filtruojam tik miestus, miestelius, kaimus
+//        const cities = data.features
+//           .filter(f => ['city', 'town', 'village'].includes(f.properties.type))
+ //           .map(f => {
+   //             const props = f.properties;
+   //             return {
+   //                 name: props.name,
+   //                 admin1: props.county,         // Apskritis
+   //                 district: props.municipality, // Savivaldybė
+  //                  country: 'LT',
+   //                 postal: props.postcode || '',
+    //                lat: f.geometry.coordinates[1],
+    //                lon: f.geometry.coordinates[0]
+    //            };
+   //         });
+//
+ //       res.json(cities);
+//    } catch (err) {
+//        console.error('Vietovardžiai.lt klaida:', err.message);
+ //       res.status(500).json({ error: 'Nepavyko gauti duomenų iš LVĢMC' });
+//    }
+//});
 
 // === PORT: svarbu! Render tikisi 10000 ===
 const PORT = process.env.PORT || 10000; // ← pakeista nuo 3000 į 10000
