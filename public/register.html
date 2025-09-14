@@ -173,7 +173,9 @@
             </div>
             <div class="form-group">
                 <label for="city">Miestas *</label>
-                <input type="text" id="city" required>
+                <input type="text" id="city" name="city" list="lt-locations" required>
+<datalist id="lt-locations"></datalist>
+
             </div>
             <div class="form-group">
                 <label for="postal">Pašto kodas *</label>
@@ -289,6 +291,39 @@
             }
         }
     </script>
+<!-- Autocomplete miestui/kaimui per mūsų /api/cities -->
+<script>
+(function(){
+  const COUNTRY = 'LT';
+  const input = document.getElementById('city');
+  const dl = document.getElementById('lt-locations');
+  if (!input || !dl) return;
+
+  function debounce(fn, ms){
+    let t; return function(...args){ clearTimeout(t); t = setTimeout(()=>fn.apply(this,args), ms); };
+  }
+
+  async function loadCities(q){
+    if (!q || q.length < 2) return [];
+    try{
+      const r = await fetch(`/api/cities?country=${COUNTRY}&q=${encodeURIComponent(q)}`);
+      if (!r.ok) return [];
+      const list = await r.json();
+      return Array.isArray(list) ? list : [];
+    }catch(e){ return []; }
+  }
+
+  const onType = debounce(async () => {
+    const q = (input.value||'').trim();
+    const list = await loadCities(q);
+    dl.innerHTML = list.map(c => `<option value="${c.name}${c.admin1?(' ('+c.admin1+')'):''}">`).join('');
+  }, 250);
+
+  input.addEventListener('input', onType);
+})();
+</script>
+
+
 </body>
 </html>
 
