@@ -291,6 +291,58 @@ app.post('/notify-status-change', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// === Miestų paieška per Nominatim (OpenStreetMap) ===
+app.get('/api/cities-nominatim', async (req, res) => {
+    const { q, country } = req.query;
+
+    if (!q || q.length < 2) return res.json([]);
+
+    try {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+
+        // Pagrindinė paieška
+        url.searchParams.append('q', q);
+        url.searchParams.append('format', 'json');
+        url.searchParams.append('addressdetails', '1');
+        url.searchParams.append('limit', '10');
+        url.searchParams.append('city', '');
+
+        // ✅ Svarbu: naudoti 'country', o ne 'countrycodes'
+        if (country) {
+            url.searchParams.append('country', country.toLowerCase());
+        }
+
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Rubineta Pretenziju Sistema - info@rubineta.lt'
+            }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+
+        // Filtruojam tik miestus, miestelius, kaimus
+        const cities = data
+            .filter(item => ['city', 'town', 'village'].includes(item.type))
+            .map(item => ({
+                name: item.address.city || item.address.town || item.address.village,
+                admin1: item.address.state || item.address.county,
+                country: item.address.country_code?.toUpperCase(),
+                lat: item.lat,
+                lon: item.lon
+            }))
+            .filter(c => c.name);
+
+        res.json(cities);
+    } catch (err) {
+        console.error('Nominatim klaida:', err.message);
+        res.status(500).json({ error: 'Nepavyko gauti miestų' });
+    }
+});
+
+
 // Palaikomos šalys (galėsi plėsti)
 app.get('/api/countries', (req, res) => {
   res.json(['LT', 'LV', 'EE', 'PL', 'UA', 'BY']);
