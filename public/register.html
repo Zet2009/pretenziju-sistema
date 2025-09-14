@@ -334,45 +334,61 @@
                 }
             }
 
-            const searchCities = debounce(async () => {
-                const value = cityInput.value.trim();
-                const country = document.getElementById('country').value;
+const searchCities = debounce(async () => {
+    const value = cityInput.value.trim();
+    const country = document.getElementById('country').value;
 
-                if (value.length < 2) {
-                    suggestionsContainer.style.display = 'none';
-                    validationSpan.textContent = 'Įveskite bent 2 raides';
-                    validationSpan.className = 'validation-message validation-error';
-                    return;
-                }
+    if (value.length < 2) {
+        suggestionsContainer.style.display = 'none';
+        validationSpan.textContent = 'Įveskite bent 2 raides';
+        validationSpan.className = 'validation-message validation-error';
+        return;
+    }
 
-                try {
-                    validationSpan.textContent = 'Ieškoma...';
-                    validationSpan.className = 'validation-message';
+    try {
+        validationSpan.textContent = 'Ieškoma...';
+        validationSpan.className = 'validation-message';
 
-                    const url = new URL('/api/cities', window.location.origin);
-                    url.searchParams.append('q', value);
-                    url.searchParams.append('country', country);
+        const url = new URL('/api/cities', window.location.origin);
+        url.searchParams.append('q', value);
+        url.searchParams.append('country', country);
 
-if (!response.headers.get('content-type')?.includes('application/json')) {
-    throw new Error('Atsakymas nėra JSON');
-}
+        // ✅ DABAR TIKRAI KVIETŽIA API
+        const res = await fetch(url);
 
-                    showSuggestions(data);
+        // Patikriname, ar atsakymas sėkmingas
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
 
-                    if (data.length === 0) {
-                        validationSpan.textContent = 'Miestas nerastas.';
-                        validationSpan.className = 'validation-message validation-error';
-                    } else {
-                        validationSpan.textContent = `Rasta ${data.length} rezultatų.`;
-                        validationSpan.className = 'validation-message validation-success';
-                    }
-                } catch (err) {
-                    console.error('Klaida:', err);
-                    validationSpan.textContent = 'Serverio klaida. Bandykite vėliau.';
-                    validationSpan.className = 'validation-message validation-error';
-                    suggestionsContainer.style.display = 'none';
-                }
-            }, 500);
+        // Patikriname, ar tai JSON
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Atsakymas nėra JSON');
+        }
+
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error('Netinkamas duomenų formatas');
+        }
+
+        showSuggestions(data);
+
+        if (data.length === 0) {
+            validationSpan.textContent = 'Miestas nerastas.';
+            validationSpan.className = 'validation-message validation-error';
+        } else {
+            validationSpan.textContent = `Rasta ${data.length} rezultatų.`;
+            validationSpan.className = 'validation-message validation-success';
+        }
+    } catch (err) {
+        console.error('Klaida:', err);
+        validationSpan.textContent = `Klaida: ${err.message}`;
+        validationSpan.className = 'validation-message validation-error';
+        suggestionsContainer.style.display = 'none';
+    }
+}, 500);
 
             cityInput.addEventListener('input', searchCities);
             cityInput.addEventListener('focus', () => cityInput.value.length >= 2 && searchCities());
