@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const fetch = require('node-fetch');   // HTTP užklausoms (Geonames, rubineta.com)
+const LRU = require('lru-cache');      // paprastas atminties cache
+
+
 require('dotenv').config();
 
 const app = express();
@@ -45,7 +49,11 @@ transporter.verify((error, success) => {
         console.log('✅ SMTP serveris pasiruošęs siųsti laiškus');
     }
 });
-
+// 24h cache Geonames atsakymams (kad neperspausti API)
+const cache = new LRU({
+  max: 5000,
+  ttl: 24 * 60 * 60 * 1000
+});
 
 // === Siųsti slaptažodžio atkūrimo laišką ===
 app.post('/send-password-reset', async (req, res) => {
@@ -66,27 +74,7 @@ app.post('/send-password-reset', async (req, res) => {
         res.status(500).json({ success: false, error: 'Nepavyko išsiųsti laiško' });
     }
 });
-// API proxy maršrutas į rubineta.com
-app.get('/api/products', async (req, res) => {
-    try {
-        const { per_page = 25, page = 1, lang = 'lt' } = req.query;
 
-        const url = `https://rubineta.com/ru/wp-json/wc/v3/products?consumer_key=ck_ba4ea3a1372bfe158019acd0fb541def80d55f47&consumer_secret=cs_3008445c92b783c6b63717e0b64cae31d60f570e&per_page=${per_page}&page=${page}&lang=${lang}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        // Filtruoti tik lietuviškus produktus
-        const lithuanianProducts = Array.isArray(data)
-            ? data.filter(p => p.permalink && !/\/(ru|en|pl|lv)\//.test(p.permalink))
-            : [];
-
-        res.json(lithuanianProducts);
-    } catch (error) {
-        console.error('Klaida kviečiant rubineta.com API:', error);
-        res.status(500).json({ error: 'Nepavyko gauti produktų' });
-    }
-});
 
 // === 1. Laiškas klientui – patvirtinimas, kad pretenzija priimta ===
 app.post('/send-confirmation', async (req, res) => {
@@ -206,7 +194,7 @@ app.post('/notify-quality', async (req, res) => {
         console.error('Klaida siunčiant kokybės darbuotojui:', error);
         res.status(500).json({ success: false, error: error.message });
     }
-});-
+});
 
 // === Laiškas klientui – išsiųsti apklausos nuorodą ===
 app.post('/send-feedback-survey', async (req, res) => {
@@ -302,6 +290,62 @@ app.post('/notify-status-change', async (req, res) => {
         console.error('Klaida siunčiant klientui:', error);
         res.status(500).json({ success: false, error: error.message });
     }
+});
+// Palaikomos šalys (galėsi plėsti)
+app.get('/api/countries', (req, res) => {
+  res.json(['LT', 'LV', 'EE', 'PL', 'UA', 'BY']);
+});
+
+// Miestų/gyvenviečių sąrašas per Geonames (be pašto kodo)
+app.get('/api/cities', async (req, res) => {
+  const country = (req.query.country || 'LT').toUpperCase();
+  const q = (req.query.q || '').trim();
+
+  if (!process.env.GEONAMES_USERNAME) {
+    return res.status(500).json({ error: 'Trūksta GEONAMES_USERNAME .env faile' });
+  }
+
+  const cacheKey = `cities:${country}`;
+  let cities = cache.get(cacheKey);
+
+  try {
+    if (!cities) {
+      const url =
+        `http://api.geonames.org/searchJSON?country=${country}` +
+        `&featureClass=P&maxRows=1000&username=${encodeURIComponent(process.env.GEONAMES_USERNAME)}`;
+
+      const r = await fetch(url);
+      if (!r.ok) return res.status(502).json({ error: 'Geonames klaida' });
+      const data = await r.json();
+
+      cities = (data.geonames || []).map(p => ({
+        name: p.name,
+        admin1: p.adminName1,
+        country: p.countryCode
+      }));
+
+      // pašalinam dublikatus pagal name+admin1
+      const seen = new Set();
+      cities = cities.filter(c => {
+        const key = `${c.name}||${c.admin1}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      cache.set(cacheKey, cities);
+    }
+
+    // jei pateiktas q – filtruojam pagal pradžią (case-insensitive)
+    const out = q
+      ? cities.filter(c => c.name.toLowerCase().startsWith(q.toLowerCase()))
+      : cities;
+
+    res.json(out.slice(0, 50)); // max 50 pasiūlymų
+  } catch (err) {
+    console.error('Geonames fetch klaida:', err);
+    res.status(500).json({ error: 'Nepavyko gauti duomenų' });
+  }
 });
 
 
