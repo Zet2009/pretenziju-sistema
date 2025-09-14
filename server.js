@@ -17,21 +17,28 @@ const corsOptions = {
   credentials: true
 };
 
+// --- MIDDLEWARE ---
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static('public'));
-
-// Įtraukite OPTIONS užklausų apdorojimą (svarbu CORS preflight užklausoms)
 app.options('*', cors(corsOptions));
 
-// Nodemailer transporter (Gmail)
+// --- CACHE INICIALIZACIJA ---
+const LRU = require('lru-cache');
+
+const cache = new LRU({
+  max: 5000,
+  ttl: 24 * 60 * 60 * 1000 // 24 valandos
+});
+
+// --- EMAIL TRANSPORTER ---
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // true for 465, false for 587
+    secure: false,
     auth: {
-        user: process.env.EMAIL_USER, // pvz., rubinetaclaim@gmail.com
-        pass: process.env.EMAIL_PASS  // tavo 16 simbolių App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
