@@ -281,6 +281,19 @@
                         <input type="tel" id="profile-phone" required>
                     </div>
                     <div class="form-group">
+    <label for="profile-country">Šalis *</label>
+    <select id="profile-country" required>
+        <option value="lt" selected>Lietuva</option>
+        <option value="lv">Latvija</option>
+        <option value="ee">Estija</option>
+        <option value="pl">Lenkija</option>
+        <option value="ua">Ukraina</option>
+        <option value="by">Baltarusija</option>
+        <option value="de">Vokietija</option>
+        <option value="fr">Prancūzija</option>
+    </select>
+</div>
+                    <div class="form-group">
                         <label>Adresas (gatvė, namo nr., butas) *</label>
                         <input type="text" id="profile-street" required>
                     </div>
@@ -438,7 +451,103 @@
                 statusDesc.textContent = 'Registracija atmesta. Jei norite sužinoti priežastį, susisiekite su info@rubineta.lt';
             }
         }
+// === HIBRIDINĖ MIESTŲ PAIEŠKA: LT – postit.lt, kitos – Geonames ===
+(function initProfileCitySearch() {
+    const cityInput = document.getElementById('profile-city');
+    const postalInput = document.getElementById('profile-postal');
+    const countrySelect = document.getElementById('profile-country');
 
+    if (!cityInput || !postalInput || !countrySelect) return;
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    async function searchCities() {
+        const q = cityInput.value.trim();
+        const country = countrySelect.value.toLowerCase();
+        if (q.length < 2) return;
+
+        try {
+            let cities = [];
+            if (country === 'lt') {
+                // LIETUVA: postit.lt
+                const url = new URL('https://api.postit.lt/v2/');
+                url.searchParams.append('city', q);
+                url.searchParams.append('key', 'tavo_raktas'); // ← Pakeisk!
+
+                const r = await fetch(url);
+                const data = await r.json();
+                if (data.success && Array.isArray(data.data)) {
+                    cities = data.data.map(item => ({
+                        name: item.city,
+                        postal: item.post_code
+                    }));
+                }
+            } else {
+                // KITOS ŠALYS: Geonames per tavo serverį
+                const serverUrl = `/api/cities?country=${country}&q=${encodeURIComponent(q)}`;
+                const r = await fetch(serverUrl);
+                cities = await r.json();
+            }
+
+            showSuggestions(cities);
+        } catch (err) {
+            console.warn('Miestų paieška nepavyko:', err);
+        }
+    }
+
+    function showSuggestions(cities) {
+        const containerId = 'city-suggestions-profile';
+        let container = document.getElementById(containerId);
+
+        if (!cities.length) {
+            if (container) container.style.display = 'none';
+            return;
+        }
+
+        if (!container) {
+            container = document.createElement('div');
+            container.id = containerId;
+            container.style.cssText = `
+                position: absolute; width: 100%; background: white; border: 1px solid #ccc;
+                border-top: none; z-index: 1000; max-height: 200px; overflow-y: auto;
+                border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            `;
+            cityInput.parentNode.insertBefore(container, cityInput.nextSibling);
+        }
+
+        container.innerHTML = '';
+        container.style.display = 'block';
+
+        cities.slice(0, 50).forEach(place => {
+            const div = document.createElement('div');
+            div.textContent = place.name;
+            div.style.padding = '10px 15px';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #eee';
+            div.addEventListener('click', () => {
+                cityInput.value = place.name;
+                if (place.postal) postalInput.value = place.postal;
+                container.style.display = 'none';
+            });
+            container.appendChild(div);
+        });
+
+        // Paslėpti, kai paspaudžiama ne ant lauko
+        document.addEventListener('click', (e) => {
+            if (!cityInput.contains(e.target) && !container.contains(e.target)) {
+                container.style.display = 'none';
+            }
+        });
+    }
+
+    cityInput.addEventListener('input', debounce(searchCities, 500));
+})();
         // --- Užkrauti pretenzijų istoriją ---
         function loadClaimsHistory() {
             const claims = JSON.parse(localStorage.getItem('claims') || '[]');
@@ -502,5 +611,114 @@
             }
         };
     </script>
+
+<!-- Added: LT city + postal validation (non-invasive) -->
+<script>
+(function(){
+  // load lt_locations.json -> fill datalist; attach validation
+  const DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
+  function ensureDatalist(){
+    let dl = document.getElementById('lt-cities');
+    if (!dl){
+      dl = document.createElement('datalist');
+      dl.id = 'lt-cities';
+      document.body.appendChild(dl);
+    }
+    return dl;
+  }
+  function smartFindCityInput(){
+    // try common ids/names/placeholders in LT
+    const candidates = [
+      '#profile-city','#city','input[name=city]','input[name=miestas]',
+      'input[placeholder*="Miest"]','input[aria-label*="Miest"]'
+    ];
+    for (const sel of candidates){
+      const el = document.querySelector(sel);
+      if (el) return el;
+    }
+    // fallback: first text input near label "Miestas"
+    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Miestas/i.test(l.textContent||''));
+    for (const lb of labels){
+      const input = lb.parentElement?.querySelector('input');
+      if (input) return input;
+    }
+    return null;
+  }
+  function smartFindPostalInput(){
+    const candidates = [
+      '#profile-postal','#postal','input[name=postal]','input[name=pasto]','input[name="pašto"]',
+      'input[placeholder*="pašto"]','input[placeholder*="Pašto"]','input[placeholder*="kodas"]'
+    ];
+    for (const sel of candidates){
+      const el = document.querySelector(sel);
+      if (el) return el;
+    }
+    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Pašto kodas|Pašto|Paštas|Kodas/i.test(l.textContent||''));
+    for (const lb of labels){
+      const input = lb.parentElement?.querySelector('input');
+      if (input) return input;
+    }
+    return null;
+  }
+  function attachValidation(LT){
+    const cityEl = smartFindCityInput();
+    const postEl = smartFindPostalInput();
+    if (cityEl){
+      cityEl.setAttribute('list','lt-cities');
+    }
+    if (postEl){
+      postEl.setAttribute('pattern','^\\d{5}$');
+      postEl.setAttribute('inputmode','numeric');
+      if (!postEl.placeholder) postEl.setAttribute('placeholder','pvz., 01100');
+    }
+    const dl = ensureDatalist();
+    const uniq = [...new Set(LT.map(i=>i.city))].sort();
+    dl.innerHTML = uniq.map(c=>`<option value="${c}">`).join('');
+
+    function validate(){
+      if (!cityEl || !postEl) return true;
+      const city = (cityEl.value||'').trim();
+      const postal = (postEl.value||'').trim();
+      const okPostal = /^\d{5}$/.test(postal);
+      const match = LT.find(i => i.city === city && (i.postal[0] === postal[0] || i.postal.replace(/x/g,'') === postal));
+      if (!okPostal || !match){
+        postEl.setCustomValidity('Patikrinkite miestą ir 5 skaitmenų LT pašto kodą.');
+        postEl.reportValidity();
+        return false;
+      }
+      postEl.setCustomValidity('');
+      return true;
+    }
+
+    // Hook into any form submits on the page (progressive; non-breaking)
+    document.addEventListener('submit', function(e){
+      try{
+        if (!validate()){ e.preventDefault(); e.stopPropagation(); }
+      }catch(_){}
+    }, true);
+
+    // Expose validator for custom JS if needed
+    window.__validateCityPostal = validate;
+  }
+
+  function tryFetch(urls){
+    return new Promise((resolve)=>{
+      const u = urls.slice();
+      (function next(){
+        if (!u.length){ resolve(null); return; }
+        const url = u.shift();
+        fetch(url).then(r=> r.ok ? r.json() : null).then(data=>{
+          if (data) resolve(data); else next();
+        }).catch(next);
+      })();
+    });
+  }
+
+  tryFetch(DATA_URLS).then(list=>{
+    if (!list) return;
+    attachValidation(list);
+  });
+})();
+</script>
 </body>
 </html>
