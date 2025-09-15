@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administratoriaus zona – Rubineta</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- XLSX biblioteka eksportui -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary: #2D2D2D;
+            --primary: #4e5152;
             --primary-light: #4A4A4A;
             --secondary: #FFCC00;
             --light: #F5F5F5;
             --white: #FFFFFF;
-            --dark: #212529;
+            --dark: #234d77;
             --gray: #75757d;
             --font: 'Roboto', sans-serif;
         }
@@ -46,11 +44,12 @@
             font-size: 14px;
         }
         main {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 10px auto;
             padding: 10px;
         }
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 16px; text-align: center; }
+
         /* Skirtukai */
         .tabs {
             display: flex;
@@ -74,6 +73,15 @@
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .inline-filter {
+            width: 100%;
+            padding: 3px;
+            margin-top: 4px;
+            font-size: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
         /* Statistika */
         .stats-bar {
             display: flex;
@@ -87,24 +95,10 @@
             border-radius: 6px;
             box-shadow: 0 1px 6px rgba(0,0,0,0.08);
         }
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 120px;
-            text-align: center;
-        }
-        .stat-item .label {
-            color: var(--gray);
-            font-weight: 500;
-            font-size: 10px;
-            white-space: nowrap;
-        }
-        .stat-item .value {
-            color: var(--primary);
-            font-weight: bold;
-            font-size: 13px;
-        }
+        .stat-item { display: flex; flex-direction: column; align-items: center; min-width: 120px; text-align: center; }
+        .stat-item .label { color: var(--gray); font-weight: 500; font-size: 10px; white-space: nowrap; }
+        .stat-item .value { color: var(--primary); font-weight: bold; font-size: 13px; }
+
         /* Filtrai */
         .filters {
             background: var(--white);
@@ -117,333 +111,187 @@
             gap: 8px;
             font-size: 11px;
         }
-        /* Būsenų filtras su varnelėmis */
-        .dropdown-status-filter {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-status-content {
-            display: none;
-            position: absolute;
-            background: var(--white);
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            min-width: 200px;
-            padding: 10px;
-            font-size: 12px;
-        }
-        .dropdown-status-content label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            cursor: pointer;
-        }
-        .dropdown-status-content input[type="checkbox"] {
-            transform: scale(0.9);
-        }
-        .dropdown-status-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-        .dropdown-status-actions .btn {
-            padding: 6px 10px;
-            font-size: 11px;
-        }
-        /* Lentelė */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--white);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            table-layout: fixed;
-            font-size: 11px;
-        }
-        th, td {
-            padding: 6px 8px;
-            text-align: left;
-            border-bottom: 1px solid #dee2e6;
-            word-wrap: break-word;
-        }
-        th {
-            background: var(--primary);
-            color: var(--white);
-            font-weight: 500;
-            font-size: 10px;
-        }
+
+        table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); table-layout: fixed; font-size: 11px; }
+        th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #dee2e6; word-wrap: break-word; }
+        th { background: var(--primary); color: var(--white); font-weight: 500; font-size: 10px; }
         tr:hover { background: #f8f9fa; }
+
         /* Spalvotas būsenos dropdown'as */
-        .status-dropdown {
-            width: 100%;
-            padding: 4px;
-            font-size: 11px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .status-dropdown.status-new {
-            background: #f8d7da;
-            color: #721c24;
-            border-color: #f1b0b7;
-        }
-        .status-dropdown.status-pending {
-            background: #fff3cd;
-            color: #856404;
-            border-color: #ffeaa7;
-        }
-        .status-dropdown.status-approved {
-            background: #d4edff;
-            color: #004085;
-            border-color: #b8daff;
-        }
-        .status-dropdown.status-sent {
-            background: #17a2b8;
-            color: white;
-            border-color: #138496;
-        }
-        .status-dropdown.status-resolved {
-            background: #d4edda;
-            color: #155724;
-            border-color: #c3e6cb;
-        }
-        .status-dropdown.status-rejected {
-            background: #e9ecef;
-            color: #495057;
-            border-color: #ced4da;
-        }
+        .status-dropdown { width: 100%; padding: 4px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .status-dropdown.status-new { background: #f8d7da; color: #721c24; border-color: #f1b0b7; }
+        .status-dropdown.status-pending { background: #fff3cd; color: #856404; border-color: #ffeaa7; }
+        .status-dropdown.status-approved { background: #d4edff; color: #004085; border-color: #b8daff; }
+        .status-dropdown.status-sent { background: #17a2b8; color: white; border-color: #138496; }
+        .status-dropdown.status-resolved { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .status-dropdown.status-rejected { background: #e9ecef; color: #495057; border-color: #ced4da; }
+
         /* Modaliniai langai */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: var(--white);
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 700px;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-            font-size: 11px;
-        }
-        .close {
-            color: var(--gray);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: var(--white); padding: 20px; border-radius: 10px; width: 90%; max-width: 700px; box-shadow: 0 4px 30px rgba(0,0,0,0.3); font-size: 11px; position: relative; }
+        .close { color: var(--gray); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close:hover { color: var(--dark); }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
-            font-size: 12px;
-        }
-        .form-group textarea {
-            width: 100%;
-            height: 100px;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 11px;
-        }
-        .comment-box button {
-            margin-top: 10px;
-            padding: 10px 16px;
-            background: var(--primary-light);
-            color: var(--white);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--dark); font-size: 12px; }
+        .form-group textarea, .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 11px; }
+        .comment-box button { margin-top: 10px; padding: 10px 16px; background: var(--primary-light); color: var(--white); border: none; border-radius: 6px; cursor: pointer; }
+
+        footer { text-align: center; margin-top: 40px; color: var(--gray); font-size: 12px; border-top: 1px solid #dee2e6; padding-top: 20px; background: var(--secondary); }
+
         /* Puslapiavimas */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            font-size: 12px;
-        }
-        .pagination button {
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            background: white;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .pagination button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: var(--gray);
-            font-size: 12px;
-            border-top: 1px solid #dee2e6;
-            padding-top: 20px;
-            background: var(--secondary);
-        }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: var(--white); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .pagination-info { font-size: 12px; color: var(--gray); }
+        .pagination-buttons { display: flex; gap: 10px; }
+        .pagination-btn { padding: 6px 12px; background: var(--primary-light); color: var(--white); border: none; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .pagination-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Redaguojami laukai */
+        .repair-cost-input { width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; }
+        .product-id-input { width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px; } /* NEW: atskira klasė */
+        .product-edit-input { width: 100%; padding: 2px; border: 1px solid #ccc; border-radius: 3px; font-size: 11px; line-height: 1.2; }
+
         @media (max-width: 600px) {
             .filters { flex-direction: column; }
             .stats-bar { flex-direction: column; gap: 6px; }
             th, td { padding: 4px 6px; font-size: 10px; }
-            .pagination { flex-direction: column; align-items: center; }
-            .pagination button { width: 100%; max-width: 120px; }
+            .pagination { flex-direction: column; gap: 10px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
-        <nav>
-            <a href="index.html">Pagrindinis</a>
-            <a href="duku.html">DUK</a>
-            <a href="login.html">Prisijungti</a>
-        </nav>
-    </header>
-    <main>
-        <h1>Administratoriaus zona</h1>
-        <!-- Skirtukai -->
-        <div class="tabs">
-            <div class="tab active" onclick="openTab('claims')">Pretenzijos</div>
-            <div class="tab" onclick="openTab('feedback')">Atsiliepimai</div>
-            <div class="tab" onclick="openTab('users')">Vartotojai</div>
-            <div class="tab" onclick="openTab('partners')">Serviso partneriai</div>
-        </div>
-        <!-- Skirtukas: Pretenzijos -->
-        <div id="claims" class="tab-content active">
-            <!-- Statistika -->
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <span class="label">Pretenzijų sk.</span>
-                    <span class="value" id="total-claims">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Vid. atsakymo laikas</span>
-                    <span class="value" id="avg-response">24 val.</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Dažniausi brokai</span>
-                    <span class="value" id="top-issue">Užsikimšęs aeratorius</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Pop. produktai</span>
-                    <span class="value" id="top-product">ECOSENS</span>
-                </div>
-            </div>
-            <!-- Filtrai -->
-            <div class="filters">
-                <!-- Būsenų filtras su varnelėmis -->
-                <div class="dropdown-status-filter">
-                    <button type="button" class="btn btn-primary" onclick="toggleStatusDropdown()">Filtruoti pagal būseną ▼</button>
-                    <div id="status-dropdown" class="dropdown-status-content">
-                        <label><input type="checkbox" value="" checked onchange="toggleAllStatuses(this)"> Visos</label>
-                        <label><input type="checkbox" value="Nauja" checked> Nauja</label>
-                        <label><input type="checkbox" value="Laukia patvirtinimo" checked> Laukia patvirtinimo</label>
-                        <label><input type="checkbox" value="Patvirtinta" checked> Patvirtinta</label>
-                        <label><input type="checkbox" value="Perduota servisui" checked> Perduota servisui</label>
-                        <label><input type="checkbox" value="Išspręsta" checked> Išspręsta</label>
-                        <label><input type="checkbox" value="Atmesta" checked> Atmesta</label>
-                        <div class="dropdown-status-actions">
-                            <button onclick="applyFilters()" class="btn btn-primary">Filtruoti</button>
-                            <button onclick="clearStatusFilters()" class="btn">Išvalyti</button>
-                        </div>
-                    </div>
-                </div>
-                <input type="text" id="filter-product" placeholder="Produkto pavadinimas">
-                <input type="text" id="filter-city" placeholder="Miestas">
-                <input type="date" id="filter-date-from">
-                <input type="date" id="filter-date-to">
-                <!-- Pakeistas mygtukas: iš exportToCSV() į exportToExcel() -->
-                <button onclick="exportToExcel()" class="btn btn-export">Eksportuoti į Excel</button>
-            </div>
-            <!-- Pretenzijų lentelė -->
-            <table id="claims-table">
-                <thead>
-                    <tr>
-                        <th style="width: 8%;">ID</th>
-                        <th style="width: 8%;">Data</th>
-                        <th style="width: 10%;">Vartotojas</th>
-                        <th style="width: 8%;">Miestas</th>
-                        <th style="width: 10%;">Produktas</th>
-                        <th style="width: 12%;">Problema</th>
-                        <th style="width: 10%;">Meistras</th>
-                        <th style="width: 8%;">Būsena</th>
-                        <th style="width: 10%;">Atsakingas</th>
-                        <th style="width: 8%;">Remonto kaina (€)</th> <!-- Naujas stulpelis -->
-                        <th style="width: 10%;">Koment</th>
-                    </tr>
-                </thead>
-                <tbody id="claims-body">
-                    <tr><td colspan="11" style="text-align: center;">Kraunama...</td></tr>
-                </tbody>
-            </table>
-            <!-- Puslapiavimas -->
-            <div class="pagination" id="claims-pagination">
-                <button id="prev-btn" disabled>Ankstesnis</button>
-                <span id="page-info">1 / 1</span>
-                <button id="next-btn">Kitas</button>
-            </div>
-        </div>
-        <!-- Skirtukas: Vartotojai -->
-        <div id="users" class="tab-content">
-            <h2>Vartotojų sąrašas</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Vardas</th>
-                        <th>Pavardė</th>
-                        <th>Rolė</th>
-                        <th>Būsena</th>
-                        <th>El. paštas</th>
-                        <th>Telefonas</th>
-                        <th>Miestas</th>
-                        <th>Veiksmai</th>
-                    </tr>
-                </thead>
-                <tbody id="users-body">
-                    <tr><td colspan="8" style="text-align: center;">Kraunama...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <!-- Kitų skirtukų turinys -->
-        <div id="feedback" class="tab-content"></div>
-<!-- Skirtukas: Serviso partneriai -->
-<div id="partners" class="tab-content">
-    <h2>Serviso partneriai</h2>
-    <!-- Filtrai ir mygtukai -->
-    <div class="filters">
-        <input type="text" id="filter-partner-name" placeholder="Ieškoti pagal pavadinimą">
-        <input type="text" id="filter-partner-city" placeholder="Ieškoti pagal miestą">
-        <button onclick="filterPartners()" class="btn btn-primary">Filtruoti</button>
-        <button onclick="openAddPartnerModal()" class="btn btn-primary">+ Pridėti partnerį</button>
+<header>
+    <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+    <nav>
+        <a href="index.html">Pagrindinis</a>
+        <a href="duku.html">DUK</a>
+        <a href="login.html">Prisijungti</a>
+    </nav>
+</header>
+
+<main>
+    <h1>Administratoriaus zona</h1>
+
+    <!-- Skirtukai -->
+    <div class="tabs">
+        <div class="tab active" onclick="openTab('claims')">Pretenzijos</div>
+        <div class="tab" onclick="openTab('feedback')">Atsiliepimai</div>
+        <div class="tab" onclick="openTab('users')">Vartotojai</div>
+        <div class="tab" onclick="openTab('partners')">Serviso partneriai</div>
     </div>
-    <!-- Lentelė su partneriais -->
-    <table id="partners-table">
-        <thead>
+
+    <!-- Skirtukas: Pretenzijos -->
+    <div id="claims" class="tab-content active">
+        <!-- Statistika -->
+        <div class="stats-bar">
+            <div class="stat-item"><span class="label">Pretenzijų sk.</span><span class="value" id="total-claims">0</span></div>
+            <div class="stat-item"><span class="label">Vid. atsakymo laikas</span><span class="value" id="avg-response">24 val.</span></div>
+            <div class="stat-item"><span class="label">Dažniausi brokai</span><span class="value" id="top-issue">Užsikimšęs aeratorius</span></div>
+            <div class="stat-item"><span class="label">Pop. produktai</span><span class="value" id="top-product">ECOSENS</span></div>
+        </div>
+
+        <!-- Veiksmai -->
+        <div class="filters">
+            <button onclick="exportToCSV(false)" class="btn btn-export">Eksportuoti visus (pagal filtrą)</button> <!-- NEW -->
+            <button onclick="exportToCSV(true)" class="btn btn-export">Eksportuoti tik šį puslapį</button> <!-- NEW -->
+        </div>
+
+        <!-- Pretenzijų lentelė -->
+        <table id="claims-table">
+            <thead>
+            <tr>
+                <th style="width: 6%;">ID<br><input type="text" id="filter-id" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 6%;">Data<br>
+                    <input type="date" id="filter-date-from-header" class="inline-filter" onchange="applyInlineFilters()">–<br>
+                    <input type="date" id="filter-date-to-header" class="inline-filter" onchange="applyInlineFilters()">
+                </th>
+                <th style="width: 8%;">Vartotojas<br><input type="text" id="filter-user" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 6%;">Miestas<br><input type="text" id="filter-city" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 8%;">Produktas<br><input type="text" id="filter-product" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 6%;">Produkto ID<br><input type="text" id="filter-product-id" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 10%;">Problema<br><input type="text" id="filter-problem" class="inline-filter" placeholder="Raktiniai žodžiai" oninput="applyInlineFilters()"></th>
+                <th style="width: 8%;">Gedimo rūšis<br>
+                    <select id="filter-issue-type" class="inline-filter" onchange="applyInlineFilters()">
+                        <option value="">Visi</option>
+                        <option value="Nutekėjimai (Leaking Issues)">Nutekėjimai</option>
+                        <option value="Liejimo defektai (Casting Defects)">Liejimo defektai</option>
+                        <option value="Snapo problemos (Spout Problems)">Snapo problemos</option>
+                        <option value="Mygtukų ar vožtuvų gedimai (Button or Valve Issues)">Mygtukų gedimai</option>
+                        <option value="Sukimosi ir judėjimo problemos (Rotation and Movement Issues)">Judėjimo klaidos</option>
+                        <option value="Paviršiaus ir dangos problemos (Surface and Coating Problems)">Dangos defektai</option>
+                        <option value="Trūkstamos dalys (Missing Parts)">Trūkstamos dalys</option>
+                        <option value="Montavimo problemos (Installation Issues)">Montavimo klaidos</option>
+                        <option value="Kitos kokybės problemos (Other Quality Issues)">Kitos</option>
+                    </select>
+                </th>
+                <th style="width: 6%;">Remonto kaina<br><input type="number" step="0.01" id="filter-repair-cost" class="inline-filter" placeholder="≥ suma" oninput="applyInlineFilters()"></th>
+                <th style="width: 8%;">Meistras<br><input type="text" id="filter-master" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 8%;">Atsakingas<br><input type="text" id="filter-responsible" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
+                <th style="width: 8%;">Koment<br><input type="text" id="filter-comment" class="inline-filter" placeholder="Raktiniai žodžiai" oninput="applyInlineFilters()"></th>
+                <th style="width: 6%;">Būsena<br>
+                    <select id="filter-status" class="inline-filter" onchange="applyInlineFilters()">
+                        <option value="">Visi</option>
+                        <option value="Nauja">Nauja</option>
+                        <option value="Laukia patvirtinimo">Laukia</option>
+                        <option value="Patvirtinta">Patvirtinta</option>
+                        <option value="Perduota servisui">Perduota</option>
+                        <option value="Išspręsta">Išspręsta</option>
+                        <option value="Atmesta">Atmesta</option>
+                    </select>
+                </th>
+            </tr>
+            </thead>
+            <tbody id="claims-body">
+            <tr><td colspan="13" style="text-align: center;">Kraunama...</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Puslapiavimas -->
+        <div class="pagination">
+            <div class="pagination-info" id="pagination-info">Rodoma 0-0 iš 0</div>
+            <div class="pagination-buttons">
+                <button class="pagination-btn" id="prev-page" onclick="changePage(-1)">Ankstesnis</button>
+                <button class="pagination-btn" id="next-page" onclick="changePage(1)">Kitas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skirtukas: Vartotojai -->
+    <div id="users" class="tab-content">
+        <h2>Vartotojų sąrašas</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Vardas</th>
+                <th>Pavardė</th>
+                <th>Rolė</th>
+                <th>Būsena</th>
+                <th>El. paštas</th>
+                <th>Telefonas</th>
+                <th>Miestas</th>
+                <th>Veiksmai</th>
+            </tr>
+            </thead>
+            <tbody id="users-body">
+            <tr><td colspan="8" style="text-align: center;">Kraunama...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Skirtukas: Atsiliepimai -->
+    <div id="feedback" class="tab-content"></div>
+
+    <!-- Skirtukas: Serviso partneriai -->
+    <div id="partners" class="tab-content">
+        <h2>Serviso partneriai</h2>
+        <div class="filters">
+            <input type="text" id="filter-partner-name" placeholder="Ieškoti pagal pavadinimą">
+            <input type="text" id="filter-partner-city" placeholder="Ieškoti pagal miestą">
+            <button onclick="filterPartners()" class="btn btn-primary">Filtruoti</button>
+            <button onclick="openAddPartnerModal()" class="btn btn-primary">+ Pridėti partnerį</button>
+        </div>
+
+        <table id="partners-table">
+            <thead>
             <tr>
                 <th>Pavadinimas</th>
                 <th>Kontaktinis asmuo</th>
@@ -451,15 +299,16 @@
                 <th>Veiklos zona</th>
                 <th>Veiksmai</th>
             </tr>
-        </thead>
-        <tbody id="partners-body">
+            </thead>
+            <tbody id="partners-body">
             <tr><td colspan="5" style="text-align: center;">Kraunama...</td></tr>
-        </tbody>
-    </table>
-</div>
-    </main>
-    <!-- Modalinis langas -->
-    <div id="claimModal" class="modal">
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- Pretenzijos modalas -->
+<div id="claimModal" class="modal">
     <div class="modal-content">
         <div id="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 id="modal-title">Pretenzijos peržiūra</h2>
@@ -471,7 +320,8 @@
         <div id="modal-body"></div>
     </div>
 </div>
-<!-- MODALINIS LANGAS – SERVISO PARTNERIS -->
+
+<!-- Partnerio modalas -->
 <div id="partnerModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closePartnerModal()">&times;</span>
@@ -502,1065 +352,800 @@
         </form>
     </div>
 </div>
-    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
-    <script>
-        // Globalus kintamasis filtrui
-        let currentFilters = null;
 
-        // Puslapiavimo kintamieji
-        const ITEMS_PER_PAGE = 50;
-        let currentPage = 1;
-        let filteredClaims = [];
+<footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
 
-        // Tikriname, ar vartotojas yra administratorius
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            alert('Prieiga draudžiama. Prisijunkite.');
-            window.location.href = 'admin-login.html';
-        } else if (!['admin', 'quality'].includes(currentUser.role)) {
-            alert('Jūs neturite teisių peržiūrėti šią zoną.');
-            window.location.href = 'index.html';
-        }
+<script>
+/* =================== BENDRI KINTAMIEJI =================== */
+let currentPage = 1;
+const itemsPerPage = 20;
+let totalClaims = 0;
+let filteredClaims = [];
+let currentFilters = null;
+let sortKey = null;     // NEW: paprastas rikiavimas
+let sortDir = 'asc';    // 'asc' | 'desc'
 
-        function setModalHeader(title, showViewSeparately = false) {
-            document.getElementById('modal-title').textContent = title;
-            const viewBtn = document.querySelector('#modal-actions .btn-export');
-            if (viewBtn) {
-                viewBtn.style.display = showViewSeparately ? 'inline-block' : 'none';
-            }
-        }
+/* =================== PRIEIGOS KONTROLĖ =================== */
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (!currentUser || !['admin', 'quality'].includes(currentUser.role)) {
+    alert('Prieiga draudžiama. Reikalingos administratoriaus teisės.');
+    location.href = 'index.html';
+}
 
-        function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            if (tabName === 'claims') {
-                loadClaims(); // Atnaujina puslapiavimą
-            } else if (tabName === 'feedback') {
-                loadFeedback();
-            } else if (tabName === 'users') {
-                loadUsers();
-            } else if (tabName === 'partners') {
-                loadPartners();
-            }
-        }
+/* =================== PADĖTINĖS FUNKCIJOS =================== */
+function setModalHeader(title, showViewSeparately = false) {
+    document.getElementById('modal-title').textContent = title;
+    const viewBtn = document.querySelector('#modal-actions .btn-export');
+    if (viewBtn) viewBtn.style.display = showViewSeparately ? 'inline-block' : 'none';
+}
+function getStatusClass(status) {
+    switch (status) {
+        case 'Nauja': return 'new';
+        case 'Laukia patvirtinimo': return 'pending';
+        case 'Patvirtinta': return 'approved';
+        case 'Perduota servisui': return 'sent';
+        case 'Išspręsta': return 'resolved';
+        case 'Atmesta': return 'rejected';
+        default: return 'new';
+    }
+}
+function safeLower(v){ return (v ?? '').toString().toLowerCase(); } // NEW: null-safe
 
-        function loadClaims(filteredClaimsParam = null) {
-            // Nustatome visus įrašus arba filtruotus
-            filteredClaims = filteredClaimsParam || JSON.parse(localStorage.getItem('claims') || '[]');
-            // Atnaujiname statistiką
-            document.getElementById('total-claims').textContent = filteredClaims.length;
+/* =================== SKIRTUKAI =================== */
+function openTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).classList.add('active');
 
-            // Resetuojame puslapiavimą
-            currentPage = 1;
-            renderClaimsPage();
-            updatePagination();
-        }
+    if (tabName === 'claims') loadClaims();
+    else if (tabName === 'feedback') loadFeedback();
+    else if (tabName === 'users') loadUsers();
+    else if (tabName === 'partners') loadPartners();
+}
 
-        function renderClaimsPage() {
-            const tbody = document.getElementById('claims-body');
-            tbody.innerHTML = '';
+/* =================== PRETENZIJOS: NUSKAITYMAS/PIEŠIMAS =================== */
+function loadClaims(filteredData = null) {
+    const claims = filteredData || JSON.parse(localStorage.getItem('claims') || '[]');
+    filteredClaims = claims;
+    totalClaims = claims.length;
+    applySort(); // NEW: pritaikome rikiavimą jei yra
+    renderClaims();
+}
 
-            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-            const endIndex = startIndex + ITEMS_PER_PAGE;
-            const pageClaims = filteredClaims.slice(startIndex, endIndex);
+function applySort(){ // NEW: paprasta rikiavimo logika 3 laukams
+    if(!sortKey) return;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    filteredClaims.sort((a,b)=>{
+        let va, vb;
+        if (sortKey === 'date'){ va = new Date(a.date||0).getTime(); vb = new Date(b.date||0).getTime(); }
+        else if (sortKey === 'id'){ va = (a.id||'').toString(); vb = (b.id||'').toString(); }
+        else if (sortKey === 'repairCost'){ va = parseFloat(a.repairCost||0); vb = parseFloat(b.repairCost||0); }
+        else { return 0; }
+        if (va < vb) return -1*dir;
+        if (va > vb) return 1*dir;
+        return 0;
+    });
+}
 
-            if (pageClaims.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">Nėra pretenzijų.</td></tr>';
-                return;
-            }
+function toggleSort(key){ // NEW: kviečiama ant TH (pridėta event listener DOMContentLoaded)
+    if (sortKey === key) sortDir = (sortDir === 'asc' ? 'desc' : 'asc');
+    else { sortKey = key; sortDir = 'asc'; }
+    applySort();
+    currentPage = 1;
+    renderClaims();
+}
 
-            pageClaims.forEach(claim => {
-                const masterCell = claim.assignedPartner 
-                    ? `<span>${claim.assignedPartner}</span>` 
-                    : `<button class="btn btn-primary" onclick="showAssignModal('${claim.id}')">Priskirti meistrui</button>`;
-                const responsibleCell = claim.responsible 
-                    ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">${claim.responsible}</a>`
-                    : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">Paskirti atsakingą</a>`;
-                const commentCell = claim.qualityComment || '-------';
+function renderClaims() {
+    const tbody = document.getElementById('claims-body');
+    tbody.innerHTML = '';
 
-                // Remonto kaina - jei nenurodyta, rodoma tuscias laukas
-                const repairCost = claim.repairCost !== undefined && claim.repairCost !== null 
-                    ? claim.repairCost.toFixed(2) + ' €' 
-                    : '-';
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalClaims);
+    const pageClaims = filteredClaims.slice(startIndex, endIndex);
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${claim.id}');">${claim.id}</a></td>
-                    <td>${new Date(claim.date).toLocaleDateString('lt-LT')}</td>
-                    <td>${claim.contact.name} ${claim.contact.surname}</td>
-                    <td>${claim.contact.city}</td>
-                    <td>${claim.product}</td>
-                    <td>${claim.description.substring(0, 30)}...</td>
-                    <td>${masterCell}</td>
-                    <td>
-                        <select class="status-dropdown status-${getStatusClass(claim.status)}" onchange="updateStatusDirectly('${claim.id}', this.value)">
-                            <option value="Nauja" ${claim.status === 'Nauja' ? 'selected' : ''}>Nauja</option>
-                            <option value="Laukia patvirtinimo" ${claim.status === 'Laukia patvirtinimo' ? 'selected' : ''}>Laukia patvirtinimo</option>
-                            <option value="Patvirtinta" ${claim.status === 'Patvirtinta' ? 'selected' : ''}>Patvirtinta</option>
-                            <option value="Perduota servisui" ${claim.status === 'Perduota servisui' ? 'selected' : ''}>Perduota servisui</option>
-                            <option value="Išspręsta" ${claim.status === 'Išspręsta' ? 'selected' : ''}>Išspręsta</option>
-                            <option value="Atmesta" ${claim.status === 'Atmesta' ? 'selected' : ''}>Atmesta</option>
-                        </select>
-                    </td>
-                    <td>${responsibleCell}</td>
-                    <td>${repairCost}</td>
-                    <td>${commentCell}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+    if (pageClaims.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align: center;">Nerasta pretenzijų</td></tr>'; // FIX: colspan
+    } else {
+        pageClaims.forEach(claim => {
+            const masterCell = claim.assignedPartner
+                ? `<span>${claim.assignedPartner}</span>`
+                : `<button class="btn btn-primary" onclick="showAssignModal('${claim.id}')">Priskirti meistrui</button>`;
 
-        function getStatusClass(status) {
-            switch (status) {
-                case 'Nauja': return 'new';
-                case 'Laukia patvirtinimo': return 'pending';
-                case 'Patvirtinta': return 'approved';
-                case 'Perduota servisui': return 'sent';
-                case 'Išspręsta': return 'resolved';
-                case 'Atmesta': return 'rejected';
-                default: return 'new';
-            }
-        }
+            const responsibleCell = claim.responsible
+                ? `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">${claim.responsible}</a>`
+                : `<a href="#" onclick="event.preventDefault(); showResponsibleModal('${claim.id}');">Paskirti atsakingą</a>`;
 
-        function updateStatusDirectly(id, newStatus) {
-            if (!confirm(`Ar tikrai norite pakeisti būseną į "${newStatus}"?`)) {
-                loadClaims();
-                return;
-            }
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (claim) {
-                claim.status = newStatus;
-                if (['Nauja', 'Laukia patvirtinimo'].includes(newStatus)) {
-                    claim.assignedPartner = null;
-                }
-                localStorage.setItem('claims', JSON.stringify(claims));
-                if (currentFilters) {
-                    applyFilters();
-                } else {
-                    loadClaims();
-                }
-            }
-        }
+            const commentCell = claim.qualityComment || '-------';
+            const repairCost = claim.repairCost || '';
+            const productId = claim.productId || '';
+            const issueType = claim.issueType || 'Kitos kokybės problemos (Other Quality Issues)';
 
-        function showAssignModal(id) {
-            tempAttachments = [];
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (!claim) return;
-            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            let partnerSelect = `<select id="assign-partner-select" style="width:100%; padding:5px; margin-bottom:10px;">`;
-            partnerSelect += `<option value="">Pasirinkite meistrą...</option>`;
-            partners.forEach(p => {
-                partnerSelect += `<option value="${p.name} – ${p.cities}">${p.name} – ${p.cities}</option>`;
-            });
-            partnerSelect += `</select>`;
-            document.getElementById('modal-body').innerHTML = `
-                <div class="modal-section">
-                    <h3>Priskirti pretenziją meistrui</h3>
-                    <p><strong>ID:</strong> ${claim.id}</p>
-                    <p><strong>Produktas:</strong> ${claim.product}</p>
-                    <p><strong>Aprašymas:</strong> ${claim.description}</p>
-                    ${partnerSelect}
-                    <div class="form-group">
-                        <label for="quality-note">Rekomendacija partneriui</label>
-                        <textarea id="quality-note" placeholder="Įrašykite pastabas, ką verta patikrinti..." style="width:100%; padding:8px; margin:5px 0;">${claim.qualityNote || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="attachment-type">Prisegti dokumentą</label>
-                        <select id="attachment-type" style="width:100%; padding:5px;" onchange="updateAttachmentInput()">
-                            <option value="file">Failas (PDF, nuotrauka)</option>
-                            <option value="video">Video nuoroda (YouTube)</option>
-                            <option value="link">Nuoroda į instrukciją</option>
-                        </select>
-                        <!-- Failas -->
-                        <input type="file" id="attachment-file" accept="image/*,video/*,.pdf,.doc,.docx" style="width:100%; padding:5px; margin-top:5px;" />
-                        <!-- Nuoroda (video arba link) -->
-                        <input type="text" id="attachment-url" placeholder="Įveskite nuorodą (pvz., YouTube URL)" style="width:100%; padding:5px; margin-top:5px; display:none;" />
-                        <button type="button" onclick="addAttachment()" style="margin-top:5px; padding:5px 10px; font-size:11px;">+ Pridėti</button>
-                    </div>
-                    <div id="attachments-list" style="margin:10px 0; font-size:11px;"></div>
-                    <button class="btn-small btn-assign" onclick="assignToPartner('${claim.id}')">Patvirtinti ir išsiųsti partneriui</button>
-                </div>
+            // Redaguojamas produkto pavadinimas
+            const productInput = `<input type="text" class="product-edit-input" value="${claim.product || ''}"
+                                  data-id="${claim.id}" onchange="updateProduct('${claim.id}', this.value)">`;
+
+            // NEW: inline gedimo rūšies dropdown
+            const issueTypes = [
+                "Nutekėjimai (Leaking Issues)",
+                "Liejimo defektai (Casting Defects)",
+                "Snapo problemos (Spout Problems)",
+                "Mygtukų ar vožtuvų gedimai (Button or Valve Issues)",
+                "Sukimosi ir judėjimo problemos (Rotation and Movement Issues)",
+                "Paviršiaus ir dangos problemos (Surface and Coating Problems)",
+                "Trūkstamos dalys (Missing Parts)",
+                "Montavimo problemos (Installation Issues)",
+                "Kitos kokybės problemos (Other Quality Issues)"
+            ];
+            const issueSelect = `
+                <select class="inline-issue-select" onchange="updateIssueType('${claim.id}', this.value)" style="width:100%; padding:4px;">
+                    ${issueTypes.map(t => `<option value="${t}" ${t===issueType?'selected':''}>${t}</option>`).join('')}
+                </select>
             `;
-            // Jei jau yra prisegtų dokumentų, parodykite juos
-            if (claim.qualityAttachments && claim.qualityAttachments.length > 0) {
-                tempAttachments = [...claim.qualityAttachments];
-                updateAttachmentsList();
-            }
-            setModalHeader('Priskirti meistrui', false);
-            document.getElementById('claimModal').style.display = 'flex';
-        }
 
-        let tempAttachments = [];
-        function addAttachment() {
-            const type = document.getElementById('attachment-type').value;
-            const fileInput = document.getElementById('attachment-file');
-            const urlInput = document.getElementById('attachment-url');
-            let url = '';
-            let file = null;
-            if (type === 'file') {
-                file = fileInput.files[0];
-                if (!file) {
-                    alert('Pasirinkite failą.');
-                    return;
-                }
-            } else {
-                url = urlInput.value.trim();
-                if (!url) {
-                    alert('Įveskite nuorodą.');
-                    return;
-                }
-            }
-            const name = prompt('Įveskite pavadinimą (pvz., „Schema.pdf“):', file ? file.name : '');
-            if (!name) {
-                alert('Būtinas pavadinimas.');
-                return;
-            }
-            if (type === 'file') {
-                uploadToCloudinary(file, (secureUrl) => {
-                    tempAttachments.push({ type: 'file', name, url: secureUrl });
-                    updateAttachmentsList();
-                    fileInput.value = '';
-                }, (error) => {
-                    alert('Nepavyko įkelti failo: ' + error.message);
-                });
-            } else {
-                tempAttachments.push({ type, name, url });
-                updateAttachmentsList();
-                urlInput.value = '';
-            }
-        }
-
-        function updateAttachmentsList() {
-            const container = document.getElementById('attachments-list');
-            if (tempAttachments.length === 0) {
-                container.innerHTML = '<small>Nėra prisegtų dokumentų.</small>';
-                return;
-            }
-            container.innerHTML = '<small><strong>Prisegti dokumentai:</strong></small><ul style="list-style: none; padding:0; font-size:11px;">' +
-                tempAttachments.map((att, i) => {
-                    const icon = att.type === 'video' ? '🎬' : att.type === 'link' ? '🔗' : '📎';
-                    return `<li>${icon} <a href="${att.url}" target="_blank">${att.name}</a> <button onclick="removeAttachment(${i})" style="font-size:10px;">X</button></li>`;
-                }).join('') +
-                '</ul>';
-        }
-
-        function uploadToCloudinary(file, onSuccess, onError) {
-            if (!file) {
-                onError(new Error('Nepasirinktas failas'));
-                return;
-            }
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr');
-            formData.append('cloud_name', 'dtiiwo2bp');
-            fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideUploadIndicator();
-                if (data.secure_url) {
-                    onSuccess(data.secure_url);
-                } else {
-                    onError(new Error('Nepavyko gauti URL'));
-                }
-            })
-            .catch(err => {
-                hideUploadIndicator();
-                onError(err);
-            });
-        }
-
-        function removeAttachment(index) {
-            tempAttachments.splice(index, 1);
-            updateAttachmentsList();
-        }
-
-        function assignToPartner(id) {
-            const selectElement = document.getElementById('assign-partner-select');
-            const noteElement = document.getElementById('quality-note');
-            const selectedPartner = selectElement.value;
-            const note = noteElement ? noteElement.value.trim() : '';
-            if (!selectedPartner) {
-                alert('Pasirinkite meistrą.');
-                return;
-            }
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (!claim) {
-                alert('Pretenzija nerasta.');
-                closeModal();
-                return;
-            }
-            const allAttachments = [
-                ...(claim.files || []).map(url => ({
-                    name: 'Vartotojo dokumentas',
-                    url: url
-                })),
-                ...tempAttachments
-            ];
-            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            const partner = partners.find(p => p.name === selectedPartner.split(' – ')[0]);
-            if (!partner || !partner.email) {
-                alert('Partneris nerastas arba nenurodytas el. paštas.');
-                return;
-            }
-            claim.assignedPartner = selectedPartner;
-            claim.status = 'Perduota servisui';
-            claim.qualityComment = note;
-            claim.qualityAttachments = [...tempAttachments];
-            localStorage.setItem('claims', JSON.stringify(claims));
-
-            fetch('https://pretenziju-sistema.onrender.com/send-to-partner', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    claimId: claim.id,
-                    partnerEmail: partner.email,
-                    partnerContactPerson: partner.contactPerson || 'Meistras',
-                    note: note,
-                    attachments: allAttachments
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('✅ Laiškas išsiųstas meistrui:', data);
-            })
-            .catch(error => {
-                console.error('❌ Klaida siunčiant laišką:', error);
-            });
-
-            alert(`✅ Pretenzija ${id} sėkmingai priskirta meistrui: ${selectedPartner}`);
-            tempAttachments = [];
-            updateAttachmentsList();
-            closeModal();
-            loadClaims();
-        }
-
-        function showResponsibleModal(id) {
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (claim) {
-                setModalHeader('Paskirti atsakingą', false);
-                const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '[]');
-                let userOptions = '<option value="">Pasirinkite atsakingą...</option>';
-                adminUsers.forEach(user => {
-                    userOptions += `<option value="${user.name} ${user.surname}" ${claim.responsible === `${user.name} ${user.surname}` ? 'selected' : ''}>${user.name} ${user.surname} (${user.role})</option>`;
-                });
-                const modalBody = `
-                    <div class="modal-section">
-                        <h3>Paskirti atsakingą kokybės skyriaus darbuotoją</h3>
-                        <p><strong>Pretenzijos ID:</strong> ${claim.id}</p>
-                        <p><strong>Produktas:</strong> ${claim.product}</p>
-                        <p><strong>Aprašymas:</strong> ${claim.description}</p>
-                        <select id="responsible-select">${userOptions}</select>
-                        <button class="btn-small btn-primary" onclick="assignResponsible('${claim.id}')">Paskirti</button>
-                    </div>
-                `;
-                openModal(modalBody);
-            }
-        }
-
-        function assignResponsible(id) {
-            const selectElement = document.getElementById('responsible-select');
-            const selectedResponsible = selectElement.value;
-            if (!selectedResponsible) {
-                alert('Pasirinkite atsakingą.');
-                return;
-            }
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (claim) {
-                claim.responsible = selectedResponsible;
-                localStorage.setItem('claims', JSON.stringify(claims));
-                alert(`Atsakingas paskirtas: ${selectedResponsible}`);
-                closeModal();
-                if (currentFilters) {
-                    applyFilters();
-                } else {
-                    loadClaims();
-                }
-            }
-        }
-
-        function viewClaimDetails(id) {
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claim = claims.find(c => c.id === id);
-            if (claim) {
-                setModalHeader('Pretenzijos peržiūra', true);
-                let fileListHtml = '<div class="file-list">';
-                if (claim.files && claim.files.length > 0) {
-                    claim.files.forEach(file => {
-                        fileListHtml += `<div class="file-item">📎 ${file}</div>`;
-                    });
-                } else {
-                    fileListHtml += '<div class="file-item">Nėra įkeltų failų</div>';
-                }
-                fileListHtml += '</div>';
-                document.getElementById('modal-body').innerHTML = `
-                    <div class="modal-section">
-                        <h3>Pagrindinė informacija</h3>
-                        <p><strong>ID:</strong> <span id="claim-id">${claim.id}</span></p>
-                        <p><strong>Data:</strong> ${new Date(claim.date).toLocaleString('lt-LT')}</p>
-                        <p><strong>Tema:</strong> ${claim.topic}</p>
-                        <p><strong>Veiklos tipas:</strong> ${claim.role}</p>
-                        <p><strong>Produktas:</strong> ${claim.product}</p>
-                        <p><strong>Aprašymas:</strong> ${claim.description}</p>
-                        <p><strong>Kliento reikalavimas:</strong> ${claim.request}</p>
-                    </div>
-                    <div class="modal-section">
-                        <h3>Kontaktiniai duomenys</h3>
-                        <p><strong>Vardas:</strong> ${claim.contact.name} ${claim.contact.surname}</p>
-                        <p><strong>El. paštas:</strong> ${claim.contact.email}</p>
-                        <p><strong>Telefonas:</strong> ${claim.contact.phone}</p>
-                        <p><strong>Adresas:</strong> ${claim.contact.street}, ${claim.contact.city}, ${claim.contact.postal}</p>
-                        <p><strong>Pageidaujamas kontaktas:</strong> ${claim.contactMethod}</p>
-                        <p><strong>Patogus laikas:</strong> ${claim.preferredTime}</p>
-                    </div>
-                    <div class="modal-section">
-                        <h3>Failai</h3>
-                        ${fileListHtml}
-                    </div>
-                    <div class="modal-section">
-                        <h3>Būsena ir priskyrimas</h3>
-                        <p><strong>Būsena:</strong> <span class="status status-${getStatusClass(claim.status)}">${claim.status}</span></p>
-                        <p><strong>Priskirtas meistras:</strong> ${claim.assignedPartner || 'Nėra'}</p>
-                    </div>
-                    <div class="modal-section">
-                        <h3>Kokybės skyriaus komentaras</h3>
-                        <div class="comment-box">
-                            <textarea id="quality-comment-${claim.id}" placeholder="Įrašykite komentarą...">${claim.qualityComment || ''}</textarea>
-                            <button class="btn-small btn-primary" onclick="saveQualityComment('${claim.id}')">Išsaugoti komentarą</button>
-                        </div>
-                    </div>
-                    <div class="modal-section">
-                        <h3>Remonto kaina</h3>
-                        <p>
-                            <input type="number" id="repair-cost-${claim.id}" 
-                                   placeholder="Įveskite kainą (€)" 
-                                   value="${claim.repairCost || ''}" 
-                                   style="width: 120px; padding: 5px;"/>
-                            <button class="btn-small btn-primary" onclick="saveRepairCost('${claim.id}')">Išsaugoti</button>
-                        </p>
-                    </div>
-                `;
-                document.getElementById('claimModal').style.display = 'flex';
-            }
-        }
-
-        function saveQualityComment(id) {
-            const comment = document.getElementById(`quality-comment-${id}`).value.trim();
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claimIndex = claims.findIndex(c => c.id === id);
-            if (claimIndex !== -1) {
-                claims[claimIndex].qualityComment = comment;
-                claims[claimIndex].qualityCommentDate = new Date().toISOString();
-                localStorage.setItem('claims', JSON.stringify(claims));
-                alert('Komentaras išsaugotas!');
-                if (currentFilters) {
-                    applyFilters();
-                } else {
-                    loadClaims();
-                }
-            }
-        }
-
-        function saveRepairCost(id) {
-            const costInput = document.getElementById(`repair-cost-${id}`);
-            const costValue = costInput.value.trim();
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const claimIndex = claims.findIndex(c => c.id === id);
-            if (claimIndex !== -1) {
-                claims[claimIndex].repairCost = costValue === '' ? null : parseFloat(costValue);
-                localStorage.setItem('claims', JSON.stringify(claims));
-                alert('Remonto kaina išsaugota!');
-                if (currentFilters) {
-                    applyFilters();
-                } else {
-                    loadClaims();
-                }
-            }
-        }
-
-        function filterPartners() {
-            const nameFilter = document.getElementById('filter-partner-name').value.toLowerCase();
-            const cityFilter = document.getElementById('filter-partner-city').value.toLowerCase();
-            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            const filtered = partners.filter(p => 
-                (nameFilter === '' || p.name.toLowerCase().includes(nameFilter)) &&
-                (cityFilter === '' || p.cities.toLowerCase().includes(cityFilter))
-            );
-            loadPartners(filtered);
-        }
-
-        function deletePartner(id) {
-            if (!confirm('Ar tikrai norite ištrinti šį partnerį?')) return;
-            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            const updated = partners.filter(p => p.id !== id);
-            localStorage.setItem('servicePartners', JSON.stringify(updated));
-            alert('Serviso partneris ištrintas.');
-            loadPartners();
-        }
-
-        function openClaimViewPage() {
-            const claimId = document.getElementById('claim-id')?.textContent;
-            if (claimId) {
-                window.open(`claim-view.html?id=${claimId}`, '_blank');
-            } else {
-                alert('Nepavyko gauti pretenzijos ID.');
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('claimModal').style.display = 'none';
-        }
-
-        function openModal(content) {
-            document.getElementById('modal-body').innerHTML = content;
-            document.getElementById('claimModal').style.display = 'flex';
-        }
-
-        function toggleStatusDropdown() {
-            const dropdown = document.getElementById('status-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function toggleAllStatuses(masterCheckbox) {
-            const checkboxes = document.querySelectorAll('#status-dropdown input[type="checkbox"]');
-            checkboxes.forEach(cb => {
-                cb.checked = masterCheckbox.checked;
-            });
-        }
-
-        function clearStatusFilters() {
-            const checkboxes = document.querySelectorAll('#status-dropdown input[type="checkbox"]');
-            checkboxes.forEach(cb => {
-                cb.checked = false;
-            });
-            document.querySelector('#status-dropdown input[value=""]').checked = true;
-        }
-
-        function applyFilters() {
-            const statusCheckboxes = document.querySelectorAll('#status-dropdown input[type="checkbox"]:checked');
-            const selectedStatuses = Array.from(statusCheckboxes).map(cb => cb.value);
-            const showAll = selectedStatuses.includes('');
-            const product = document.getElementById('filter-product').value.toLowerCase();
-            const city = document.getElementById('filter-city').value.toLowerCase();
-            const dateFrom = document.getElementById('filter-date-from').value;
-            const dateTo = document.getElementById('filter-date-to').value;
-            const allClaims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const filtered = allClaims.filter(c => {
-                const matchesStatus = showAll || selectedStatuses.includes(c.status);
-                return (
-                    matchesStatus &&
-                    (product === '' || c.product.toLowerCase().includes(product)) &&
-                    (city === '' || c.contact.city.toLowerCase().includes(city)) &&
-                    (dateFrom === '' || c.date >= dateFrom + 'T00:00:00') &&
-                    (dateTo === '' || c.date <= dateTo + 'T23:59:59')
-                );
-            });
-            currentFilters = { product, city, dateFrom, dateTo, selectedStatuses };
-            loadClaims(filtered);
-        }
-
-        // =============================
-        // EKSPORTUOTI Į EXCEL (XLSX)
-        // =============================
-        function exportToExcel() {
-            const claims = filteredClaims.length > 0 ? filteredClaims : JSON.parse(localStorage.getItem('claims') || '[]');
-
-            // Sukuriame duomenų masyvą
-            const worksheetData = claims.map(claim => ({
-                "ID": claim.id,
-                "Data": new Date(claim.date).toLocaleDateString('lt-LT'),
-                "Vartotojas": `${claim.contact.name} ${claim.contact.surname}`,
-                "Miestas": claim.contact.city,
-                "Produktas": claim.product,
-                "Problema": claim.description,
-                "Meistras": claim.assignedPartner || '',
-                "Būsena": claim.status,
-                "Atsakingas": claim.responsible || '',
-                "Remonto kaina (€)": claim.repairCost !== null && claim.repairCost !== undefined ? claim.repairCost.toFixed(2) : '',
-                "Komentaras": claim.qualityComment || ''
-            }));
-
-            // Sukuriame darbaknygę
-            const worksheet = XLSX.utils.json_to_sheet(worksheetData, { header: ["ID", "Data", "Vartotojas", "Miestas", "Produktas", "Problema", "Meistras", "Būsena", "Atsakingas", "Remonto kaina (€)", "Komentaras"] });
-
-            // Nustatome stulpelių plotį
-            worksheet['!cols'] = [
-                { wch: 10 }, // ID
-                { wch: 12 }, // Data
-                { wch: 20 }, // Vartotojas
-                { wch: 15 }, // Miestas
-                { wch: 15 }, // Produktas
-                { wch: 25 }, // Problema
-                { wch: 20 }, // Meistras
-                { wch: 15 }, // Būsena
-                { wch: 20 }, // Atsakingas
-                { wch: 15 }, // Remonto kaina
-                { wch: 25 }  // Komentaras
-            ];
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Pretenzijos");
-
-            // Eksportuojame
-            XLSX.writeFile(workbook, `pretenzijos_${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-
-        // -----------------------------
-        // PUSLAPIAVIMAS
-        // -----------------------------
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredClaims.length / ITEMS_PER_PAGE);
-            const pageInfo = document.getElementById('page-info');
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-
-            pageInfo.textContent = `${currentPage} / ${totalPages}`;
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
-        }
-
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderClaimsPage();
-                updatePagination();
-            }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${claim.id}');">${claim.id}</a></td>
+                <td>${claim.date ? new Date(claim.date).toLocaleDateString('lt-LT') : ''}</td>
+                <td>${safeLower((claim.contact?.name||'')) ? `${claim.contact.name} ${claim.contact?.surname||''}` : ''}</td>
+                <td>${claim.contact?.city || ''}</td>
+                <td>${productInput}</td>
+                <td><input type="text" class="product-id-input" value="${productId}" placeholder="pvz., SKU-123"
+                           onchange="updateProductId('${claim.id}', this.value)"></td>
+                <td>${(claim.description||'').substring(0, 30)}${(claim.description||'').length>30?'...':''}</td>
+                <td>${issueSelect}</td>
+                <td><input type="number" step="0.01" class="repair-cost-input" value="${repairCost}" placeholder="€"
+                           onchange="updateRepairCost('${claim.id}', this.value)"></td>
+                <td>${masterCell}</td>
+                <td>${responsibleCell}</td>
+                <td>${commentCell}</td>
+                <td>
+                    <select class="status-dropdown status-${getStatusClass(claim.status)}"
+                            onchange="updateStatusDirectly('${claim.id}', this.value)">
+                        <option value="Nauja" ${claim.status === 'Nauja' ? 'selected' : ''}>Nauja</option>
+                        <option value="Laukia patvirtinimo" ${claim.status === 'Laukia patvirtinimo' ? 'selected' : ''}>Laukia patvirtinimo</option>
+                        <option value="Patvirtinta" ${claim.status === 'Patvirtinta' ? 'selected' : ''}>Patvirtinta</option>
+                        <option value="Perduota servisui" ${claim.status === 'Perduota servisui' ? 'selected' : ''}>Perduota servisui</option>
+                        <option value="Išspręsta" ${claim.status === 'Išspręsta' ? 'selected' : ''}>Išspręsta</option>
+                        <option value="Atmesta" ${claim.status === 'Atmesta' ? 'selected' : ''}>Atmesta</option>
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
+    }
 
-        document.getElementById('next-btn').addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredClaims.length / ITEMS_PER_PAGE);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderClaimsPage();
-                updatePagination();
-            }
-        });
+    // Puslapiavimo info
+    document.getElementById('pagination-info').textContent = `Rodoma ${totalClaims ? (startIndex + 1) : 0}-${endIndex} iš ${totalClaims}`;
 
-        // -----------------------------
-        // KITŲ SKIRTUKŲ LOGIKA
-        // -----------------------------
-        function loadFeedback() {
-            const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
-            const content = `
-                <h2>Klientų atsiliepimai</h2>
-                <table>
-                    <thead>
+    // Mygtukai
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = endIndex >= totalClaims;
+
+    // Statistika
+    document.getElementById('total-claims').textContent = totalClaims;
+}
+
+/* =================== REDAGAVIMO FUNKCIJOS =================== */
+function updateProduct(id, newProduct) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim && newProduct.trim() !== '') {
+        claim.product = newProduct.trim();
+        localStorage.setItem('claims', JSON.stringify(claims));
+        const filteredClaim = filteredClaims.find(c => c.id === id);
+        if (filteredClaim) filteredClaim.product = newProduct.trim();
+    }
+}
+function updateProductId(id, newId) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim) {
+        claim.productId = (newId || '').trim();
+        localStorage.setItem('claims', JSON.stringify(claims));
+        const filteredClaim = filteredClaims.find(c => c.id === id);
+        if (filteredClaim) filteredClaim.productId = (newId || '').trim();
+    }
+}
+function updateIssueType(id, newType) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim) {
+        claim.issueType = (newType || '').trim();
+        localStorage.setItem('claims', JSON.stringify(claims));
+        const filteredClaim = filteredClaims.find(c => c.id === id);
+        if (filteredClaim) filteredClaim.issueType = (newType || '').trim();
+    }
+}
+function updateRepairCost(id, newCost) {
+    const val = (newCost ?? '').toString().replace(',', '.');
+    if (val !== '' && isNaN(parseFloat(val))) {
+        alert('Neteisinga suma. Naudokite skaičių (pvz., 85.50)');
+        renderClaims();
+        return;
+    }
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim) {
+        claim.repairCost = val;
+        localStorage.setItem('claims', JSON.stringify(claims));
+        const filteredClaim = filteredClaims.find(c => c.id === id);
+        if (filteredClaim) filteredClaim.repairCost = val;
+    }
+}
+function updateIssueTypeInModal(id, newType) { // naud. modalui
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const idx = claims.findIndex(c => c.id === id);
+    if (idx !== -1) {
+        claims[idx].issueType = newType;
+        localStorage.setItem('claims', JSON.stringify(claims));
+        const filteredClaim = filteredClaims.find(c => c.id === id);
+        if (filteredClaim) filteredClaim.issueType = newType;
+        renderClaims();
+    }
+}
+
+/* =================== BŪSENA =================== */
+function updateStatusDirectly(id, newStatus) {
+    if (!confirm(`Ar tikrai norite pakeisti būseną į "${newStatus}"?`)) { loadClaims(); return; }
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim) {
+        claim.status = newStatus;
+        if (['Nauja', 'Laukia patvirtinimo'].includes(newStatus)) claim.assignedPartner = null;
+        localStorage.setItem('claims', JSON.stringify(claims));
+
+        const filteredClaim = filteredClaims.find(c => c.id === id);
+        if (filteredClaim) {
+            filteredClaim.status = newStatus;
+            if (['Nauja', 'Laukia patvirtinimo'].includes(newStatus)) filteredClaim.assignedPartner = null;
+        }
+        currentFilters ? applyInlineFilters() : loadClaims();
+    }
+}
+
+/* =================== PRISKYRIMAS / MODALAI =================== */
+let tempAttachments = []; // laikini prisegimai priskyrimo modalui
+function showAssignModal(id) {
+    tempAttachments = [];
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (!claim) return;
+
+    const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    let partnerSelect = `<select id="assign-partner-select" style="width:100%; padding:5px; margin-bottom:10px;">`;
+    partnerSelect += `<option value="">Pasirinkite meistrą...</option>`;
+    partners.forEach(p => {
+        partnerSelect += `<option value="${p.name} – ${p.cities}">${p.name} – ${p.cities}</option>`;
+    });
+    partnerSelect += `</select>`;
+
+    document.getElementById('modal-body').innerHTML = `
+        <div class="modal-section">
+            <h3>Priskirti pretenziją meistrui</h3>
+            <p><strong>ID:</strong> ${claim.id}</p>
+            <p><strong>Produktas:</strong> ${claim.product||''}</p>
+            <p><strong>Aprašymas:</strong> ${claim.description||''}</p>
+            ${partnerSelect}
+
+            <div class="form-group">
+                <label for="quality-note">Rekomendacija partneriui</label>
+                <textarea id="quality-note" placeholder="Įrašykite pastabas, ką verta patikrinti...">${claim.qualityNote || ''}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="attachment-type">Prisegti dokumentą</label>
+                <select id="attachment-type" onchange="updateAttachmentInput()">
+                    <option value="file">Failas (PDF, nuotrauka)</option>
+                    <option value="video">Video nuoroda (YouTube)</option>
+                    <option value="link">Nuoroda į instrukciją</option>
+                </select>
+                <input type="file" id="attachment-file" accept="image/*,video/*,.pdf,.doc,.docx" style="margin-top:5px;" />
+                <input type="text" id="attachment-url" placeholder="Įveskite nuorodą (pvz., YouTube URL)" style="margin-top:5px; display:none;" />
+                <button type="button" onclick="addAttachment()" style="margin-top:5px; padding:5px 10px; font-size:11px;">+ Pridėti</button>
+            </div>
+
+            <div id="attachments-list" style="margin:10px 0; font-size:11px;"></div>
+
+            <button class="btn-small btn-assign" onclick="assignToPartner('${claim.id}')">Patvirtinti ir išsiųsti partneriui</button>
+        </div>
+    `;
+
+    if (claim.qualityAttachments?.length) {
+        tempAttachments = [...claim.qualityAttachments];
+        updateAttachmentsList();
+    }
+
+    setModalHeader('Priskirti meistrui', false);
+    document.getElementById('claimModal').style.display = 'flex';
+}
+function updateAttachmentInput(){
+    const t = document.getElementById('attachment-type').value;
+    document.getElementById('attachment-file').style.display = (t==='file')?'block':'none';
+    document.getElementById('attachment-url').style.display = (t!=='file')?'block':'none';
+}
+function addAttachment(){
+    const t = document.getElementById('attachment-type').value;
+    if (t==='file'){
+        const f = document.getElementById('attachment-file').files[0];
+        if(!f){ alert('Pasirinkite failą.'); return; }
+        tempAttachments.push({type:'file', name:f.name, url:f.name});
+    } else {
+        const url = (document.getElementById('attachment-url').value||'').trim();
+        if(!url){ alert('Įveskite nuorodą.'); return; }
+        tempAttachments.push({type:t, name: t==='video'?'Video':'Nuoroda', url});
+    }
+    updateAttachmentsList();
+    document.getElementById('attachment-url').value='';
+    document.getElementById('attachment-file').value='';
+}
+function updateAttachmentsList(){
+    const wrap = document.getElementById('attachments-list');
+    wrap.innerHTML = tempAttachments.map((a,i)=>`<div>📎 ${a.type.toUpperCase()}: <a href="${a.url}" target="_blank">${a.name}</a> <button onclick="tempAttachments.splice(${i},1);updateAttachmentsList()">šalinti</button></div>`).join('') || '<div>Nėra prisegtų</div>';
+}
+function assignToPartner(id){
+    const select = document.getElementById('assign-partner-select');
+    const partner = select.value;
+    if(!partner){ alert('Pasirinkite meistrą.'); return; }
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const c = claims.find(x=>x.id===id);
+    if (c){
+        c.assignedPartner = partner;
+        c.qualityNote = document.getElementById('quality-note').value||'';
+        c.qualityAttachments = tempAttachments;
+        c.status = 'Perduota servisui';
+        localStorage.setItem('claims', JSON.stringify(claims));
+        closeModal();
+        loadClaims();
+    }
+}
+
+function openModal(content) {
+    document.getElementById('modal-body').innerHTML = content;
+    document.getElementById('claimModal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('claimModal').style.display = 'none'; }
+function closePartnerModal(){ document.getElementById('partnerModal').style.display='none'; }
+
+/* NEW: uždaryti modalą spustelėjus foną */
+document.getElementById('claimModal').addEventListener('click', (e)=>{ if(e.target.id==='claimModal') closeModal(); });
+document.getElementById('partnerModal').addEventListener('click', (e)=>{ if(e.target.id==='partnerModal') closePartnerModal(); });
+
+function openClaimViewPage() {
+    const claimId = document.getElementById('claim-id')?.textContent;
+    if (claimId) window.open(`claim-view.html?id=${claimId}`, '_blank');
+    else alert('Nepavyko gauti pretenzijos ID.');
+}
+
+/* =================== FILTRAVIMAS =================== */
+// VIENINTELĖ versija (FIX): suvienodinta su thead input ID
+function applyInlineFilters() {
+    const allClaims = JSON.parse(localStorage.getItem('claims') || '[]');
+
+    const id = safeLower(document.getElementById('filter-id').value.trim());
+    const dateFrom = document.getElementById('filter-date-from-header').value;
+    const dateTo = document.getElementById('filter-date-to-header').value;
+    const user = safeLower(document.getElementById('filter-user').value.trim());
+    const city = safeLower(document.getElementById('filter-city').value.trim());
+    const product = safeLower(document.getElementById('filter-product').value.trim());
+    const productId = safeLower(document.getElementById('filter-product-id').value.trim());
+    const problem = safeLower(document.getElementById('filter-problem').value.trim());
+    const issueType = document.getElementById('filter-issue-type').value;
+    const repairCost = parseFloat((document.getElementById('filter-repair-cost').value||'').replace(',','.'));
+    const master = safeLower(document.getElementById('filter-master').value.trim());
+    const responsible = safeLower(document.getElementById('filter-responsible').value.trim());
+    const status = document.getElementById('filter-status').value;
+    const comment = safeLower(document.getElementById('filter-comment').value.trim());
+
+    const filtered = allClaims.filter(c => {
+        const cId = safeLower(c.id);
+        const cDate = (c.date || '');
+        const cUser = safeLower(`${c.contact?.name||''} ${c.contact?.surname||''}`);
+        const cCity = safeLower(c.contact?.city||'');
+        const cProduct = safeLower(c.product||'');
+        const cProductId = safeLower(c.productId||'');
+        const cDesc = safeLower(c.description||'');
+        const cIssue = c.issueType || '';
+        const cRepair = parseFloat(c.repairCost||'0');
+        const cMaster = safeLower(c.assignedPartner||'');
+        const cResp = safeLower(c.responsible||'');
+        const cStatus = c.status || '';
+        const cComment = safeLower(c.qualityComment||'');
+
+        return (
+            (id === '' || cId.includes(id)) &&
+            (dateFrom === '' || cDate >= dateFrom + 'T00:00:00') &&
+            (dateTo === '' || cDate <= dateTo + 'T23:59:59') &&
+            (user === '' || cUser.includes(user)) &&
+            (city === '' || cCity.includes(city)) &&
+            (product === '' || cProduct.includes(product)) &&
+            (productId === '' || cProductId.includes(productId)) &&
+            (problem === '' || cDesc.includes(problem)) &&
+            (issueType === '' || cIssue === issueType) &&
+            (isNaN(repairCost) || cRepair >= repairCost) &&
+            (master === '' || cMaster.includes(master)) &&
+            (responsible === '' || cResp.includes(responsible)) &&
+            (status === '' || cStatus === status) &&
+            (comment === '' || cComment.includes(comment))
+        );
+    });
+
+    filteredClaims = filtered;
+    totalClaims = filtered.length;
+    currentPage = 1;
+    applySort(); // laikomės aktyvaus rikiavimo
+    renderClaims();
+}
+
+/* =================== CSV EKSPORTAS =================== */
+// NEW: parametras pageOnly – eksportuoti tik šį puslapį
+function exportToCSV(pageOnly = false) {
+    const headers = ['ID','Data','Vardas','Pavardė','El. paštas','Telefonas','Produktas','Aprašymas','Būsena','Miestas','Priskirtas meistras','Komentaras','Remonto kaina','Produkto ID','Gedimo rūšis'];
+
+    let data = filteredClaims;
+    if (pageOnly) {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalClaims);
+        data = filteredClaims.slice(startIndex, endIndex);
+    }
+
+    const rows = data.map(c => [
+        c.id || '',
+        c.date ? new Date(c.date).toLocaleDateString('lt-LT') : '',
+        c.contact?.name || '',
+        c.contact?.surname || '',
+        c.contact?.email || '',
+        c.contact?.phone || '',
+        c.product || '',
+        (c.description || '').replace(/"/g, '""'),
+        c.status || '',
+        c.contact?.city || '',
+        c.assignedPartner || '',
+        (c.qualityComment || '').replace(/"/g, '""'),
+        c.repairCost || '',
+        c.productId || '',
+        c.issueType || ''
+    ]);
+
+    const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pretenzijos_${new Date().toISOString().split('T')[0]}${pageOnly?'_puslapis':''}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+/* =================== ATSILIEPIMAI / VARTOTOJAI / PARTNERIAI =================== */
+function loadFeedback() {
+    const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+    const content = `
+        <h2>Klientų atsiliepimai</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pretenzijos ID</th>
+                    <th>Data</th>
+                    <th>Greitis</th>
+                    <th>Kokybė</th>
+                    <th>Mandagumas</th>
+                    <th>NPS</th>
+                    <th>Komentaras</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${
+                    feedbacks.length === 0
+                    ? '<tr><td colspan="7" style="text-align:center;">Nėra atsiliepimų.</td></tr>'
+                    : feedbacks.map(f => `
                         <tr>
-                            <th>Pretenzijos ID</th>
-                            <th>Data</th>
-                            <th>Greitis</th>
-                            <th>Kokybė</th>
-                            <th>Mandagumas</th>
-                            <th>NPS</th>
-                            <th>Komentaras</th>
+                            <td>${f.claimId}</td>
+                            <td>${new Date(f.date).toLocaleDateString('lt-LT')}</td>
+                            <td>${f.ratings?.speed ?? ''}</td>
+                            <td>${f.ratings?.quality ?? ''}</td>
+                            <td>${f.ratings?.politeness ?? ''}</td>
+                            <td>${f.ratings?.nps ?? ''}</td>
+                            <td>${f.comments ?? ''}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${feedbacks.length === 0 
-                            ? '<tr><td colspan="7" style="text-align: center;">Nėra atsiliepimų.</td></tr>'
-                            : feedbacks.map(f => `
-                                <tr>
-                                    <td>${f.claimId}</td>
-                                    <td>${new Date(f.date).toLocaleDateString('lt-LT')}</td>
-                                    <td>${f.ratings.speed}</td>
-                                    <td>${f.ratings.quality}</td>
-                                    <td>${f.ratings.politeness}</td>
-                                    <td>${f.ratings.nps}</td>
-                                    <td>${f.comments}</td>
-                                </tr>
-                            `).join('')
-                        }
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('feedback').innerHTML = content;
-        }
+                    `).join('')
+                }
+            </tbody>
+        </table>
+    `;
+    document.getElementById('feedback').innerHTML = content;
+}
 
-        function loadUsers(usersToShow = null) {
-            const users = usersToShow || JSON.parse(localStorage.getItem('users') || '[]');
-            const tbody = document.getElementById('users-body');
-            tbody.innerHTML = '';
-            if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nėra vartotojų.</td></tr>';
-                return;
-            }
-            users.forEach(user => {
-                const actions = getActionsForUser(user);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${user.name}</td>
-                    <td>${user.surname}</td>
-                    <td>${user.role}</td>
-                    <td>
-                        ${user.status === 'pending' 
-                            ? `<a href="#" onclick="event.preventDefault(); viewInstallerDocs('${user.id}');">Dokumentai</a>` 
-                            : user.status}
-                    </td>
-                    <td>${user.email}</td>
-                    <td>${user.phone}</td>
-                    <td>${user.city}</td>
-                    <td>${actions}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+function loadUsers() {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const tbody = document.getElementById('users-body');
+    tbody.innerHTML = '';
 
-        function getActionsForUser(user) {
-            if (user.role === 'installer' && user.status === 'pending') {
-                return `
-                    <button class="btn btn-primary" onclick="approveInstaller('${user.id}')">Patvirtinti</button>
-                    <button class="btn btn-danger" onclick="openRejectionModal('${user.id}')">Atmesti</button>
-                `;
-            } else {
-                return `<button class="btn btn-primary" onclick="viewUserHistory('${user.id}')">Peržiūrėti istoriją</button>`;
-            }
-        }
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nėra vartotojų.</td></tr>';
+        return;
+    }
 
-        function viewInstallerDocs(id) {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.id === id);
-            if (!user || !user.documents || user.documents.length === 0) {
-                alert('Nėra įkeltų dokumentų.');
-                return;
-            }
-            let docsHtml = '<div class="file-list">';
-            user.documents.forEach(doc => {
-                docsHtml += `<div class="file-item">
-                    <a href="${doc.url}" target="_blank" style="text-decoration: none;">
-                        📎 ${doc.name}
-                    </a>
-                </div>`;
-            });
-            docsHtml += '</div>';
-            document.getElementById('modal-body').innerHTML = `
-                <div class="modal-section">
-                    <h3>Dokumentai – ${user.name} ${user.surname}</h3>
-                    ${docsHtml}
-                    <p><strong>Patvirtinimo data:</strong> ${user.submissionDate || 'Nenurodyta'}</p>
-                </div>
-            `;
-            document.getElementById('claimModal').style.display = 'flex';
-        }
+    users.forEach(user => {
+        const actions = getActionsForUser(user);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${user.name||''}</td>
+            <td>${user.surname||''}</td>
+            <td>${user.role||''}</td>
+            <td>${user.role === 'installer' && user.status === 'pending'
+                    ? `<a href="#" onclick="event.preventDefault(); viewInstallerDocs('${user.id}')">Dokumentai</a>`
+                    : (user.status||'')}</td>
+            <td>${user.email||''}</td>
+            <td>${user.phone||''}</td>
+            <td>${user.city||''}</td>
+            <td>${actions}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+function getActionsForUser(user) {
+    if (user.role === 'installer' && user.status === 'pending') {
+        return `
+            <button class="btn btn-primary" onclick="approveInstaller('${user.id}')">Patvirtinti</button>
+            <button class="btn btn-danger" onclick="openRejectionModal('${user.id}')">Atmesti</button>
+        `;
+    } else {
+        return `<button class="btn btn-primary" onclick="viewUserHistory('${user.id}')">Peržiūrėti istoriją</button>`;
+    }
+}
 
-        function approveInstaller(id) {
-            if (!confirm('Ar tikrai norite patvirtinti šį meistrą?')) return;
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.id === id);
-            if (user) {
-                user.status = 'approved';
-                localStorage.setItem('users', JSON.stringify(users));
-                alert(`Meistras ${user.name} ${user.surname} patvirtintas!`);
-                loadUsers();
-            }
-        }
+function loadPartners() {
+    const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+    const tbody = document.getElementById('partners-body');
+    tbody.innerHTML = '';
 
-        function openRejectionModal(id) {
-            const modalBody = `
-                <div class="modal-section">
-                    <h3>Atmesti meistrą</h3>
-                    <p>Kodėl atmetate šį meistrą?</p>
-                    <textarea id="rejection-reason" placeholder="Įrašykite priežastį..." style="width:100%; padding:8px; margin:10px 0;"></textarea>
-                    <button class="btn btn-danger" onclick="rejectInstaller('${id}')">Atmesti</button>
-                </div>
-            `;
-            openModal(modalBody);
-        }
+    if (partners.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nėra serviso partnerių.</td></tr>';
+        return;
+    }
 
-        function rejectInstaller(id) {
-            const reason = document.getElementById('rejection-reason').value.trim();
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.id === id);
-            if (user) {
-                user.status = 'rejected';
-                user.rejectionReason = reason;
-                localStorage.setItem('users', JSON.stringify(users));
-                alert(`Meistras ${user.name} ${user.surname} atmestas.`);
-                closeModal();
-                loadUsers();
-            }
-        }
+    partners.forEach(partner => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${partner.name||''}</td>
+            <td>${partner.contactPerson||''}</td>
+            <td><strong>Tel:</strong> ${partner.phone||''}<br><strong>El. paštas:</strong> ${partner.email||''}</td>
+            <td>${partner.cities||''}</td>
+            <td>
+                <button class="btn btn-primary" onclick="openEditPartnerModal('${partner.id}')">Redaguoti</button>
+                <button class="btn btn-danger" onclick="deletePartner('${partner.id}')">Ištrinti</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 
-        function viewUserHistory(id) {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.id === id);
-            if (!user) {
-                alert('Vartotojas nerastas.');
-                return;
-            }
-            setModalHeader('Vartotojo istorija', false);
-            let docsHtml = '';
-            if (user.documents && user.documents.length > 0) {
-                docsHtml = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">';
-                docsHtml += '<p><strong>Pateikti dokumentai:</strong></p><div style="display: flex; flex-direction: column; gap: 6px;">';
-                user.documents.forEach(doc => {
-                    docsHtml += `<a href="${doc.url}" target="_blank" style="color: #17a2b8; text-decoration: none;">📎 ${doc.name}</a>`;
-                });
-                docsHtml += '</div></div>';
-            }
-            let statusBadge = user.status;
-            if (user.status === 'approved') {
-                statusBadge = '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Patvirtintas</span>';
-            } else if (user.status === 'pending') {
-                statusBadge = '<span style="background: #ffc107; color: #212529; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Laukia</span>';
-            } else if (user.status === 'rejected') {
-                statusBadge = '<span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">Atmestas</span>';
-            }
-            document.getElementById('modal-body').innerHTML = `
-                <div class="modal-section">
-                    <h3>Vartotojo istorija</h3>
-                    <p><strong>Vardas:</strong> ${user.name} ${user.surname}</p>
-                    <p><strong>El. paštas:</strong> ${user.email}</p>
-                    <p><strong>Telefonas:</strong> ${user.phone}</p>
-                    <p><strong>Miestas:</strong> ${user.city}</p>
-                    <p><strong>Rolė:</strong> ${user.role}</p>
-                    <p><strong>Būsena:</strong> ${statusBadge}</p>
-                    ${user.rejectionReason ? `<p><strong>Priežastis atmestant:</strong> ${user.rejectionReason}</p>` : ''}
-                    <p><strong>Registracijos data:</strong> ${user.submissionDate ? new Date(user.submissionDate).toLocaleDateString('lt-LT') : 'Nenurodyta'}</p>
-                    ${docsHtml}
-                </div>
-            `;
-            document.getElementById('claimModal').style.display = 'flex';
-        }
+/* =================== MODALINĖ PRETENZIJA =================== */
+function showResponsibleModal(id) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim) {
+        setModalHeader('Paskirti atsakingą', false);
 
-        function loadPartners(partnersToShow = null) {
-            const partners = partnersToShow || JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            const tbody = document.getElementById('partners-body');
-            tbody.innerHTML = '';
-            if (partners.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nėra serviso partnerių.</td></tr>';
-                return;
-            }
-            partners.forEach(partner => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${partner.name}</td>
-                    <td>${partner.contactPerson}</td>
-                    <td>
-                        <strong>Tel:</strong> ${partner.phone}<br>
-                        <strong>El. paštas:</strong> ${partner.email}
-                    </td>
-                    <td>${partner.cities}</td>
-                   <td>
-        <button class="btn btn-primary" onclick="openEditPartnerModal('${partner.id}')">Redaguoti</button>
-        <button class="btn btn-danger" onclick="deletePartner('${partner.id}')">Ištrinti</button>
-    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function openEditPartnerModal(id) {
-            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            const partner = partners.find(p => p.id === id);
-            if (partner) {
-                document.getElementById('partnerModalTitle').textContent = 'Redaguoti partnerį';
-                document.getElementById('edit-partner-id').value = partner.id;
-                document.getElementById('partner-name').value = partner.name;
-                document.getElementById('partner-contact').value = partner.contactPerson;
-                document.getElementById('partner-phone').value = partner.phone;
-                document.getElementById('partner-email').value = partner.email;
-                document.getElementById('partner-cities').value = partner.cities;
-                document.getElementById('partnerModal').style.display = 'flex';
-            } else {
-                alert('Partneris nerastas.');
-            }
-        }
-
-        function closePartnerModal() {
-            document.getElementById('partnerModal').style.display = 'none';
-        }
-
-        function savePartner() {
-            const id = document.getElementById('edit-partner-id').value || 'PART-' + Date.now();
-            const name = document.getElementById('partner-name').value.trim();
-            const contactPerson = document.getElementById('partner-contact').value.trim();
-            const phone = document.getElementById('partner-phone').value.trim();
-            const email = document.getElementById('partner-email').value.trim();
-            const cities = document.getElementById('partner-cities').value.trim();
-            if (!name || !contactPerson || !phone || !email) {
-                alert('Užpildykite visus privalomus laukus.');
-                return;
-            }
-            const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
-            const partnerIndex = partners.findIndex(p => p.id === id);
-            const partner = {
-                id,
-                name,
-                contactPerson,
-                phone,
-                email,
-                cities
-            };
-            if (partnerIndex > -1) {
-                partners[partnerIndex] = partner;
-            } else {
-                partners.push(partner);
-            }
-            localStorage.setItem('servicePartners', JSON.stringify(partners));
-            alert(`Partneris ${name} išsaugotas!`);
-            closePartnerModal();
-            loadPartners();
-        }
-
-        function openAddPartnerModal() {
-            document.getElementById('partnerModalTitle').textContent = 'Pridėti partnerį';
-            document.getElementById('partner-form').reset();
-            document.getElementById('edit-partner-id').value = '';
-            document.getElementById('partnerModal').style.display = 'flex';
-        }
-
-        // -----------------------------
-        // UŽKRAUTI DUOMENIS
-        // -----------------------------
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('claims')) {
-                const testClaims = [{
-                    id: 'PR-25-001',
-                    date: '2025-03-15T10:00:00',
-                    userId: 'USR-001',
-                    topic: 'Produkto problema',
-                    role: 'customer',
-                    product: 'ECOSENS',
-                    description: 'Užsikimšęs aeratorius, vanduo teka per lėtai.',
-                    request: 'send-part',
-                    files: ['foto1.jpg', 'video1.mp4'],
-                    assignedPartner: "Vilniaus servisas – Vilnius",
-                    qualityNote: "Rekomenduojama patikrinti aeratoriaus tarpiklį.",
-                    qualityAttachments: [
-                        { type: "file", name: "Schema.pdf", url: "https://..." },
-                        { type: "video", name: "Video apie gedimą", url: "https://youtube.com/..." },
-                        { type: "link", name: "Techninė instrukcija", url: "https://rubineta.com/instrukcija" }
-                    ],
-                    status: "Perduota servisui",
-                    contact: {
-                        name: 'Jonas',
-                        surname: 'Jankauskas',
-                        email: 'jonas@email.lt',
-                        phone: '+37061234567',
-                        street: 'Gatvė 12',
-                        city: 'Vilnius',
-                        postal: '12345'
-                    },
-                    contactMethod: 'email',
-                    preferredTime: '9–11 val.',
-                    status: 'Nauja',
-                    qualityComment: 'Neaišku kur laša',
-                    responsible: 'Inžinierius Jonas T.',
-                    repairCost: 45.50 // Štai kaip atrodys remonto kaina!
-                }];
-                localStorage.setItem('claims', JSON.stringify(testClaims));
-            }
-            if (!localStorage.getItem('feedbacks')) {
-                const feedbacks = [
-                    {
-                        id: 'FB-1',
-                        claimId: 'PR-25-001',
-                        date: '2025-03-16T10:00:00',
-                        ratings: { speed: 5, quality: 5, politeness: 5, nps: 10 },
-                        comments: 'Puikus aptarnavimas!'
-                    }
-                ];
-                localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
-            }
-            if (!localStorage.getItem('users')) {
-                const users = [
-                    {
-                        id: 'USR-001',
-                        name: 'Jonas',
-                        surname: 'J.',
-                        role: 'customer',
-                        status: 'approved',
-                        email: 'jonas@email.lt',
-                        phone: '+37061234567',
-                        city: 'Vilnius',
-                        registrationDate: '2025-03-10'
-                    },
-                    {
-                        id: 'USR-002',
-                        name: 'Petras',
-                        surname: 'P.',
-                        role: 'installer',
-                        status: 'pending',
-                        email: 'petras@servisas.lt',
-                        phone: '+37061276543',
-                        city: 'Kaunas',
-                        registrationDate: '2025-03-14',
-                        documents: [
-                            { name: 'Sertifikatas.pdf', url: 'https://example.com/sertifikatas.pdf' },
-                            { name: 'Partnerystės sutartis.pdf', url: 'https://example.com/sutartis.pdf' }
-                        ],
-                        submissionDate: '2025-03-14'
-                    }
-                ];
-                localStorage.setItem('users', JSON.stringify(users));
-            }
-            if (!localStorage.getItem('servicePartners')) {
-                const partners = [
-                    { name: 'Vilniaus servisas', contactPerson: 'Petras P.', phone: '+37061234567', email: 'petras@vlservisas.lt', cities: 'Vilnius, Trakai' }
-                ];
-                localStorage.setItem('servicePartners', JSON.stringify(partners));
-            }
-            if (!localStorage.getItem('adminUsers')) {
-                const adminUsers = [
-                    { name: 'Jonas', surname: 'T.', role: 'Kokybės inžinierius', email: 'jonas@rubineta.lt', phone: '+37061234567' },
-                    { name: 'Eglė', surname: 'K.', role: 'Serviso vadovas', email: 'eleg@rubineta.lt', phone: '+37061276543' }
-                ];
-                localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
-            }
-            loadClaims();
+        const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '[]');
+        let userOptions = '<option value="">Pasirinkite atsakingą...</option>';
+        adminUsers.forEach(user => {
+            const full = `${user.name} ${user.surname}`;
+            userOptions += `<option value="${full}" ${claim.responsible === full ? 'selected' : ''}>${full} (${user.role})</option>`;
         });
 
-        // Rodyti ar paslėpti laukus pagal tipą
-        function updateAttachmentInput() {
-            const type = document.getElementById('attachment-type').value;
-            const fileInput = document.getElementById('attachment-file');
-            const urlInput = document.getElementById('attachment-url');
-            if (type === 'file') {
-                fileInput.style.display = 'block';
-                urlInput.style.display = 'none';
-                urlInput.value = '';
-            } else {
-                fileInput.style.display = 'none';
-                fileInput.value = '';
-                urlInput.style.display = 'block';
-                urlInput.placeholder = type === 'video' 
-                    ? 'Įveskite YouTube nuorodą' 
-                    : 'Įveskite nuorodą į instrukciją';
-            }
-        }
+        const modalBody = `
+            <div class="modal-section">
+                <h3>Paskirti atsakingą kokybės skyriaus darbuotoją</h3>
+                <p><strong>Pretenzijos ID:</strong> ${claim.id}</p>
+                <p><strong>Produktas:</strong> ${claim.product||''}</p>
+                <p><strong>Aprašymas:</strong> ${claim.description||''}</p>
+                <select id="responsible-select">${userOptions}</select>
+                <button class="btn-small btn-primary" onclick="assignResponsible('${claim.id}')">Paskirti</button>
+            </div>
+        `;
+        openModal(modalBody);
+    }
+}
+function assignResponsible(id) {
+    const selectedResponsible = document.getElementById('responsible-select').value;
+    if (!selectedResponsible) { alert('Pasirinkite atsakingą.'); return; }
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (claim) {
+        claim.responsible = selectedResponsible;
+        localStorage.setItem('claims', JSON.stringify(claims));
+        alert(`Atsakingas paskirtas: ${selectedResponsible}`);
+        closeModal();
+        currentFilters ? applyInlineFilters() : loadClaims();
+    }
+}
 
-        function showUploadIndicator() {
-            let indicator = document.getElementById('upload-indicator');
-            if (!indicator) {
-                indicator = document.createElement('div');
-                indicator.id = 'upload-indicator';
-                indicator.innerHTML = 'Įkeliama...';
-                indicator.style.position = 'fixed';
-                indicator.style.top = '10px';
-                indicator.style.right = '10px';
-                indicator.style.background = 'var(--secondary)';
-                indicator.style.padding = '10px';
-                indicator.style.borderRadius = '5px';
-                indicator.style.zIndex = '1000';
-                document.body.appendChild(indicator);
-            }
-            indicator.style.display = 'block';
-        }
+function viewClaimDetails(id) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (!claim) return;
 
-        function hideUploadIndicator() {
-            const indicator = document.getElementById('upload-indicator');
-            if (indicator) {
-                indicator.style.display = 'none';
-            }
-        }
-    </script>
+    if (!claim.issueType) claim.issueType = "Kitos kokybės problemos (Other Quality Issues)";
+
+    const issueTypes = [
+        "Nutekėjimai (Leaking Issues)",
+        "Liejimo defektai (Casting Defects)",
+        "Snapo problemos (Spout Problems)",
+        "Mygtukų ar vožtuvų gedimai (Button or Valve Issues)",
+        "Sukimosi ir judėjimo problemos (Rotation and Movement Issues)",
+        "Paviršiaus ir dangos problemos (Surface and Coating Problems)",
+        "Trūkstamos dalys (Missing Parts)",
+        "Montavimo problemos (Installation Issues)",
+        "Kitos kokybės problemos (Other Quality Issues)"
+    ];
+    const issueOptions = issueTypes.map(type => `<option value="${type}" ${claim.issueType === type ? 'selected' : ''}>${type}</option>`).join('');
+
+    let fileListHtml = '<div class="file-list">';
+    if (claim.files?.length) {
+        claim.files.forEach(file => { fileListHtml += `<div class="file-item">📎 ${file}</div>`; });
+    } else {
+        fileListHtml += '<div class="file-item">Nėra įkeltų failų</div>';
+    }
+    fileListHtml += '</div>';
+
+    setModalHeader('Pretenzijos peržiūra', true);
+    document.getElementById('modal-body').innerHTML = `
+        <div class="modal-section">
+            <h3>Pagrindinė informacija</h3>
+            <p><strong>ID:</strong> <span id="claim-id">${claim.id}</span></p>
+            <p><strong>Data:</strong> ${claim.date ? new Date(claim.date).toLocaleString('lt-LT') : ''}</p>
+            <p><strong>Tema:</strong> ${claim.topic||''}</p>
+            <p><strong>Veiklos tipas:</strong> ${claim.role||''}</p>
+            <p><strong>Produktas:</strong> ${claim.product||''}</p>
+            <p><strong>Aprašymas:</strong> ${claim.description||''}</p>
+            <p><strong>Kliento reikalavimas:</strong> ${claim.request||''}</p>
+            <p><strong>Gedimo rūšis:</strong>
+                <select id="issue-type-select" onchange="updateIssueTypeInModal('${claim.id}', this.value)" style="width:100%;">
+                    ${issueOptions}
+                </select>
+            </p>
+        </div>
+        <div class="modal-section">
+            <h3>Kontaktiniai duomenys</h3>
+            <p><strong>Vardas:</strong> ${claim.contact?.name||''} ${claim.contact?.surname||''}</p>
+            <p><strong>El. paštas:</strong> ${claim.contact?.email||''}</p>
+            <p><strong>Telefonas:</strong> ${claim.contact?.phone||''}</p>
+            <p><strong>Adresas:</strong> ${claim.contact?.street||''}, ${claim.contact?.city||''}, ${claim.contact?.postal||''}</p>
+            <p><strong>Pageidaujamas kontaktas:</strong> ${claim.contactMethod||''}</p>
+            <p><strong>Patogus laikas:</strong> ${claim.preferredTime||''}</p>
+        </div>
+        <div class="modal-section">
+            <h3>Failai</h3>
+            ${fileListHtml}
+        </div>
+        <div class="modal-section">
+            <h3>Būsena ir priskyrimas</h3>
+            <p><strong>Būsena:</strong> <span class="status status-${getStatusClass(claim.status)}">${claim.status||''}</span></p>
+            <p><strong>Priskirtas meistras:</strong> ${claim.assignedPartner || 'Nėra'}</p>
+            <p><strong>Remonto kaina:</strong> ${claim.repairCost || 'Nenustatyta'}</p>
+        </div>
+        <div class="modal-section">
+            <h3>Kokybės skyriaus komentaras</h3>
+            <div class="comment-box">
+                <textarea id="quality-comment-${claim.id}" placeholder="Įrašykite komentarą...">${claim.qualityComment || ''}</textarea>
+                <button class="btn-small btn-primary" onclick="saveQualityComment('${claim.id}')">Išsaugoti komentarą</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('claimModal').style.display = 'flex';
+}
+function saveQualityComment(id) {
+    const comment = document.getElementById(`quality-comment-${id}`).value.trim();
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const i = claims.findIndex(c => c.id === id);
+    if (i !== -1) {
+        claims[i].qualityComment = comment;
+        claims[i].qualityCommentDate = new Date().toISOString();
+        localStorage.setItem('claims', JSON.stringify(claims));
+        alert('Komentaras išsaugotas!');
+        currentFilters ? applyInlineFilters() : loadClaims();
+    }
+}
+
+/* =================== PUSLAPIAVIMAS =================== */
+function changePage(direction) {
+    const newPage = currentPage + direction;
+    const totalPages = Math.ceil(totalClaims / itemsPerPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        renderClaims();
+    }
+}
+
+/* =================== DEMO DUOMENYS (jei nėra) =================== */
+document.addEventListener('DOMContentLoaded', () => {
+    // NEW: paprastas rikiavimo aktyvavimas ant 3 stulpelių
+    const ths = document.querySelectorAll('#claims-table thead th');
+    // ID (0), Data (1), Remonto kaina (8)
+    ths[0].style.cursor = ths[1].style.cursor = ths[8].style.cursor = 'pointer';
+    ths[0].title = 'Spauskite rikiuoti pagal ID';
+    ths[1].title = 'Spauskite rikiuoti pagal datą';
+    ths[8].title = 'Spauskite rikiuoti pagal remonto kainą';
+    ths[0].addEventListener('click', ()=>toggleSort('id'));
+    ths[1].addEventListener('click', ()=>toggleSort('date'));
+    ths[8].addEventListener('click', ()=>toggleSort('repairCost'));
+
+    if (!localStorage.getItem('claims')) {
+        const testClaims = [{
+            id: 'PR-25-001',
+            date: '2025-03-15T10:00:00',
+            userId: 'USR-001',
+            topic: 'Produkto problema',
+            role: 'customer',
+            product: 'ECOSENS',
+            description: 'Užsikimšęs aeratorius, vanduo teka per lėtai.',
+            request: 'send-part',
+            files: ['foto1.jpg', 'video1.mp4'],
+            assignedPartner: "Vilniaus servisas – Vilnius",
+            qualityNote: "Rekomenduojama patikrinti aeratoriaus tarpiklį.",
+            qualityAttachments: [
+                { type: "file", name: "Schema.pdf", url: "https://..." },
+                { type: "video", name: "Video apie gedimą", url: "https://youtube.com/..." },
+                { type: "link", name: "Techninė instrukcija", url: "https://rubineta.com/instrukcija" }
+            ],
+            contact: {
+                name: 'Jonas',
+                surname: 'Jankauskas',
+                email: 'jonas@email.lt',
+                phone: '+37061234567',
+                street: 'Gatvė 12',
+                city: 'Vilnius',
+                postal: '12345'
+            },
+            contactMethod: 'email',
+            preferredTime: '9–11 val.',
+            qualityComment: 'Neaišku kur laša',
+            responsible: 'Inžinierius Jonas T.',
+            repairCost: '85.50',
+            issueType: "Nutekėjimai (Leaking Issues)"
+        }];
+        localStorage.setItem('claims', JSON.stringify(testClaims));
+    }
+
+    if (!localStorage.getItem('feedbacks')) {
+        const feedbacks = [{
+            id: 'FB-1',
+            claimId: 'PR-25-001',
+            date: '2025-03-16T10:00:00',
+            ratings: { speed: 5, quality: 5, politeness: 5, nps: 10 },
+            comments: 'Puikus aptarnavimas!'
+        }];
+        localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+    }
+
+    if (!localStorage.getItem('users')) {
+        const users = [
+            { id: 'USR-001', name: 'Jonas', surname: 'J.', role: 'customer', status: 'approved', email: 'jonas@email.lt', phone: '+37061234567', city: 'Vilnius', registrationDate: '2025-03-10' },
+            { id: 'USR-002', name: 'Petras', surname: 'P.', role: 'installer', status: 'pending', email: 'petras@servisas.lt', phone: '+37061276543', city: 'Kaunas', registrationDate: '2025-03-14',
+              documents: [{ name: 'Sertifikatas.pdf', url: 'https://example.com/sertifikatas.pdf' }, { name: 'Partnerystės sutartis.pdf', url: 'https://example.com/sutartis.pdf' }], submissionDate: '2025-03-14' }
+        ];
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    if (!localStorage.getItem('servicePartners')) {
+        const partners = [
+            { id: 'PART-1', name: 'Vilniaus servisas', contactPerson: 'Petras P.', phone: '+37061234567', email: 'petras@vlservisas.lt', cities: 'Vilnius, Trakai' }
+        ];
+        localStorage.setItem('servicePartners', JSON.stringify(partners));
+    }
+
+    if (!localStorage.getItem('adminUsers')) {
+        const adminUsers = [
+            { name: 'Jonas', surname: 'T.', role: 'Kokybės inžinierius', email: 'jonas@rubineta.lt', phone: '+37061234567' },
+            { name: 'Eglė', surname: 'K.', role: 'Serviso vadovas', email: 'eleg@rubineta.lt', phone: '+37061276543' }
+        ];
+        localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
+    }
+
+    loadClaims();
+});
+</script>
 </body>
 </html>
