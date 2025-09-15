@@ -1,15 +1,12 @@
-DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="lt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Profilis – Rubineta</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
-    :root{
-      --primary:#2D2D2D; --primary-light:#4A4A4A; --secondary:#FFCC00; --light:#F5F5F5; --white:#FFFFFF;
-      --dark:#212529; --gray:#75757d; --font:'Roboto',sans-serif;
-    }
+    :root{--primary:#2D2D2D;--primary-light:#4A4A4A;--secondary:#FFCC00;--light:#F5F5F5;--white:#FFFFFF;--dark:#212529;--gray:#75757d;--font:'Roboto',sans-serif}
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:var(--font);background:var(--light);color:var(--dark);line-height:1.3;font-size:12px}
     header{background:var(--white);padding:10px 20px;box-shadow:0 2px 10px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
@@ -48,7 +45,13 @@ DOCTYPE html>
     footer{text-align:center;margin-top:40px;color:var(--gray);font-size:12px;border-top:1px solid #dee2e6;padding-top:20px;background:var(--secondary)}
     @media (max-width:1200px){main{width:80%}}
     @media (max-width:768px){main{width:95%}.stats-bar{flex-direction:column;gap:6px}th,td{padding:4px 6px;font-size:10px}}
-    .suggestions-container{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:1000;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none}
+
+    /* Miesto pasiūlymų dropdown – kaip anon puslapyje */
+    .suggestions-container{
+      position:absolute;left:0;right:0;top:100%;
+      background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:1000;
+      max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none
+    }
     .suggestion-item{padding:8px 10px;cursor:pointer;font-size:12px}
     .suggestion-item:hover{background:#f6f6f6}
     .with-suggestions{position:relative}
@@ -57,7 +60,7 @@ DOCTYPE html>
 </head>
 <body>
   <header>
-    <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+    <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'"/>
     <nav>
       <a href="index.html">Pagrindinis</a>
       <a href="duku.html">DUK</a>
@@ -94,7 +97,7 @@ DOCTYPE html>
             <input type="tel" id="profile-phone" required>
           </div>
 
-          <!-- Šalis -->
+          <!-- Šalis (prieš adresą) -->
           <div class="form-group">
             <label>Šalis *</label>
             <select id="profile-country" required>
@@ -164,13 +167,10 @@ DOCTYPE html>
   </main>
 
   <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
-<script id="lt-locations-inline" type="application/json">
-[]
-</script>
 
   <script>
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!currentUser) { alert('Prisijunkite, kad peržiūrėtumėte profilį.'); location.href = 'login.html'; }
+    if (!currentUser){ alert('Prisijunkite, kad peržiūrėtumėte profilį.'); location.href='login.html'; }
 
     // Užpildom laukus
     document.getElementById('profile-name').value    = currentUser.name    || '';
@@ -242,237 +242,124 @@ DOCTYPE html>
       document.getElementById('resolved-claims').textContent = resolved;
     }
 
-    // Paprastesnis perjungimas be sudėtingų selektorių
     function openTab(name){
       var tabProfile = document.getElementById('tab-profile');
       var tabClaims  = document.getElementById('tab-claims');
       var contentProfile = document.getElementById('profile');
       var contentClaims  = document.getElementById('claims');
-
-      tabProfile.classList.remove('active');
-      tabClaims.classList.remove('active');
-      contentProfile.classList.remove('active');
-      contentClaims.classList.remove('active');
-
-      if (name === 'profile'){
-        tabProfile.classList.add('active');
-        contentProfile.classList.add('active');
-      } else {
-        tabClaims.classList.add('active');
-        contentClaims.classList.add('active');
-        loadClaimsHistory();
-      }
+      tabProfile.classList.remove('active'); tabClaims.classList.remove('active');
+      contentProfile.classList.remove('active'); contentClaims.classList.remove('active');
+      if (name === 'profile'){ tabProfile.classList.add('active'); contentProfile.classList.add('active'); }
+      else { tabClaims.classList.add('active'); contentClaims.classList.add('active'); loadClaimsHistory(); }
     }
 
-    window.onload = function(){
-      if (document.getElementById('claims').classList.contains('active')) loadClaimsHistory();
-      initHybridCityAutocomplete(); // hibridinis miestų pildymas
-      applyCountryRules();          // taisyklės pagal šalį
-    };
+    // --- IDENTIŠKA ADRESO PAIEŠKA kaip „pretention-anonymous“ ---
+    function initAddressSearch() {
+      const cityInput = document.getElementById('profile-city');
+      const postalInput = document.getElementById('profile-postal');
+      const countrySelect = document.getElementById('profile-country');
 
-    // ── HIBRIDINIS MIESTŲ PILDYMAS ─────────────────────────────────────────────
-    function initHybridCityAutocomplete(){
-      var cityInput   = document.getElementById('profile-city');
-      var postalInput = document.getElementById('profile-postal');
-      var countrySel  = document.getElementById('profile-country');
-      var container   = document.getElementById('city-suggestions');
-      if (!cityInput || !postalInput || !countrySel || !container) return;
-
-      var ltLocal = []; // lt_locations.json (fallback)
-      var DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
-      function readInlineLT(){
-  var el = document.getElementById('lt-locations-inline');
-  if (!el) return null;
-  try { var arr = JSON.parse(el.textContent || '[]'); return Array.isArray(arr) ? arr : null; }
-  catch(_) { return null; }
-}
-var inline = readInlineLT();
-if (inline) { /* turim inline duomenis – naudok */ LT = inline; /* arba ltLocal = inline; */ }
-else { /* kaip buvo: fetch iš DATA_URLS */ }
-      fetchFirstAvailable(DATA_URLS).then(function(list){ if (Array.isArray(list)) ltLocal = list; });
-
-      function fetchFirstAvailable(urls){
-        return new Promise(function(resolve){
-          var queue = urls.slice();
-          (function next(){
-            if (!queue.length){ resolve(null); return; }
-            var u = queue.shift();
-            fetch(u).then(function(r){ return r.ok ? r.json() : null; })
-                    .then(function(d){ if (d) resolve(d); else next(); })
-                    .catch(next);
-          })();
-        });
+      function createSuggestionsContainer(inputElement) {
+        const existing = document.getElementById('city-suggestions');
+        if (existing) return existing;
+        const container = document.createElement('div');
+        container.id = 'city-suggestions';
+        container.className = 'suggestions-container';
+        inputElement.parentNode.insertBefore(container, inputElement.nextSibling);
+        return container;
       }
 
-      function debounce(fn,wait){ var t; return function(){ clearTimeout(t); var a=arguments,c=this; t=setTimeout(function(){ fn.apply(c,a); },wait); }; }
+      const suggestionsContainer = createSuggestionsContainer(cityInput);
 
-      cityInput.addEventListener('input', debounce(onCityInput, 300));
-      document.addEventListener('click', function(e){ if (e.target!==cityInput && !container.contains(e.target)) container.style.display='none'; });
-      countrySel.addEventListener('change', function(){ container.style.display='none'; onCityInput(); applyCountryRules(); });
-
-      function onCityInput(){
-        var q = cityInput.value.trim();
-        if (!q){ container.style.display='none'; return; }
-        var cc = (countrySel.value || 'lt').toLowerCase();
-
-        if (cc === 'lt'){
-          queryPostit(q).then(function(list){
-            if ((!list || list.length===0) && ltLocal.length>0){
-              renderSuggestions(filterLTLocal(q));
-            } else {
-              renderSuggestions(list);
+      async function searchCities() {
+        const cityValue = cityInput.value.trim();
+        if (cityValue.length < 2) { suggestionsContainer.style.display = 'none'; return; }
+        try {
+          const country = countrySelect ? countrySelect.value.toLowerCase() : 'lt';
+          if (country === 'lt') {
+            const url = new URL('https://api.postit.lt/v2/');
+            url.searchParams.append('city', cityValue);
+            url.searchParams.append('key', 'postit.lt-examplekey'); // <- pakeisk į savo raktą
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network error');
+            const data = await response.json();
+            if (data.success && Array.isArray(data.data)) {
+              const cities = data.data.map(item => ({ name: item.city, admin1: item.municipality, postal: item.post_code }));
+              showCitySuggestions(cities);
             }
-          }).catch(function(){ renderSuggestions(filterLTLocal(q)); });
-        } else {
-          queryNominatim(q, cc).then(function(list){ renderSuggestions(list); }).catch(function(){ renderSuggestions([]); });
-        }
-      }
-
-      // POSTIT (LT)
-      async function queryPostit(query){
-        // ⚠️ ĮRAŠYK SAVO RAKTĄ:
-        var POSTIT_KEY = 'POSTIT_API_KEY_HERE';
-        var url = new URL('https://api.postit.lt/v2/');
-        url.searchParams.set('city', query);
-        url.searchParams.set('key', POSTIT_KEY);
-        var r = await fetch(url.toString());
-        if (!r.ok) throw new Error('postit fail');
-        var data = await r.json();
-        if (!data || !data.success || !Array.isArray(data.data)) return [];
-        return data.data.map(function(it){ return { name: it.city, postal: it.post_code || '' }; });
-      }
-
-      function filterLTLocal(q){
-        var s = q.toLowerCase();
-        var seen = Object.create(null); var out=[];
-        for (var i=0;i<ltLocal.length;i++){
-          var row = ltLocal[i];
-          var nm = row.city || ''; var low = nm.toLowerCase();
-          if (low.indexOf(s)===0 || low.indexOf(' '+s)!==-1){
-            if (!seen[nm]){ seen[nm]=1; out.push({name:nm, postal: row.postal || ''}); if (out.length>=50) break; }
+          } else {
+            const serverUrl = '/api/cities?country=' + country + '&q=' + encodeURIComponent(cityValue);
+            const response = await fetch(serverUrl);
+            const cities = await response.json();
+            showCitySuggestions(cities);
           }
+        } catch (err) {
+          console.warn('Adresų paieška nepavyko:', err);
+          suggestionsContainer.style.display = 'none';
         }
-        return out;
       }
 
-      // NOMINATIM (kitos šalys)
-      async function queryNominatim(query, countryCode){
-        var params = new URLSearchParams({
-          q: query,
-          countrycodes: countryCode,
-          addressdetails: '1',
-          format: 'json',
-          limit: '10'
-        });
-        var url = 'https://nominatim.openstreetmap.org/search?'+params.toString();
-        var r = await fetch(url, { headers: { 'Accept-Language': 'lt,en' } });
-        if (!r.ok) throw new Error('nominatim fail');
-        var data = await r.json();
-        return data.map(function(item){
-          var addr = item.address || {};
-          var city = addr.city || addr.town || addr.village || addr.municipality || (item.display_name ? item.display_name.split(',')[0] : query);
-          var postal = addr.postcode || '';
-          return { name: city, postal: postal };
-        });
-      }
-
-      function renderSuggestions(list){
-        container.innerHTML = '';
-        if (!list || list.length===0){ container.style.display='none'; return; }
-        list.forEach(function(it){
-          var div = document.createElement('div');
-          div.className='suggestion-item';
-          div.textContent = it.name + (it.postal?(' · '+it.postal):'');
-          div.addEventListener('mousedown', function(e){
-            e.preventDefault();
-            cityInput.value = it.name;
-            if (it.postal) postalInput.value = it.postal;
-            container.style.display='none';
-            cityInput.dispatchEvent(new Event('change'));
+      function showCitySuggestions(cities) {
+        suggestionsContainer.innerHTML = '';
+        if (!cities || cities.length === 0) { suggestionsContainer.style.display = 'none'; return; }
+        suggestionsContainer.style.display = 'block';
+        cities.forEach(place => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.textContent = place.admin1 ? (place.name + ' (' + place.admin1 + ')') : place.name;
+          div.addEventListener('mousedown', () => {
+            cityInput.value = place.name;
+            if (place.postal) postalInput.value = place.postal;
+            suggestionsContainer.style.display = 'none';
           });
-          container.appendChild(div);
+          suggestionsContainer.appendChild(div);
         });
-        container.style.display='block';
       }
+
+      function debounce(func, wait) {
+        let timeout;
+        return function() {
+          clearTimeout(timeout);
+          const args = arguments, ctx = this;
+          timeout = setTimeout(function(){ func.apply(ctx, args); }, wait);
+        };
+      }
+
+      cityInput.addEventListener('input', debounce(searchCities, 500));
+      document.addEventListener('click', (e) => {
+        if (e.target !== cityInput && !suggestionsContainer.contains(e.target)) {
+          suggestionsContainer.style.display = 'none';
+        }
+      });
     }
 
-    // ── DINAMINĖS TAISYKLĖS PAGAL ŠALĮ ───────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function(){
+      initAddressSearch();              // 👈 kaip anon puslapyje
+      // Paprastos taisyklės pagal šalį (neprivaloma, bet patogu)
+      applyCountryRules();
+    });
+
     function applyCountryRules(){
       var cc = (document.getElementById('profile-country').value || 'lt').toLowerCase();
       var postal = document.getElementById('profile-postal');
       var postalHint = document.getElementById('postal-hint');
       var countryHint = document.getElementById('country-hint');
-
       if (cc === 'lt'){
         postal.setAttribute('pattern','^\\d{5}$');
         postal.setAttribute('inputmode','numeric');
         postal.placeholder = 'pvz., 01100';
-        postalHint.textContent = 'Įveskite 5 skaitmenų LT pašto kodą.';
-        countryHint.textContent = 'Lietuvai taikoma LT pašto kodo forma (5 skaitmenys).';
+        if (postalHint)  postalHint.textContent = 'Įveskite 5 skaitmenų LT pašto kodą.';
+        if (countryHint) countryHint.textContent = 'Lietuvai taikoma LT pašto kodo forma (5 skaitmenys).';
       } else {
         postal.removeAttribute('pattern');
         postal.setAttribute('inputmode','text');
         postal.placeholder = 'Pašto kodas';
-        postalHint.textContent = 'Įveskite vietinį pašto kodą (formatas gali skirtis pagal šalį).';
-        countryHint.textContent = 'Kitoms šalims formatas gali skirtis; miestai ieškomi per OpenStreetMap.';
+        if (postalHint)  postalHint.textContent = 'Įveskite vietinį pašto kodą (formatas gali skirtis pagal šalį).';
+        if (countryHint) countryHint.textContent = 'Kitoms šalims formatas gali skirtis; miestai iš /api/cities.';
       }
     }
-
-    // ── LT miestas + pašto kodas VALIDACIJA (tik LT atvejui) ─────────────────
-    (function(){
-      var DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
-      function readInlineLT(){
-  var el = document.getElementById('lt-locations-inline');
-  if (!el) return null;
-  try { var arr = JSON.parse(el.textContent || '[]'); return Array.isArray(arr) ? arr : null; }
-  catch(_) { return null; }
-}
-var inline = readInlineLT();
-if (inline) { /* turim inline duomenis – naudok */ LT = inline; /* arba ltLocal = inline; */ }
-else { /* kaip buvo: fetch iš DATA_URLS */ }
-      
-      function tryFetch(urls){
-        return new Promise(function(resolve){
-          var q=urls.slice();
-          (function next(){
-            if(!q.length){resolve(null);return;}
-            var u=q.shift();
-            fetch(u).then(function(r){ return r.ok ? r.json() : null; })
-                    .then(function(d){ if (d) resolve(d); else next(); })
-                    .catch(next);
-          })();
-        });
-      }
-      tryFetch(DATA_URLS).then(function(LT){
-        if (!LT) return;
-        var cityEl = document.getElementById('profile-city');
-        var postEl = document.getElementById('profile-postal');
-        var countrySel = document.getElementById('profile-country');
-
-        function validate(){
-          if (!countrySel || countrySel.value.toLowerCase()!=='lt') { postEl.setCustomValidity(''); return true; }
-          var city = (cityEl.value||'').trim();
-          var postal = (postEl.value||'').trim();
-          var okPostal = /^\d{5}$/.test(postal);
-          var match = LT.find(function(i){ return i.city === city && (i.postal.charAt(0) === (postal.charAt(0)||'') || i.postal.replace(/x/g,'') === postal); });
-          if (!okPostal || !match){
-            postEl.setCustomValidity('Patikrinkite miestą ir 5 skaitmenų LT pašto kodą.');
-            postEl.reportValidity();
-            return false;
-          }
-          postEl.setCustomValidity('');
-          return true;
-        }
-
-        document.addEventListener('submit', function(e){
-          try{ if (!validate()){ e.preventDefault(); e.stopPropagation(); } }catch(_){}
-        }, true);
-
-        if (countrySel){
-          countrySel.addEventListener('change', function(){ postEl.setCustomValidity(''); });
-        }
-      });
-    })();
+    document.getElementById('profile-country').addEventListener('change', applyCountryRules);
   </script>
 </body>
 </html>
+
