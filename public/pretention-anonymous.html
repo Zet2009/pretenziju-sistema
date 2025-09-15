@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="lt">
+<hea<!DOCTYPE html>
+<html lang="lt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -159,14 +161,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-        .file-preview .file-icon {
-            font-size: 2.5rem;
-            color: #6c757d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
         }
         .file-info {
             padding: 8px;
@@ -383,6 +377,16 @@
                 <input type="text" id="postal" required>
             </div>
 
+            <!-- 🆕 Nauji laukai: pirkimo data ir numeris -->
+            <div class="form-group">
+                <label for="purchase-date">Pirkimo data *</label>
+                <input type="date" id="purchase-date" required>
+            </div>
+            <div class="form-group">
+                <label for="purchase-number">Pirkimo dokumento numeris *</label>
+                <input type="text" id="purchase-number" placeholder="Pvz., SF-12345 arba čekio numeris" required>
+            </div>
+
             <div class="form-group" id="consent-container" style="display:none;">
                 <label>
                     <input type="checkbox" id="consent-to-share"> 
@@ -452,6 +456,13 @@
                 <p><strong>Miestas:</strong> <span id="summary-city"></span>, <span id="summary-postal"></span></p>
             </div>
 
+            <!-- 🆕 Prikupinta info apie pirkimą -->
+            <div class="summary-section">
+                <div class="summary-title">Pirkimas:</div>
+                <p><strong>Pirkimo </strong> <span id="summary-purchase-date"></span></p>
+                <p><strong>Dokumento numeris:</strong> <span id="summary-purchase-number"></span></p>
+            </div>
+
             <div class="summary-section">
                 <div class="summary-title">Produktas:</div>
                 <p><strong>Pavadinimas:</strong> <span id="summary-product"></span></p>
@@ -473,16 +484,16 @@
         </div>
     </main>
 
+    <!-- ✅ Atnaujintas footer pagal index.txt -->
     <footer>
         <div class="footer-content">
             <img src="logo.jpg" alt="Rubineta Logo" class="footer-logo">
             <div class="footer-nav">
                 <a href="index.html">Pagrindinis</a>
                 <a href="duku.html">DUK</a>
-                <a href="privacy.html">Privatumo politika</a>
                 <a href="kontaktai.html">Kontaktai</a>
             </div>
-            <div class="copyright">© 2025 Rubineta. Visos teisės saugomos.</div>
+            <div class="copyright">© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</div>
         </div>
     </footer>
 
@@ -748,6 +759,10 @@
             list.innerHTML = uploadedUrls.map(url => `<div>📄 ${url.split('/').pop().split('?')[0]}</div>`).join('');
             
             document.getElementById('summary-purchase').textContent = purchaseDocumentUrl ? 'Pridėta' : 'Nepateikta';
+
+            // 🆕 Pridedama pirkimo informacija
+            document.getElementById('summary-purchase-date').textContent = document.getElementById('purchase-date').value;
+            document.getElementById('summary-purchase-number').textContent = document.getElementById('purchase-number').value;
         }
 
         function handleClaimSubmission() {
@@ -770,6 +785,8 @@
                     city: document.getElementById('city').value,
                     postal: document.getElementById('postal').value
                 },
+                purchaseDate: document.getElementById('purchase-date').value,
+                purchaseNumber: document.getElementById('purchase-number').value,
                 files: uploadedUrls,
                 purchaseDocument: purchaseDocumentUrl,
                 status: 'Nauja'
