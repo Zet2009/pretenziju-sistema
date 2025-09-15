@@ -369,6 +369,7 @@
             
             <!-- 2 žingsnis: Aprašymas ir reikalavimas -->
             <div class="step-form" id="step-form-2">
+                
                 <div class="form-group">
                     <label for="description">Aprašymas *</label>
                     <textarea id="description" rows="4" required></textarea>
@@ -391,6 +392,7 @@
             </div>
             
             <!-- 3 žingsnis: Kontaktinė informacija -->
+
             <div class="step-form" id="step-form-3">
                 <div class="form-group">
                     <label for="name">Vardas *</label>
@@ -403,7 +405,21 @@
                 <div class="form-group">
                     <label for="email">El. paštas *</label>
                     <input type="email" id="email" required>
+                
                 </div>
+                <div class="form-group">
+    <label for="country">Šalis *</label>
+    <select id="country" required>
+        <option value="lt" selected>Lietuva</option>
+        <option value="lv">Latvija</option>
+        <option value="ee">Estija</option>
+        <option value="pl">Lenkija</option>
+        <option value="ua">Ukraina</option>
+        <option value="by">Baltarusija</option>
+        <option value="de">Vokietija</option>
+        <option value="fr">Prancūzija</option>
+    </select>
+</div>
                 <div class="form-group">
                     <label for="phone">Telefonas *</label>
                     <input type="tel" id="phone" required>
@@ -1280,10 +1296,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('❌ #topic elementas nerastas.');
         }
 
-
-
-
-
         
         // --- FORMOS SIUNTIMAS ---
         const form = document.getElementById('claim-form');
@@ -1319,6 +1331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Siųsti pretenziją
                 const handleClaimSubmission = () => {
+                    const country = document.getElementById('country').value; // pridėk šią eilutę
                     const claim = {
                         id: 'PRET-' + Date.now(),
                         date: new Date().toISOString(),
