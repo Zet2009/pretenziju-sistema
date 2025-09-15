@@ -1,724 +1,456 @@
 <!DOCTYPE html>
 <html lang="lt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilis – Rubineta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #2D2D2D;
-            --primary-light: #4A4A4A;
-            --secondary: #FFCC00;
-            --light: #F5F5F5;
-            --white: #FFFFFF;
-            --dark: #212529;
-            --gray: #75757d;
-            --font: 'Roboto', sans-serif;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: var(--font);
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.3;
-            font-size: 12px;
-        }
-        header {
-            background: var(--white);
-            padding: 10px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo { height: 50px; cursor: pointer; }
-        nav a {
-            margin: 0 15px;
-            text-decoration: none;
-            color: var(--dark);
-            font-weight: 200;
-            font-size: 14px;
-        }
-        main {
-            max-width: 1200px;
-            margin: 10px auto;
-            padding: 10px;
-            width: 60%;
-        }
-        h1 { color: var(--primary); margin-bottom: 15px; font-size: 16px; text-align: center; }
-
-        /* Skirtukai */
-        .tabs {
-            display: flex;
-            margin-bottom: 15px;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .tab {
-            padding: 8px 16px;
-            background: #e9ecef;
-            border-radius: 6px 6px 0 0;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 12px;
-        }
-        .tab:hover { background: #dee2e6; }
-        .tab.active {
-            background: var(--primary);
-            color: var(--white);
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Statistika */
-        .stats-bar {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 15px;
-            font-size: 11px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-        }
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 120px;
-            text-align: center;
-        }
-        .stat-item .label {
-            color: var(--gray);
-            font-weight: 500;
-            font-size: 10px;
-            white-space: nowrap;
-        }
-        .stat-item .value {
-            color: var(--primary);
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        /* Lentelė */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--white);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            table-layout: fixed;
-            font-size: 11px;
-        }
-        th, td {
-            padding: 6px 8px;
-            text-align: left;
-            border-bottom: 1px solid #dee2e6;
-            word-wrap: break-word;
-        }
-        th {
-            background: var(--primary);
-            color: var(--white);
-            font-weight: 500;
-            font-size: 10px;
-        }
-        tr:hover { background: #f8f9fa; }
-
-        /* Spalvotas būsenos dropdown'as */
-        .status-dropdown {
-            width: 100%;
-            padding: 4px;
-            font-size: 11px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .status-dropdown.status-new {
-            background: #f8d7da;
-            color: #721c24;
-            border-color: #f1b0b7;
-        }
-        .status-dropdown.status-pending {
-            background: #fff3cd;
-            color: #856404;
-            border-color: #ffeaa7;
-        }
-        .status-dropdown.status-approved {
-            background: #d4edff;
-            color: #004085;
-            border-color: #b8daff;
-        }
-        .status-dropdown.status-sent {
-            background: #17a2b8;
-            color: white;
-            border-color: #138496;
-        }
-        .status-dropdown.status-resolved {
-            background: #d4edda;
-            color: #155724;
-            border-color: #c3e6cb;
-        }
-        .status-dropdown.status-rejected {
-            background: #e9ecef;
-            color: #495057;
-            border-color: #ced4da;
-        }
-
-        /* Asmeninė informacija – senas dizainas */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--primary);
-            font-size: 12px;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-        button {
-            padding: 12px 20px;
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #1a1a1a;
-        }
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        /* Montuotojo statusas */
-        .installer-badge {
-            display: inline-block;
-            background: var(--secondary);
-            color: var(--primary);
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: var(--gray);
-            font-size: 12px;
-            border-top: 1px solid #dee2e6;
-            padding-top: 20px;
-            background: var(--secondary);
-        }
-        @media (max-width: 1200px) {
-            main {
-                width: 80%;
-            }
-        }
-        @media (max-width: 768px) {
-            main {
-                width: 95%;
-            }
-            .stats-bar { flex-direction: column; gap: 6px; }
-            th, td { padding: 4px 6px; font-size: 10px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profilis – Rubineta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#2D2D2D; --primary-light:#4A4A4A; --secondary:#FFCC00; --light:#F5F5F5; --white:#FFFFFF;
+      --dark:#212529; --gray:#75757d; --font:'Roboto',sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:var(--font);background:var(--light);color:var(--dark);line-height:1.3;font-size:12px}
+    header{background:var(--white);padding:10px 20px;box-shadow:0 2px 10px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+    .logo{height:50px;cursor:pointer}
+    nav a{margin:0 15px;text-decoration:none;color:var(--dark);font-weight:200;font-size:14px}
+    main{max-width:1200px;margin:10px auto;padding:10px;width:60%}
+    h1{color:var(--primary);margin-bottom:15px;font-size:16px;text-align:center}
+    .tabs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:15px}
+    .tab{padding:8px 16px;background:#e9ecef;border-radius:6px 6px 0 0;cursor:pointer;font-weight:500;font-size:12px}
+    .tab:hover{background:#dee2e6}
+    .tab.active{background:var(--primary);color:#fff}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .stats-bar{display:flex;gap:15px;flex-wrap:wrap;justify-content:center;margin-bottom:15px;font-size:11px;background:#f8f9fa;padding:10px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+    .stat-item{display:flex;flex-direction:column;align-items:center;min-width:120px;text-align:center}
+    .stat-item .label{color:var(--gray);font-weight:500;font-size:10px;white-space:nowrap}
+    .stat-item .value{color:var(--primary);font-weight:bold;font-size:13px}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);table-layout:fixed;font-size:11px}
+    th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #dee2e6;word-wrap:break-word}
+    th{background:var(--primary);color:#fff;font-weight:500;font-size:10px}
+    tr:hover{background:#f8f9fa}
+    .status-dropdown{width:100%;padding:4px;font-size:11px;border:1px solid #ccc;border-radius:4px;cursor:pointer;transition:background-color .2s,color .2s}
+    .status-dropdown.status-new{background:#f8d7da;color:#721c24;border-color:#f1b0b7}
+    .status-dropdown.status-pending{background:#fff3cd;color:#856404;border-color:#ffeaa7}
+    .status-dropdown.status-approved{background:#d4edff;color:#004085;border-color:#b8daff}
+    .status-dropdown.status-sent{background:#17a2b8;color:#fff;border-color:#138496}
+    .status-dropdown.status-resolved{background:#d4edda;color:#155724;border-color:#c3e6cb}
+    .status-dropdown.status-rejected{background:#e9ecef;color:#495057;border-color:#ced4da}
+    .form-group{margin-bottom:15px;position:relative}
+    label{display:block;margin-bottom:5px;font-weight:500;color:var(--primary);font-size:12px}
+    input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px}
+    button{padding:12px 20px;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer}
+    button:hover{background:#1a1a1a}
+    .btn{display:inline-block;background:var(--primary);color:#fff;padding:6px 10px;border-radius:6px;text-decoration:none}
+    .installer-badge{display:inline-block;background:var(--secondary);color:var(--primary);padding:5px 10px;border-radius:15px;font-size:12px;font-weight:bold;margin-left:10px}
+    footer{text-align:center;margin-top:40px;color:var(--gray);font-size:12px;border-top:1px solid #dee2e6;padding-top:20px;background:var(--secondary)}
+    @media (max-width:1200px){main{width:80%}}
+    @media (max-width:768px){main{width:95%}.stats-bar{flex-direction:column;gap:6px}th,td{padding:4px 6px;font-size:10px}}
+    .suggestions-container{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:1000;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none}
+    .suggestion-item{padding:8px 10px;cursor:pointer;font-size:12px}
+    .suggestion-item:hover{background:#f6f6f6}
+    .with-suggestions{position:relative}
+    .hint{font-size:10px;color:#6c757d;margin-top:4px}
+  </style>
 </head>
 <body>
-    <header>
-        <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
-        <nav>
-            <a href="index.html">Pagrindinis</a>
-            <a href="duku.html">DUK</a>
-            <a href="pretention.html">Pateikti pretenziją</a>
-        </nav>
-    </header>
+  <header>
+    <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+    <nav>
+      <a href="index.html">Pagrindinis</a>
+      <a href="duku.html">DUK</a>
+      <a href="pretention.html">Pateikti pretenziją</a>
+    </nav>
+  </header>
 
-    <main>
-        <h1>Mano profilis</h1>
+  <main>
+    <h1>Mano profilis</h1>
 
-        <!-- Skirtukai -->
-        <div class="tabs">
-            <div class="tab active" onclick="openTab('profile')">Profilis</div>
-            <div class="tab" onclick="openTab('claims')">Pretenzijos</div>
-        </div>
+    <div class="tabs">
+      <div id="tab-profile" class="tab active" onclick="openTab('profile')">Profilis</div>
+      <div id="tab-claims" class="tab" onclick="openTab('claims')">Pretenzijos</div>
+    </div>
 
-        <!-- Skirtukas: Profilis -->
-        <div id="profile" class="tab-content active">
-            <div style="background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                <h2>Asmeninė informacija</h2>
-                <form id="profile-form">
-                    <div class="form-group">
-                        <label>Vardas *</label>
-                        <input type="text" id="profile-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Pavardė *</label>
-                        <input type="text" id="profile-surname" required>
-                    </div>
-                    <div class="form-group">
-                        <label>El. paštas *</label>
-                        <input type="email" id="profile-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Telefonas *</label>
-                        <input type="tel" id="profile-phone" required>
-                    </div>
-                    <div class="form-group">
-    <label for="profile-country">Šalis *</label>
-    <select id="profile-country" required>
-        <option value="lt" selected>Lietuva</option>
-        <option value="lv">Latvija</option>
-        <option value="ee">Estija</option>
-        <option value="pl">Lenkija</option>
-        <option value="ua">Ukraina</option>
-        <option value="by">Baltarusija</option>
-        <option value="de">Vokietija</option>
-        <option value="fr">Prancūzija</option>
-    </select>
-</div>
-                    <div class="form-group">
-                        <label>Adresas (gatvė, namo nr., butas) *</label>
-                        <input type="text" id="profile-street" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Miestas *</label>
-                        <input type="text" id="profile-city" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Pašto kodas *</label>
-                        <input type="text" id="profile-postal" required>
-                    </div>
-                    <button type="button" onclick="saveProfile()">Išsaugoti pakeitimus</button>
-                </form>
-            </div>
+    <div id="profile" class="tab-content active">
+      <div style="background:#fff;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);">
+        <h2>Asmeninė informacija</h2>
+        <form id="profile-form">
+          <div class="form-group">
+            <label>Vardas *</label>
+            <input type="text" id="profile-name" required>
+          </div>
+          <div class="form-group">
+            <label>Pavardė *</label>
+            <input type="text" id="profile-surname" required>
+          </div>
+          <div class="form-group">
+            <label>El. paštas *</label>
+            <input type="email" id="profile-email" required>
+          </div>
+          <div class="form-group">
+            <label>Telefonas *</label>
+            <input type="tel" id="profile-phone" required>
+          </div>
 
-            <!-- Montuotojo statusas -->
-            <div id="installer-status" style="display: none; background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 15px;">
-                <h2>Montuotojo statusas</h2>
-                <p><strong>Tipas:</strong> Montuotojas <span class="installer-badge">MONTUOTOJAS</span></p>
-                <p><strong>Statusas:</strong> <span id="installer-status-text">Kraunama...</span></p>
-                <p id="installer-status-desc"></p>
-            </div>
+          <!-- Šalis -->
+          <div class="form-group">
+            <label>Šalis *</label>
+            <select id="profile-country" required>
+              <option value="lt" selected>Lietuva</option>
+              <option value="lv">Latvija</option>
+              <option value="ee">Estija</option>
+              <option value="pl">Lenkija</option>
+              <option value="de">Vokietija</option>
+              <option value="fr">Prancūzija</option>
+              <option value="se">Švedija</option>
+              <option value="no">Norvegija</option>
+              <option value="fi">Suomija</option>
+              <option value="gb">Jungtinė Karalystė</option>
+              <option value="us">JAV</option>
+              <option value="other">Kita</option>
+            </select>
+            <div class="hint" id="country-hint">Lietuvai taikoma LT pašto kodo forma (5 skaitmenys).</div>
+          </div>
 
-            <!-- Specializuota DUK nuoroda -->
-            <div id="duku-link" style="display: none; background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 15px;">
-                <h2>Specializuota DUK</h2>
-                <p>Jūs esate patvirtintas montuotojas. Galite peržiūrėti techninę informaciją.</p>
-                <a href="duku-montuotojams.html" class="btn">Eiti į DUK montuotojams</a>
-            </div>
-        </div>
+          <div class="form-group">
+            <label>Adresas (gatvė, namo nr., butas) *</label>
+            <input type="text" id="profile-street" required>
+          </div>
 
-        <!-- Skirtukas: Pretenzijos -->
-        <div id="claims" class="tab-content">
-            <!-- Statistika -->
-            <div class="stats-bar">
-                <div class="stat-item">
-                    <span class="label">Viso pretenzijų</span>
-                    <span class="value" id="total-claims">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Atviros</span>
-                    <span class="value" id="open-claims">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Išspręstos</span>
-                    <span class="value" id="resolved-claims">0</span>
-                </div>
-            </div>
+          <div class="form-group with-suggestions">
+            <label>Miestas *</label>
+            <input type="text" id="profile-city" required autocomplete="off">
+            <div id="city-suggestions" class="suggestions-container"></div>
+          </div>
 
-            <!-- Pretenzijų lentelė -->
-            <table id="claims-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Data</th>
-                        <th>Produktas</th>
-                        <th>Tema</th>
-                        <th>Būsena</th>
-                        <th>Veiksmas</th>
-                    </tr>
-                </thead>
-                <tbody id="claims-body">
-                    <tr><td colspan="6" style="text-align: center;">Kraunama...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
+          <div class="form-group">
+            <label>Pašto kodas *</label>
+            <input type="text" id="profile-postal" required inputmode="numeric" pattern="^\d{5}$" placeholder="pvz., 01100">
+            <div class="hint" id="postal-hint">Įveskite 5 skaitmenų LT pašto kodą.</div>
+          </div>
 
-    <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+          <button type="button" onclick="saveProfile()">Išsaugoti pakeitimus</button>
+        </form>
+      </div>
 
-    <script>
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            alert('Prisijunkite, kad peržiūrėtumėte profilį.');
-            location.href = 'login.html';
-        }
+      <div id="installer-status" style="display:none;background:#fff;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:15px;">
+        <h2>Montuotojo statusas</h2>
+        <p><strong>Tipas:</strong> Montuotojas <span class="installer-badge">MONTUOTOJAS</span></p>
+        <p><strong>Statusas:</strong> <span id="installer-status-text">Kraunama...</span></p>
+        <p id="installer-status-desc"></p>
+      </div>
 
-        // --- Užpildyti profilį (senas dizainas) ---
-        document.getElementById('profile-name').value = currentUser.name || '';
-        document.getElementById('profile-surname').value = currentUser.surname || '';
-        document.getElementById('profile-email').value = currentUser.email || '';
-        document.getElementById('profile-phone').value = currentUser.phone || '';
-        document.getElementById('profile-street').value = currentUser.street || '';
-        document.getElementById('profile-city').value = currentUser.city || '';
-        document.getElementById('profile-postal').value = currentUser.postal || '';
+      <div id="duku-link" style="display:none;background:#fff;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:15px;">
+        <h2>Specializuota DUK</h2>
+        <p>Jūs esate patvirtintas montuotojas. Galite peržiūrėti techninę informaciją.</p>
+        <a href="duku-montuotojams.html" class="btn">Eiti į DUK montuotojams</a>
+      </div>
+    </div>
 
-        // --- Išsaugoti profilį ---
-        function saveProfile() {
-            // Gauname visus vartotojus
-            let users = JSON.parse(localStorage.getItem('users') || '[]');
-            
-            // Randame vartotojo indeksą
-            const userIndex = users.findIndex(u => u.id === currentUser.id);
+    <div id="claims" class="tab-content">
+      <div class="stats-bar">
+        <div class="stat-item"><span class="label">Viso pretenzijų</span><span class="value" id="total-claims">0</span></div>
+        <div class="stat-item"><span class="label">Atviros</span><span class="value" id="open-claims">0</span></div>
+        <div class="stat-item"><span class="label">Išspręstos</span><span class="value" id="resolved-claims">0</span></div>
+      </div>
 
-            if (userIndex !== -1) {
-                // Atnaujiname vartotojo duomenis masyve
-                users[userIndex].name = document.getElementById('profile-name').value;
-                users[userIndex].surname = document.getElementById('profile-surname').value;
-                users[userIndex].email = document.getElementById('profile-email').value;
-                users[userIndex].phone = document.getElementById('profile-phone').value;
-                users[userIndex].street = document.getElementById('profile-street').value;
-                users[userIndex].city = document.getElementById('profile-city').value;
-                users[userIndex].postal = document.getElementById('profile-postal').value;
+      <table id="claims-table">
+        <thead><tr><th>ID</th><th>Data</th><th>Produktas</th><th>Tema</th><th>Būsena</th><th>Veiksmas</th></tr></thead>
+        <tbody id="claims-body"><tr><td colspan="6" style="text-align:center;">Kraunama...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
 
-                // Išsaugome atnaujintą vartotojų masyvą
-                localStorage.setItem('users', JSON.stringify(users));
+  <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
 
-                // Atnaujiname currentUser objektą
-                const updatedUser = users[userIndex];
-                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) { alert('Prisijunkite, kad peržiūrėtumėte profilį.'); location.href = 'login.html'; }
 
-                alert('Profilis atnaujintas!');
-            } else {
-                // Jei vartotojas nerastas users masyve, sukuriame naują įrašą
-                const updatedUser = {
-                    ...currentUser,
-                    name: document.getElementById('profile-name').value,
-                    surname: document.getElementById('profile-surname').value,
-                    email: document.getElementById('profile-email').value,
-                    phone: document.getElementById('profile-phone').value,
-                    street: document.getElementById('profile-street').value,
-                    city: document.getElementById('profile-city').value,
-                    postal: document.getElementById('profile-postal').value
-                };
-                
-                // Pridedame prie users masyvo
-                users.push(updatedUser);
-                localStorage.setItem('users', JSON.stringify(users));
-                
-                // Atnaujiname currentUser
-                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                
-                alert('Profilis atnaujintas ir pridėtas prie vartotojų sąrašo!');
-            }
-        }
+    // Užpildom laukus
+    document.getElementById('profile-name').value    = currentUser.name    || '';
+    document.getElementById('profile-surname').value = currentUser.surname || '';
+    document.getElementById('profile-email').value   = currentUser.email   || '';
+    document.getElementById('profile-phone').value   = currentUser.phone   || '';
+    document.getElementById('profile-street').value  = currentUser.street  || '';
+    document.getElementById('profile-city').value    = currentUser.city    || '';
+    document.getElementById('profile-postal').value  = currentUser.postal  || '';
+    document.getElementById('profile-country').value = currentUser.country || 'lt';
 
-        // --- Rodyti montuotojo statusą ---
-        if (currentUser.role === 'installer') {
-            document.getElementById('installer-status').style.display = 'block';
-            const statusText = document.getElementById('installer-status-text');
-            const statusDesc = document.getElementById('installer-status-desc');
-
-            if (currentUser.status === 'pending') {
-                statusText.textContent = 'Laukia patvirtinimo';
-                statusText.className = 'status status-pending';
-                statusDesc.textContent = 'Jūsų dokumentai perduoti kokybės komandai. Atsakymas bus išsiųstas per 5 darbo dienas.';
-            } else if (currentUser.status === 'active') {
-                statusText.textContent = 'Patvirtintas';
-                statusText.className = 'status status-active';
-                statusDesc.innerHTML = 'Sveikiname! Jūs esate oficialus „Rubineta“ montuotojas.<br><strong>Privalumai:</strong> prieiga prie techninių vadovų, specializuotos DUK, prioritetas aptarnavime.';
-                document.getElementById('duku-link').style.display = 'block';
-            } else if (currentUser.status === 'rejected') {
-                statusText.textContent = 'Atmestas';
-                statusText.className = 'status status-rejected';
-                statusDesc.textContent = 'Registracija atmesta. Jei norite sužinoti priežastį, susisiekite su info@rubineta.lt';
-            }
-        }
-// === HIBRIDINĖ MIESTŲ PAIEŠKA: LT – postit.lt, kitos – Geonames ===
-(function initProfileCitySearch() {
-    const cityInput = document.getElementById('profile-city');
-    const postalInput = document.getElementById('profile-postal');
-    const countrySelect = document.getElementById('profile-country');
-
-    if (!cityInput || !postalInput || !countrySelect) return;
-
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
+    function saveProfile(){
+      var users = JSON.parse(localStorage.getItem('users') || '[]');
+      var idx = users.findIndex(function(u){ return u.id === currentUser.id; });
+      var updated = {
+        id: currentUser.id,
+        role: currentUser.role,
+        status: currentUser.status,
+        name: document.getElementById('profile-name').value,
+        surname: document.getElementById('profile-surname').value,
+        email: document.getElementById('profile-email').value,
+        phone: document.getElementById('profile-phone').value,
+        street: document.getElementById('profile-street').value,
+        city: document.getElementById('profile-city').value,
+        postal: document.getElementById('profile-postal').value,
+        country: document.getElementById('profile-country').value
+      };
+      if (idx !== -1) users[idx] = updated; else users.push(updated);
+      localStorage.setItem('users', JSON.stringify(users));
+      localStorage.setItem('currentUser', JSON.stringify(updated));
+      alert('Profilis atnaujintas!');
     }
 
-    async function searchCities() {
-        const q = cityInput.value.trim();
-        const country = countrySelect.value.toLowerCase();
-        if (q.length < 2) return;
-
-        try {
-            let cities = [];
-            if (country === 'lt') {
-                // LIETUVA: postit.lt
-                const url = new URL('https://api.postit.lt/v2/');
-                url.searchParams.append('city', q);
-                url.searchParams.append('key', 'tavo_raktas'); // ← Pakeisk!
-
-                const r = await fetch(url);
-                const data = await r.json();
-                if (data.success && Array.isArray(data.data)) {
-                    cities = data.data.map(item => ({
-                        name: item.city,
-                        postal: item.post_code
-                    }));
-                }
-            } else {
-                // KITOS ŠALYS: Geonames per tavo serverį
-                const serverUrl = `/api/cities?country=${country}&q=${encodeURIComponent(q)}`;
-                const r = await fetch(serverUrl);
-                cities = await r.json();
-            }
-
-            showSuggestions(cities);
-        } catch (err) {
-            console.warn('Miestų paieška nepavyko:', err);
-        }
+    // Montuotojo statusas
+    if (currentUser.role === 'installer'){
+      document.getElementById('installer-status').style.display = 'block';
+      var statusText = document.getElementById('installer-status-text');
+      var statusDesc = document.getElementById('installer-status-desc');
+      if (currentUser.status === 'pending'){ statusText.textContent='Laukia patvirtinimo'; statusDesc.textContent='Jūsų dokumentai perduoti kokybės komandai. Atsakymas bus išsiųstas per 5 darbo dienas.'; }
+      else if (currentUser.status === 'active'){ statusText.textContent='Patvirtintas'; statusDesc.innerHTML='Sveikiname! Jūs esate oficialus „Rubineta“ montuotojas.<br><strong>Privalumai:</strong> techninių vadovų prieiga, specializuota DUK, prioritetas aptarnavime.'; document.getElementById('duku-link').style.display = 'block'; }
+      else if (currentUser.status === 'rejected'){ statusText.textContent='Atmestas'; statusDesc.textContent='Registracija atmesta. Jei norite sužinoti priežastį, susisiekite su info@rubineta.lt'; }
     }
 
-    function showSuggestions(cities) {
-        const containerId = 'city-suggestions-profile';
-        let container = document.getElementById(containerId);
-
-        if (!cities.length) {
-            if (container) container.style.display = 'none';
-            return;
-        }
-
-        if (!container) {
-            container = document.createElement('div');
-            container.id = containerId;
-            container.style.cssText = `
-                position: absolute; width: 100%; background: white; border: 1px solid #ccc;
-                border-top: none; z-index: 1000; max-height: 200px; overflow-y: auto;
-                border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            `;
-            cityInput.parentNode.insertBefore(container, cityInput.nextSibling);
-        }
-
-        container.innerHTML = '';
-        container.style.display = 'block';
-
-        cities.slice(0, 50).forEach(place => {
-            const div = document.createElement('div');
-            div.textContent = place.name;
-            div.style.padding = '10px 15px';
-            div.style.cursor = 'pointer';
-            div.style.borderBottom = '1px solid #eee';
-            div.addEventListener('click', () => {
-                cityInput.value = place.name;
-                if (place.postal) postalInput.value = place.postal;
-                container.style.display = 'none';
-            });
-            container.appendChild(div);
+    // Pretenzijų istorija
+    function loadClaimsHistory(){
+      var claims = JSON.parse(localStorage.getItem('claims') || '[]');
+      var userClaims = claims.filter(function(c){ return c.userId === currentUser.id; });
+      var tbody = document.getElementById('claims-body'); tbody.innerHTML = '';
+      var open=0, resolved=0;
+      if (userClaims.length===0){
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
+      } else {
+        userClaims.forEach(function(claim){
+          var tr = document.createElement('tr');
+          var statusClass = (claim.status==='Išspręsta')?'status-resolved':((claim.status==='Nauja')?'status-new':((claim.status==='Perduota servisui')?'status-sent':'status-pending'));
+          tr.innerHTML =
+            '<td>'+claim.id+'</td>'+
+            '<td>'+new Date(claim.date).toLocaleDateString('lt-LT')+'</td>'+
+            '<td>'+claim.product+'</td>'+
+            '<td>'+claim.topic+'</td>'+
+            '<td><span class="status-dropdown '+statusClass+'">'+claim.status+'</span></td>'+
+            '<td><a href="claim-user.html?id='+claim.id+'" class="btn" style="padding:4px 8px; font-size:10px;">Peržiūrėti</a></td>';
+          tbody.appendChild(tr);
+          if (claim.status==='Išspręsta') resolved++; else open++;
         });
-
-        // Paslėpti, kai paspaudžiama ne ant lauko
-        document.addEventListener('click', (e) => {
-            if (!cityInput.contains(e.target) && !container.contains(e.target)) {
-                container.style.display = 'none';
-            }
-        });
-    }
-
-    cityInput.addEventListener('input', debounce(searchCities, 500));
-})();
-        // --- Užkrauti pretenzijų istoriją ---
-        function loadClaimsHistory() {
-            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-            const userClaims = claims.filter(c => c.userId === currentUser.id);
-            const tbody = document.getElementById('claims-body');
-            tbody.innerHTML = '';
-
-            let openCount = 0, resolvedCount = 0;
-
-            if (userClaims.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
-            } else {
-                userClaims.forEach(claim => {
-                    const tr = document.createElement('tr');
-                    const statusClass = claim.status === 'Išspręsta' ? 'status-resolved' :
-                                       claim.status === 'Nauja' ? 'status-new' :
-                                       claim.status === 'Perduota servisui' ? 'status-sent' : 'status-pending';
-
-                    tr.innerHTML = `
-                        <td>${claim.id}</td>
-                        <td>${new Date(claim.date).toLocaleDateString('lt-LT')}</td>
-                        <td>${claim.product}</td>
-                        <td>${claim.topic}</td>
-                        <td><span class="status-dropdown ${statusClass}">${claim.status}</span></td>
-                        <td><a href="claim-user.html?id=${claim.id}" class="btn" style="padding:4px 8px; font-size:10px;">Peržiūrėti</a></td>
-                    `;
-                    tbody.appendChild(tr);
-
-                    if (claim.status === 'Išspręsta') resolvedCount++;
-                    else openCount++;
-                });
-            }
-
-            document.getElementById('total-claims').textContent = userClaims.length;
-            document.getElementById('open-claims').textContent = openCount;
-            document.getElementById('resolved-claims').textContent = resolvedCount;
-        }
-
-        // --- Skirtukų perjungimas ---
-        function openTab(tabName) {
-            const tabs = document.getElementsByClassName('tab');
-            const tabContents = document.getElementsByClassName('tab-content');
-
-            for (let i = 0; i < tabs.length; i++) {
-                tabs[i].classList.remove('active');
-                tabContents[i].classList.remove('active');
-            }
-
-            document.querySelector(`[onclick="openTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-
-            if (tabName === 'claims') {
-                loadClaimsHistory();
-            }
-        }
-
-        // --- Paleidžiama puslapio užkrovimo metu ---
-        window.onload = function() {
-            if (document.getElementById('claims').classList.contains('active')) {
-                loadClaimsHistory();
-            }
-        };
-    </script>
-
-<!-- Added: LT city + postal validation (non-invasive) -->
-<script>
-(function(){
-  // load lt_locations.json -> fill datalist; attach validation
-  const DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
-  function ensureDatalist(){
-    let dl = document.getElementById('lt-cities');
-    if (!dl){
-      dl = document.createElement('datalist');
-      dl.id = 'lt-cities';
-      document.body.appendChild(dl);
-    }
-    return dl;
-  }
-  function smartFindCityInput(){
-    // try common ids/names/placeholders in LT
-    const candidates = [
-      '#profile-city','#city','input[name=city]','input[name=miestas]',
-      'input[placeholder*="Miest"]','input[aria-label*="Miest"]'
-    ];
-    for (const sel of candidates){
-      const el = document.querySelector(sel);
-      if (el) return el;
-    }
-    // fallback: first text input near label "Miestas"
-    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Miestas/i.test(l.textContent||''));
-    for (const lb of labels){
-      const input = lb.parentElement?.querySelector('input');
-      if (input) return input;
-    }
-    return null;
-  }
-  function smartFindPostalInput(){
-    const candidates = [
-      '#profile-postal','#postal','input[name=postal]','input[name=pasto]','input[name="pašto"]',
-      'input[placeholder*="pašto"]','input[placeholder*="Pašto"]','input[placeholder*="kodas"]'
-    ];
-    for (const sel of candidates){
-      const el = document.querySelector(sel);
-      if (el) return el;
-    }
-    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Pašto kodas|Pašto|Paštas|Kodas/i.test(l.textContent||''));
-    for (const lb of labels){
-      const input = lb.parentElement?.querySelector('input');
-      if (input) return input;
-    }
-    return null;
-  }
-  function attachValidation(LT){
-    const cityEl = smartFindCityInput();
-    const postEl = smartFindPostalInput();
-    if (cityEl){
-      cityEl.setAttribute('list','lt-cities');
-    }
-    if (postEl){
-      postEl.setAttribute('pattern','^\\d{5}$');
-      postEl.setAttribute('inputmode','numeric');
-      if (!postEl.placeholder) postEl.setAttribute('placeholder','pvz., 01100');
-    }
-    const dl = ensureDatalist();
-    const uniq = [...new Set(LT.map(i=>i.city))].sort();
-    dl.innerHTML = uniq.map(c=>`<option value="${c}">`).join('');
-
-    function validate(){
-      if (!cityEl || !postEl) return true;
-      const city = (cityEl.value||'').trim();
-      const postal = (postEl.value||'').trim();
-      const okPostal = /^\d{5}$/.test(postal);
-      const match = LT.find(i => i.city === city && (i.postal[0] === postal[0] || i.postal.replace(/x/g,'') === postal));
-      if (!okPostal || !match){
-        postEl.setCustomValidity('Patikrinkite miestą ir 5 skaitmenų LT pašto kodą.');
-        postEl.reportValidity();
-        return false;
       }
-      postEl.setCustomValidity('');
-      return true;
+      document.getElementById('total-claims').textContent = userClaims.length;
+      document.getElementById('open-claims').textContent = open;
+      document.getElementById('resolved-claims').textContent = resolved;
     }
 
-    // Hook into any form submits on the page (progressive; non-breaking)
-    document.addEventListener('submit', function(e){
-      try{
-        if (!validate()){ e.preventDefault(); e.stopPropagation(); }
-      }catch(_){}
-    }, true);
+    // Paprastesnis perjungimas be sudėtingų selektorių
+    function openTab(name){
+      var tabProfile = document.getElementById('tab-profile');
+      var tabClaims  = document.getElementById('tab-claims');
+      var contentProfile = document.getElementById('profile');
+      var contentClaims  = document.getElementById('claims');
 
-    // Expose validator for custom JS if needed
-    window.__validateCityPostal = validate;
-  }
+      tabProfile.classList.remove('active');
+      tabClaims.classList.remove('active');
+      contentProfile.classList.remove('active');
+      contentClaims.classList.remove('active');
 
-  function tryFetch(urls){
-    return new Promise((resolve)=>{
-      const u = urls.slice();
-      (function next(){
-        if (!u.length){ resolve(null); return; }
-        const url = u.shift();
-        fetch(url).then(r=> r.ok ? r.json() : null).then(data=>{
-          if (data) resolve(data); else next();
-        }).catch(next);
-      })();
-    });
-  }
+      if (name === 'profile'){
+        tabProfile.classList.add('active');
+        contentProfile.classList.add('active');
+      } else {
+        tabClaims.classList.add('active');
+        contentClaims.classList.add('active');
+        loadClaimsHistory();
+      }
+    }
 
-  tryFetch(DATA_URLS).then(list=>{
-    if (!list) return;
-    attachValidation(list);
-  });
-})();
-</script>
+    window.onload = function(){
+      if (document.getElementById('claims').classList.contains('active')) loadClaimsHistory();
+      initHybridCityAutocomplete(); // hibridinis miestų pildymas
+      applyCountryRules();          // taisyklės pagal šalį
+    };
+
+    // ── HIBRIDINIS MIESTŲ PILDYMAS ─────────────────────────────────────────────
+    function initHybridCityAutocomplete(){
+      var cityInput   = document.getElementById('profile-city');
+      var postalInput = document.getElementById('profile-postal');
+      var countrySel  = document.getElementById('profile-country');
+      var container   = document.getElementById('city-suggestions');
+      if (!cityInput || !postalInput || !countrySel || !container) return;
+
+      var ltLocal = []; // lt_locations.json (fallback)
+      var DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
+      fetchFirstAvailable(DATA_URLS).then(function(list){ if (Array.isArray(list)) ltLocal = list; });
+
+      function fetchFirstAvailable(urls){
+        return new Promise(function(resolve){
+          var queue = urls.slice();
+          (function next(){
+            if (!queue.length){ resolve(null); return; }
+            var u = queue.shift();
+            fetch(u).then(function(r){ return r.ok ? r.json() : null; })
+                    .then(function(d){ if (d) resolve(d); else next(); })
+                    .catch(next);
+          })();
+        });
+      }
+
+      function debounce(fn,wait){ var t; return function(){ clearTimeout(t); var a=arguments,c=this; t=setTimeout(function(){ fn.apply(c,a); },wait); }; }
+
+      cityInput.addEventListener('input', debounce(onCityInput, 300));
+      document.addEventListener('click', function(e){ if (e.target!==cityInput && !container.contains(e.target)) container.style.display='none'; });
+      countrySel.addEventListener('change', function(){ container.style.display='none'; onCityInput(); applyCountryRules(); });
+
+      function onCityInput(){
+        var q = cityInput.value.trim();
+        if (!q){ container.style.display='none'; return; }
+        var cc = (countrySel.value || 'lt').toLowerCase();
+
+        if (cc === 'lt'){
+          queryPostit(q).then(function(list){
+            if ((!list || list.length===0) && ltLocal.length>0){
+              renderSuggestions(filterLTLocal(q));
+            } else {
+              renderSuggestions(list);
+            }
+          }).catch(function(){ renderSuggestions(filterLTLocal(q)); });
+        } else {
+          queryNominatim(q, cc).then(function(list){ renderSuggestions(list); }).catch(function(){ renderSuggestions([]); });
+        }
+      }
+
+      // POSTIT (LT)
+      async function queryPostit(query){
+        // ⚠️ ĮRAŠYK SAVO RAKTĄ:
+        var POSTIT_KEY = 'POSTIT_API_KEY_HERE';
+        var url = new URL('https://api.postit.lt/v2/');
+        url.searchParams.set('city', query);
+        url.searchParams.set('key', POSTIT_KEY);
+        var r = await fetch(url.toString());
+        if (!r.ok) throw new Error('postit fail');
+        var data = await r.json();
+        if (!data || !data.success || !Array.isArray(data.data)) return [];
+        return data.data.map(function(it){ return { name: it.city, postal: it.post_code || '' }; });
+      }
+
+      function filterLTLocal(q){
+        var s = q.toLowerCase();
+        var seen = Object.create(null); var out=[];
+        for (var i=0;i<ltLocal.length;i++){
+          var row = ltLocal[i];
+          var nm = row.city || ''; var low = nm.toLowerCase();
+          if (low.indexOf(s)===0 || low.indexOf(' '+s)!==-1){
+            if (!seen[nm]){ seen[nm]=1; out.push({name:nm, postal: row.postal || ''}); if (out.length>=50) break; }
+          }
+        }
+        return out;
+      }
+
+      // NOMINATIM (kitos šalys)
+      async function queryNominatim(query, countryCode){
+        var params = new URLSearchParams({
+          q: query,
+          countrycodes: countryCode,
+          addressdetails: '1',
+          format: 'json',
+          limit: '10'
+        });
+        var url = 'https://nominatim.openstreetmap.org/search?'+params.toString();
+        var r = await fetch(url, { headers: { 'Accept-Language': 'lt,en' } });
+        if (!r.ok) throw new Error('nominatim fail');
+        var data = await r.json();
+        return data.map(function(item){
+          var addr = item.address || {};
+          var city = addr.city || addr.town || addr.village || addr.municipality || (item.display_name ? item.display_name.split(',')[0] : query);
+          var postal = addr.postcode || '';
+          return { name: city, postal: postal };
+        });
+      }
+
+      function renderSuggestions(list){
+        container.innerHTML = '';
+        if (!list || list.length===0){ container.style.display='none'; return; }
+        list.forEach(function(it){
+          var div = document.createElement('div');
+          div.className='suggestion-item';
+          div.textContent = it.name + (it.postal?(' · '+it.postal):'');
+          div.addEventListener('mousedown', function(e){
+            e.preventDefault();
+            cityInput.value = it.name;
+            if (it.postal) postalInput.value = it.postal;
+            container.style.display='none';
+            cityInput.dispatchEvent(new Event('change'));
+          });
+          container.appendChild(div);
+        });
+        container.style.display='block';
+      }
+    }
+
+    // ── DINAMINĖS TAISYKLĖS PAGAL ŠALĮ ───────────────────────────────────────
+    function applyCountryRules(){
+      var cc = (document.getElementById('profile-country').value || 'lt').toLowerCase();
+      var postal = document.getElementById('profile-postal');
+      var postalHint = document.getElementById('postal-hint');
+      var countryHint = document.getElementById('country-hint');
+
+      if (cc === 'lt'){
+        postal.setAttribute('pattern','^\\d{5}$');
+        postal.setAttribute('inputmode','numeric');
+        postal.placeholder = 'pvz., 01100';
+        postalHint.textContent = 'Įveskite 5 skaitmenų LT pašto kodą.';
+        countryHint.textContent = 'Lietuvai taikoma LT pašto kodo forma (5 skaitmenys).';
+      } else {
+        postal.removeAttribute('pattern');
+        postal.setAttribute('inputmode','text');
+        postal.placeholder = 'Pašto kodas';
+        postalHint.textContent = 'Įveskite vietinį pašto kodą (formatas gali skirtis pagal šalį).';
+        countryHint.textContent = 'Kitoms šalims formatas gali skirtis; miestai ieškomi per OpenStreetMap.';
+      }
+    }
+
+    // ── LT miestas + pašto kodas VALIDACIJA (tik LT atvejui) ─────────────────
+    (function(){
+      var DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
+      function tryFetch(urls){
+        return new Promise(function(resolve){
+          var q=urls.slice();
+          (function next(){
+            if(!q.length){resolve(null);return;}
+            var u=q.shift();
+            fetch(u).then(function(r){ return r.ok ? r.json() : null; })
+                    .then(function(d){ if (d) resolve(d); else next(); })
+                    .catch(next);
+          })();
+        });
+      }
+      tryFetch(DATA_URLS).then(function(LT){
+        if (!LT) return;
+        var cityEl = document.getElementById('profile-city');
+        var postEl = document.getElementById('profile-postal');
+        var countrySel = document.getElementById('profile-country');
+
+        function validate(){
+          if (!countrySel || countrySel.value.toLowerCase()!=='lt') { postEl.setCustomValidity(''); return true; }
+          var city = (cityEl.value||'').trim();
+          var postal = (postEl.value||'').trim();
+          var okPostal = /^\d{5}$/.test(postal);
+          var match = LT.find(function(i){ return i.city === city && (i.postal.charAt(0) === (postal.charAt(0)||'') || i.postal.replace(/x/g,'') === postal); });
+          if (!okPostal || !match){
+            postEl.setCustomValidity('Patikrinkite miestą ir 5 skaitmenų LT pašto kodą.');
+            postEl.reportValidity();
+            return false;
+          }
+          postEl.setCustomValidity('');
+          return true;
+        }
+
+        document.addEventListener('submit', function(e){
+          try{ if (!validate()){ e.preventDefault(); e.stopPropagation(); } }catch(_){}
+        }, true);
+
+        if (countrySel){
+          countrySel.addEventListener('change', function(){ postEl.setCustomValidity(''); });
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
