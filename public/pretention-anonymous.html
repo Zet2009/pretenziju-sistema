@@ -583,22 +583,24 @@ function initAddressSearch() {
     const cityInput = document.getElementById('city');
     const streetInput = document.getElementById('street');
     const postalInput = document.getElementById('postal');
+    const countrySelect = document.getElementById('country'); // ✅ Būtina!
 
     async function searchCitiesAndStreets() {
         const cityValue = cityInput.value.trim();
         if (cityValue.length < 2) return;
 
         try {
-            // Bandome atpažinti ar tai Lietuva
-            const isLithuania = true; // Galima pridėti šalies laukelį ateityje
+            const country = countrySelect ? countrySelect.value.toLowerCase() : 'lt';
 
-            if (isLithuania) {
+            if (country === 'lt') {
                 // 🔹 LIETUVA: postit.lt
-                const url = new URL('https://api.postit.lt/v2/');
+                const url = new URL('https://api.postit.lt/v2/'); // ✅ Be tarpų!
                 url.searchParams.append('city', cityValue);
-                url.searchParams.append('key', 'postit.lt-examplekey'); // Keisk į savo raktą
+                url.searchParams.append('key', 'postit.lt-examplekey'); // Pakeisk į savo raktą
 
                 const response = await fetch(url);
+                if (!response.ok) throw new Error('Network error');
+                
                 const data = await response.json();
 
                 if (data.success && Array.isArray(data.data)) {
@@ -607,17 +609,13 @@ function initAddressSearch() {
                         admin1: item.municipality,
                         postal: item.post_code
                     }));
-
                     showCitySuggestions(cities);
                 }
             } else {
                 // 🌍 KITOS ŠALYS: Geonames per tavo serverį
-                const country = 'lv'; // galima keisti dinamiškai
                 const serverUrl = `/api/cities?country=${country}&q=${encodeURIComponent(cityValue)}`;
-                
                 const response = await fetch(serverUrl);
                 const cities = await response.json();
-
                 showCitySuggestions(cities);
             }
         } catch (err) {
@@ -629,7 +627,7 @@ function initAddressSearch() {
         const suggestionsContainer = document.getElementById('city-suggestions') || createSuggestionsContainer(cityInput);
         suggestionsContainer.innerHTML = '';
 
-        if (cities.length === 0) {
+        if (!cities || cities.length === 0) {
             suggestionsContainer.style.display = 'none';
             return;
         }
@@ -670,7 +668,6 @@ function initAddressSearch() {
         return container;
     }
 
-    // --- Defer funkcija ---
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -679,10 +676,9 @@ function initAddressSearch() {
         };
     }
 
-    // --- Priskirti įvykius ---
+    // Priskirti įvykius
     cityInput.addEventListener('input', debounce(searchCitiesAndStreets, 500));
 }
-
 // Paleisti, kai DOM pasiruošęs
 document.addEventListener('DOMContentLoaded', () => {
     initAddressSearch(); // <-- Pridėta: hibridinė paieška
