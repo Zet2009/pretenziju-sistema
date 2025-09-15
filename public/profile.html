@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="lt">
 <head>
   <meta charset="UTF-8">
@@ -164,6 +164,9 @@
   </main>
 
   <footer>© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</footer>
+<script id="lt-locations-inline" type="application/json">
+[]
+</script>
 
   <script>
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -277,6 +280,15 @@
 
       var ltLocal = []; // lt_locations.json (fallback)
       var DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
+      function readInlineLT(){
+  var el = document.getElementById('lt-locations-inline');
+  if (!el) return null;
+  try { var arr = JSON.parse(el.textContent || '[]'); return Array.isArray(arr) ? arr : null; }
+  catch(_) { return null; }
+}
+var inline = readInlineLT();
+if (inline) { /* turim inline duomenis – naudok */ LT = inline; /* arba ltLocal = inline; */ }
+else { /* kaip buvo: fetch iš DATA_URLS */ }
       fetchFirstAvailable(DATA_URLS).then(function(list){ if (Array.isArray(list)) ltLocal = list; });
 
       function fetchFirstAvailable(urls){
@@ -409,6 +421,16 @@
     // ── LT miestas + pašto kodas VALIDACIJA (tik LT atvejui) ─────────────────
     (function(){
       var DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
+      function readInlineLT(){
+  var el = document.getElementById('lt-locations-inline');
+  if (!el) return null;
+  try { var arr = JSON.parse(el.textContent || '[]'); return Array.isArray(arr) ? arr : null; }
+  catch(_) { return null; }
+}
+var inline = readInlineLT();
+if (inline) { /* turim inline duomenis – naudok */ LT = inline; /* arba ltLocal = inline; */ }
+else { /* kaip buvo: fetch iš DATA_URLS */ }
+      
       function tryFetch(urls){
         return new Promise(function(resolve){
           var q=urls.slice();
