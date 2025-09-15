@@ -1,1301 +1,780 @@
 <!DOCTYPE html>
 <html lang="lt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pateikti pretenziją – Rubineta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #2D2D2D;
-            --light: #F5F5F5;
-            --white: #FFFFFF;
-            --font: 'Roboto', sans-serif;
-            --accent: #4a6fa5;
-            --success: #28a745;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: var(--font);
-            background: var(--light);
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            width: 60%;
-            max-width: 800px;
-            flex: 1;
-        }
-        h1 { 
-            color: var(--primary); 
-            margin-bottom: 20px; 
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--primary);
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-        button {
-            padding: 12px 20px;
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #1a1a1a;
-        }
-        .btn-secondary {
-            background: #6c757d;
-        }
-        .btn-next {
-            background: var(--accent);
-        }
-        .attachments {
-            margin-top: 20px;
-        }
-        .file-list {
-            margin-top: 10px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-        }
-        .file-item {
-            position: relative;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .file-item:hover {
-            transform: translateY(-3px);
-        }
-        .file-preview {
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #f8f8f8;
-        }
-        .file-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .file-preview video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .file-preview .file-icon {
-            font-size: 2.5rem;
-            color: #6c757d;
-        }
-        .file-info {
-            padding: 8px;
-            font-size: 0.8rem;
-            text-align: center;
-            word-break: break-all;
-        }
-        .file-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .remove-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255,255,255,0.8);
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: red;
-        }
-        .file-input-label {
-            display: block;
-            padding: 12px;
-            background: #f0f0f0;
-            border: 2px dashed #ccc;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        .file-input-label:hover {
-            background: #e8e8e8;
-        }
-        .upload-status {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pateikti pretenziją – Rubineta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2D2D2D;
+      --light: #F5F5F5;
+      --white: #FFFFFF;
+      --accent: #4a6fa5;
+      --success: #28a745;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--light);
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container { width: 60%; max-width: 800px; flex: 1; }
+    h1 { color: var(--primary); margin-bottom: 20px; text-align: center; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; color: var(--primary); }
+    input, select, textarea {
+      width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;
+    }
+    button {
+      padding: 12px 20px; background: var(--primary); color: var(--white);
+      border: none; border-radius: 6px; cursor: pointer;
+    }
+    button:hover { background: #1a1a1a; }
+    .btn-secondary { background: #6c757d; }
+    .btn-next { background: var(--accent); }
+    .attachments { margin-top: 20px; }
+    .file-list {
+      margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;
+    }
+    .file-item {
+      position: relative; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;
+      background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s;
+    }
+    .file-item:hover { transform: translateY(-3px); }
+    .file-preview { height: 100px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f8f8f8; }
+    .file-preview img, .file-preview video { width: 100%; height: 100%; object-fit: cover; }
+    .file-preview .file-icon { font-size: 2.5rem; color: #6c757d; }
+    .file-info { padding: 8px; font-size: 0.8rem; text-align: center; word-break: break-all; }
+    .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .remove-btn {
+      position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.8); border: none; border-radius: 50%;
+      width: 24px; height: 24px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: red;
+    }
+    .file-input-label {
+      display: block; padding: 12px; background: #f0f0f0; border: 2px dashed #ccc; border-radius: 6px; text-align: center; cursor: pointer; margin-bottom: 10px;
+    }
+    .upload-status { margin-top: 10px; font-size: 0.9rem; color: #6c757d; }
 
-        /* Sutikimo langelio stilius */
-        #consent-container label {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            padding: 12px;
-            background: #fff8e1;
-            border: 1px solid #ffd54f;
-            border-radius: 6px;
-        }
+    #consent-container label {
+      font-size: 0.95rem; line-height: 1.5; padding: 12px; background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px;
+    }
+    footer {
+      width: 100%; text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-top: 1px solid #dee2e6;
+    }
+    .footer-content { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .footer-logo { height: 40px; margin-bottom: 10px; }
+    .footer-nav { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .footer-nav a { text-decoration: none; color: var(--primary); font-weight: 500; }
+    .footer-nav a:hover { text-decoration: underline; }
+    .copyright { color: #6c757d; font-size: 14px; margin-top: 10px; }
 
-        /* Footer stiliaus pakeitimai */
-        footer {
-            width: 100%;
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-        }
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-        .footer-logo {
-            height: 40px;
-            margin-bottom: 10px;
-        }
-        .footer-nav {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .footer-nav a {
-            text-decoration: none;
-            color: var(--primary);
-            font-weight: 500;
-        }
-        .footer-nav a:hover {
-            text-decoration: underline;
-        }
-        .copyright {
-            color: #6c757d;
-            font-size: 14px;
-            margin-top: 10px;
-        }
+    .step-progress { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; }
+    .step-progress::before {
+      content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #ddd; transform: translateY(-50%); z-index: 1;
+    }
+    .step {
+      width: 30px; height: 30px; border-radius: 50%; background: white; border: 2px solid #ddd;
+      display: flex; align-items: center; justify-content: center; position: relative; z-index: 2;
+    }
+    .step.active { border-color: var(--accent); background: var(--accent); color: white; }
+    .step.completed { border-color: var(--success); background: var(--success); color: white; }
+    .step-label { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 5px; font-size: 0.8rem; white-space: nowrap; }
+    .step-form { display: none; }
+    .step-form.active { display: block; animation: fadeIn 0.3s ease; }
+    .navigation-buttons { display: flex; justify-content: space-between; margin-top: 30px; position: relative; z-index: 9; }
+    .navigation-buttons button { position: relative; z-index: 10; }
+    .summary-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    .summary-label { font-weight: bold; margin-bottom: 5px; }
+    .summary-files-list {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 10px;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Žingsninio pildymo stiliai */
-        .step-progress {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        .step-progress::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #ddd;
-            transform: translateY(-50%);
-            z-index: 1;
-        }
-        .step {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: white;
-            border: 2px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            z-index: 2;
-        }
-        .step.active {
-            border-color: var(--accent);
-            background: var(--accent);
-            color: white;
-        }
-        .step.completed {
-            border-color: var(--success);
-            background: var(--success);
-            color: white;
-        }
-        .step-label {
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-top: 5px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-        }
-        .step-form {
-            display: none;
-        }
-        .step-form.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-        .summary-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        .summary-label {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .summary-files-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @media (max-width: 1200px) { .container { width: 80%; } }
+    @media (max-width: 768px) {
+      .container { width: 95%; } body { padding: 10px; }
+      .footer-nav { flex-direction: column; gap: 10px; }
+      .file-list, .summary-files-list { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+      .step-label { font-size: 0.7rem; }
+    }
 
-        @media (max-width: 1200px) {
-            .container {
-                width: 80%;
-            }
-        }
-        @media (max-width: 768px) {
-            .container {
-                width: 95%;
-            }
-            body {
-                padding: 10px;
-            }
-            .footer-nav {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .file-list, .summary-files-list {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-            .step-label {
-                font-size: 0.7rem;
-            }
-        }
-    </style>
+    /* subtilus raudonas signalas */
+    input.invalid { border-color: #dc3545 !important; outline-color: #dc3545 !important; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Pateikti pretenziją</h1>
-        
-        <!-- Žingsnių progreso indikatorius -->
-        <div class="step-progress">
-            <div class="step active" id="step-1">
-                1
-                <div class="step-label">Tema</div>
-            </div>
-            <div class="step" id="step-2">
-                2
-                <div class="step-label">Aprašymas</div>
-            </div>
-            <div class="step" id="step-3">
-                3
-                <div class="step-label">Kontaktas</div>
-            </div>
-            <div class="step" id="step-4">
-                4
-                <div class="step-label">Failai</div>
-            </div>
-            <div class="step" id="step-5">
-                5
-                <div class="step-label">Patvirtinimas</div>
-            </div>
-        </div>
-        
-        <form id="claim-form">
-            <!-- 1 žingsnis: Tema ir produktas -->
-            <div class="step-form active" id="step-form-1">
-                <div class="form-group">
-                    <label for="topic">Tema *</label>
-                    <select id="topic" required>
-                        <option value="">Pasirinkite temą</option>
-                        <option value="Bendrieji klausimai">Bendrieji klausimai</option>
-                        <option value="Produkto informacija">Produkto informacija</option>
-                        <option value="Atsarginių dalių informacija">Atsarginių dalių informacija</option>
-                        <option value="Techninė pagalba">Techninė pagalba</option>
-                        <option value="Produkto problema">Produkto problema</option>
-                        <option value="Atsiliepimai">Atsiliepimai</option>
-                    </select>
-                </div>
+  <div class="container">
+    <h1>Pateikti pretenziją</h1>
 
-                <div class="form-group">
-                    <label for="product">Produktas *</label>
-                    <input type="text" id="product" required>
-                </div>
-                
-                <div class="navigation-buttons">
-                    <div></div> <!-- Tuščias elementas, kad mygtukai būtų išdėstyti į šonus -->
-                    <button type="button" class="btn-next" onclick="nextStep(1)">Kitas žingsnis</button>
-                </div>
-            </div>
-            
-            <!-- 2 žingsnis: Aprašymas ir reikalavimas -->
-            <div class="step-form" id="step-form-2">
-                <div class="form-group">
-                    <label for="description">Aprašymas *</label>
-                    <textarea id="description" rows="4" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="request">Kliento reikalavimas *</label>
-                    <select id="request" required>
-                        <option value="send-part">Išsiųsti atsarginę dalį</option>
-                        <option value="send-technician">Siųsti meistrą</option>
-                        <option value="exchange">Keisti produktą</option>
-                        <option value="choose">Kita</option>
-                    </select>
-                </div>
-                
-                <div class="navigation-buttons">
-                    <button type="button" class="btn-secondary" onclick="prevStep(2)">Atgal</button>
-                    <button type="button" class="btn-next" onclick="nextStep(2)">Kitas žingsnis</button>
-                </div>
-            </div>
-            
-            <!-- 3 žingsnis: Kontaktinė informacija -->
-            <div class="step-form" id="step-form-3">
-                <div class="form-group">
-                    <label for="contact-method">Pageidaujamas kontaktas *</label>
-                    <select id="contact-method" required>
-                        <option value="email">El. paštu</option>
-                        <option value="phone">Telefonu</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="preferred-time">Patogus laikas kontaktui</label>
-                    <input type="text" id="preferred-time" placeholder="Pvz., Iš ryto, 9–11 val.">
-                </div>
-                
-                <div class="navigation-buttons">
-                    <button type="button" class="btn-secondary" onclick="prevStep(3)">Atgal</button>
-                    <button type="button" class="btn-next" onclick="nextStep(3)">Kitas žingsnis</button>
-                </div>
-            </div>
-            
-            <!-- 4 žingsnis: Dokumentų įkėlimas -->
-            <div class="step-form" id="step-form-4">
-
-<!-- Naujas laukas: Pirkimo data -->
-<div class="form-group">
-    <label for="purchase-date">Pirkimo data *</label>
-    <input type="date" id="purchase-date" required>
-</div>
-
-<!-- Naujas laukas: Pirkimo dokumento numeris -->
-<div class="form-group">
-    <label for="purchase-number">Pirkimo dokumento numeris *</label>
-    <input type="text" id="purchase-number" placeholder="Pvz., SF-12345 arba čekio numeris" required>
-</div>
-
-                <!-- Pirkimo dokumentas -->
-                <div class="form-group">
-                    <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra)</label>
-                    <input type="file" id="purchase-document" accept="image/*,application/pdf">
-                    <small id="purchase-document-hint">
-                        Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.
-                    </small>
-                </div>
-
-                <!-- Sutikimas su duomenų perdavimu meistrui -->
-                <div class="form-group" id="consent-container" style="display: none;">
-                    <label>
-                        <input type="checkbox" id="consent-to-share">
-                        Sutinku, kad mano kontaktiniai duomenys būtų perduoti meistrui, kuris atliks remontą arba diagnozę. 
-                        Su asmens duomenų apdorojimo tvarka susipažinau – 
-                        <a href="privacy.html" target="_blank">Privatumo politika</a>.
-                    </label>
-                </div>
-
-                <div class="attachments">
-                    <label for="attachment">Įkelkite sugadintos prekės nuotraukas arba vaizdo įrašus <span id="attachment-required-star"></span></label>
-                    <label for="attachment" class="file-input-label">📎 Paspauskite arba vilkite failus čia</label>
-                    <small>Pridėkite nuotraukas arba vaizdo įrašus, kurie patvirtina prekės gedimą.</small>
-                    
-                    <div class="upload-status" id="upload-status"></div>
-                    <div class="file-list" id="file-list"></div>
-                    <input type="file" id="attachment" accept="image/*,video/*,.pdf" multiple style="display: none;">
-                </div>
-                
-                <div class="navigation-buttons">
-                    <button type="button" class="btn-secondary" onclick="prevStep(4)">Atgal</button>
-                    <button type="button" class="btn-next" onclick="nextStep(4)">Peržiūrėti</button>
-                </div>
-            </div>
-            
-            <!-- 5 žingsnis: Peržiūra ir patvirtinimas -->
-            <div class="step-form" id="step-form-5">
-                <h3 style="margin-bottom: 20px;">Jūsų pretenzijos suvestinė</h3>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Tema:</div>
-                    <div id="summary-topic"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Produktas:</div>
-                    <div id="summary-product"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Aprašymas:</div>
-                    <div id="summary-description"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Reikalavimas:</div>
-                    <div id="summary-request"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Kontaktavimo būdas:</div>
-                    <div id="summary-contact-method"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Patogus laikas:</div>
-                    <div id="summary-preferred-time"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Pirkimo dokumentas:</div>
-                    <div id="summary-purchase-document"></div>
-                    <div id="summary-purchase-file" class="summary-files-list"></div>
-                </div>
-                
-                <div class="summary-item">
-                    <div class="summary-label">Pridėti failai:</div>
-                    <div id="summary-files-count"></div>
-                    <div class="summary-files-list" id="summary-files-list"></div>
-                </div>
-                
-                <div class="navigation-buttons">
-                    <button type="button" class="btn-secondary" onclick="prevStep(5)">Atgal</button>
-                    <button type="submit">Pateikti pretenziją</button>
-                </div>
-            </div>
-        </form>
+    <div class="step-progress">
+      <div class="step active" id="step-1">1<div class="step-label">Tema</div></div>
+      <div class="step" id="step-2">2<div class="step-label">Aprašymas</div></div>
+      <div class="step" id="step-3">3<div class="step-label">Kontaktas</div></div>
+      <div class="step" id="step-4">4<div class="step-label">Failai</div></div>
+      <div class="step" id="step-5">5<div class="step-label">Patvirtinimas</div></div>
     </div>
 
-    <footer>
-        <div class="footer-content">
-            <img src="logo.jpg" alt="Rubineta Logo" class="footer-logo">
-            <div class="footer-nav">
-                <a href="index.html">Pagrindinis</a>
-                <a href="duku.html">DUK</a>
-                <a href="pretention.html">Pateikti pretenziją</a>
-            </div>
-            <div class="copyright">© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</div>
+    <form id="claim-form">
+      <!-- 1 -->
+      <div class="step-form active" id="step-form-1">
+        <div class="form-group">
+          <label for="topic">Tema *</label>
+          <select id="topic" required>
+            <option value="">Pasirinkite temą</option>
+            <option value="Bendrieji klausimai">Bendrieji klausimai</option>
+            <option value="Produkto informacija">Produkto informacija</option>
+            <option value="Atsarginių dalių informacija">Atsarginių dalių informacija</option>
+            <option value="Techninė pagalba">Techninė pagalba</option>
+            <option value="Produkto problema">Produkto problema</option>
+            <option value="Atsiliepimai">Atsiliepimai</option>
+          </select>
         </div>
-    </footer>
 
-    <script>
-        // Patikriname prisijungimą
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            alert('Prisijunkite, kad pateikti pretenziją.');
-            location.href = 'login.html';
-        }
+        <div class="form-group">
+          <label for="product">Produktas *</label>
+          <input type="text" id="product" required>
+        </div>
 
-        // Žingsnių valdymo funkcijos
-        let currentStep = 1;
-        const totalSteps = 5;
-        
-        // Kintamieji failų saugojimui
-        const uploadedUrls = [];
-        let purchaseDocumentUrl = null;
-        let purchaseDocumentFile = null;
-        
-        function updateStepIndicator() {
-            // Atnaujinti žingsnių indikatorių
-            for (let i = 1; i <= totalSteps; i++) {
-                const stepElement = document.getElementById(`step-${i}`);
-                if (i < currentStep) {
-                    stepElement.className = 'step completed';
-                } else if (i === currentStep) {
-                    stepElement.className = 'step active';
-                } else {
-                    stepElement.className = 'step';
-                }
-            }
-            
-            // Rodyti tik aktyvų žingsnį
-            document.querySelectorAll('.step-form').forEach(form => {
-                form.classList.remove('active');
-            });
-            document.getElementById(`step-form-${currentStep}`).classList.add('active');
-        }
-        
-        function nextStep(step) {
-            // Patikrinti, ar žingsnio duomenys teisingi
-            if (step === 1) {
-                const topic = document.getElementById('topic');
-                const product = document.getElementById('product');
-                
-                if (!topic.value) {
-                    alert('Pasirinkite temą');
-                    return;
-                }
-                
-                if (!product.value) {
-                    alert('Įveskite produkto pavadinimą');
-                    return;
-                }
-                
-                updateAttachmentRequirement();
-                updateConsentVisibility();
-            } else if (step === 2) {
-                const description = document.getElementById('description');
-                
-                if (!description.value) {
-                    alert('Įveskite problemos aprašymą');
-                    return;
-                }
-            } else if (step === 4) {
-                updateSummary();
-            }
-            
-            // Pereiti į kitą žingsnį
-            if (step < totalSteps) {
-                currentStep = step + 1;
-                updateStepIndicator();
-                
-                // Slinkti į puslapio viršų pereinant prie kito žingsnio
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-        
-        function prevStep(step) {
-            if (step > 1) {
-                currentStep = step - 1;
-                updateStepIndicator();
-                
-                // Slinkti į puslapio viršų pereinant prie ankstesnio žingsnio
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-        
-        function updateSummary() {
-            // Atnaujinti suvestinės informaciją
-            document.getElementById('summary-topic').textContent = document.getElementById('topic').value;
-            document.getElementById('summary-product').textContent = document.getElementById('product').value;
-            document.getElementById('summary-description').textContent = document.getElementById('description').value;
-            
-            const requestSelect = document.getElementById('request');
-            document.getElementById('summary-request').textContent = requestSelect.options[requestSelect.selectedIndex].text;
-            
-            const contactSelect = document.getElementById('contact-method');
-            document.getElementById('summary-contact-method').textContent = contactSelect.options[contactSelect.selectedIndex].text;
-            
-            document.getElementById('summary-preferred-time').textContent = document.getElementById('preferred-time').value || 'Nenurodyta';
-            
-            // Atnaujinti pirkimo dokumento informaciją
-            updatePurchaseDocumentSummary();
-            
-            // Atnaujinti failų sąrašą suvestinėje
-            updateSummaryFiles();
-        }
-        
-        function updatePurchaseDocumentSummary() {
-            const purchaseDocumentElement = document.getElementById('summary-purchase-document');
-            const purchaseFileContainer = document.getElementById('summary-purchase-file');
-            
-            // Išvalyti esamą turinį
-            purchaseFileContainer.innerHTML = '';
-            
-            if (purchaseDocumentUrl) {
-                purchaseDocumentElement.textContent = 'Įkeltas';
-                
-                // Rodyti pirkimo dokumentą suvestinėje
-                const fileName = getFileNameFromUrl(purchaseDocumentUrl) || 'pirkimo_dokumentas';
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'file-preview';
-                
-                // Tikrinti ar tai vaizdas ar PDF
-                if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                    const img = document.createElement('img');
-                    img.src = purchaseDocumentUrl;
-                    img.alt = fileName;
-                    previewDiv.appendChild(img);
-                } else {
-                    const iconDiv = document.createElement('div');
-                    iconDiv.className = 'file-icon';
-                    iconDiv.textContent = '📄';
-                    previewDiv.appendChild(iconDiv);
-                }
-                
-                const fileInfo = document.createElement('div');
-                fileInfo.className = 'file-info';
-                
-                const fileNameDiv = document.createElement('div');
-                fileNameDiv.className = 'file-name';
-                fileNameDiv.textContent = fileName;
-                fileInfo.appendChild(fileNameDiv);
-                
-                // Pridėti pašalinimo mygtuką
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.className = 'remove-btn';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = () => removePurchaseDocument();
-                
-                fileItem.appendChild(previewDiv);
-                fileItem.appendChild(fileInfo);
-                fileItem.appendChild(removeBtn);
-                purchaseFileContainer.appendChild(fileItem);
-            } else {
-                purchaseDocumentElement.textContent = 'Neįkeltas';
-            }
-        }
-        
-        function removePurchaseDocument() {
-            // Pašalinti pirkimo dokumentą
-            purchaseDocumentUrl = null;
-            purchaseDocumentFile = null;
-            
-            // Išvalyti įvesties lauką
-            document.getElementById('purchase-document').value = '';
-            
-            // Atnaujinti suvestinę
-            updatePurchaseDocumentSummary();
-            
-            alert('Pirkimo dokumentas pašalintas');
-        }
-        
-        function updateSummaryFiles() {
-            const summaryFilesList = document.getElementById('summary-files-list');
-            const summaryFilesCount = document.getElementById('summary-files-count');
-            
-            // Išvalyti esamą sąrašą
-            summaryFilesList.innerHTML = '';
-            
-            // Rodyti failų skaičių
-            summaryFilesCount.textContent = uploadedUrls.length + ' failų';
-            
-            // Pridėti failus į suvestinę
-            if (uploadedUrls.length > 0) {
-                uploadedUrls.forEach((url, index) => {
-                    const fileName = getFileNameFromUrl(url);
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    
-                    const previewDiv = document.createElement('div');
-                    previewDiv.className = 'file-preview';
-                    
-                    // Nustatyti, ar tai vaizdas, video ar dokumentas
-                    if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                        const img = document.createElement('img');
-                        img.src = url;
-                        img.alt = fileName;
-                        previewDiv.appendChild(img);
-                    } else if (fileName.match(/\.(mp4|mov|avi|wvm|webm)$/i)) {
-                        const video = document.createElement('video');
-                        video.src = url;
-                        video.controls = true;
-                        previewDiv.appendChild(video);
-                    } else {
-                        const iconDiv = document.createElement('div');
-                        iconDiv.className = 'file-icon';
-                        iconDiv.textContent = '📄';
-                        previewDiv.appendChild(iconDiv);
-                    }
-                    
-                    const fileInfo = document.createElement('div');
-                    fileInfo.className = 'file-info';
-                    
-                    const fileNameDiv = document.createElement('div');
-                    fileNameDiv.className = 'file-name';
-                    fileNameDiv.textContent = fileName;
-                    fileInfo.appendChild(fileNameDiv);
-                    
-                    // Pridėti pašalinimo mygtuką
-                    const removeBtn = document.createElement('button');
-                    removeBtn.type = 'button';
-                    removeBtn.className = 'remove-btn';
-                    removeBtn.textContent = '✕';
-                    removeBtn.onclick = () => removeFileFromSummary(url, index);
-                    
-                    fileItem.appendChild(previewDiv);
-                    fileItem.appendChild(fileInfo);
-                    fileItem.appendChild(removeBtn);
-                    summaryFilesList.appendChild(fileItem);
-                });
-            }
-        }
-        
-        function getFileNameFromUrl(url) {
-            // Išgauti failo pavadinimą iš URL
-            if (!url) return 'nežinomas';
-            return url.split('/').pop().split('?')[0];
-        }
-        
-        function removeFileFromSummary(url, index) {
-            // Pašalinti failą iš masyvo
-            uploadedUrls.splice(index, 1);
-            
-            // Atnaujinti suvestinės failų sąrašą
-            updateSummaryFiles();
-            
-            // Taip pat pašalinti failą iš pradinio failų sąrašo (4 žingsnyje)
-            const fileItem = document.querySelector(`.file-item[data-filename="${getFileNameFromUrl(url)}"]`);
-            if (fileItem) {
-                fileItem.remove();
-            }
-            
-            // Atnaujinti pranešimą
-            alert('Failas pašalintas');
-        }
+        <div class="navigation-buttons">
+          <div></div>
+          <button type="button" class="btn-next" onclick="nextStep(1)">Kitas žingsnis</button>
+        </div>
+      </div>
 
-        // Cloudinary įkėlimo funkcija
-        function uploadToCloudinary(file, onSuccess, onError) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr');
+      <!-- 2 -->
+      <div class="step-form" id="step-form-2">
+        <div class="form-group">
+          <label for="description">Aprašymas *</label>
+          <textarea id="description" rows="4" required></textarea>
+        </div>
 
-            let uploadUrl;
-            if (file.type.startsWith('image/')) {
-                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
-            } else if (file.type.startsWith('video/')) {
-                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
-            } else {
-                uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
-            }
+        <div class="form-group">
+          <label for="request">Kliento reikalavimas *</label>
+          <select id="request" required>
+            <option value="send-part">Išsiųsti atsarginę dalį</option>
+            <option value="send-technician">Siųsti meistrą</option>
+            <option value="exchange">Keisti produktą</option>
+            <option value="choose">Kita</option>
+          </select>
+        </div>
 
-            fetch(uploadUrl, { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(data => data.secure_url ? onSuccess(data.secure_url) : onError(new Error('No secure_url')))
-                .catch(onError);
-        }
+        <div class="navigation-buttons">
+          <button type="button" class="btn-secondary" onclick="prevStep(2)">Atgal</button>
+          <button type="button" class="btn-next" onclick="nextStep(2)">Kitas žingsnis</button>
+        </div>
+      </div>
 
-        // --- BŪTINI ELEMENTAI ---
-        const fileInput = document.getElementById('attachment');
-        const fileList = document.getElementById('file-list');
-        const uploadStatus = document.getElementById('upload-status');
-        const purchaseDocumentInput = document.getElementById('purchase-document');
+      <!-- 3 -->
+      <div class="step-form" id="step-form-3">
+        <div class="form-group">
+          <label for="contact-method">Pageidaujamas kontaktas *</label>
+          <select id="contact-method" required>
+            <option value="email">El. paštu</option>
+            <option value="phone">Telefonu</option>
+          </select>
+        </div>
 
-        const fileInputLabel = document.querySelector('.file-input-label');
+        <div class="form-group">
+          <label for="preferred-time">Patogus laikas kontaktui</label>
+          <input type="text" id="preferred-time" placeholder="Pvz., Iš ryto, 9–11 val.">
+        </div>
 
-        // Patikriname, ar visi elementai egzistuoja
-        if (!fileInput || !fileList || !uploadStatus) {
-            console.error('Klaida: vienas iš failų įkėlimo elementų nerastas.');
-            if (!fileInput) console.error('→ #attachment nerastas');
-            if (!fileList) console.error('→ #file-list nerastas');
-            if (!uploadStatus) console.error('→ #upload-status nerastas');
-        } else {
-            // Vilkimo funkcionalumas
-            if (fileInputLabel) {
-                fileInputLabel.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    fileInputLabel.style.background = '#e0e0e0';
-                });
+        <div class="navigation-buttons">
+          <button type="button" class="btn-secondary" onclick="prevStep(3)">Atgal</button>
+          <button type="button" class="btn-next" onclick="nextStep(3)">Kitas žingsnis</button>
+        </div>
+      </div>
 
-                fileInputLabel.addEventListener('dragleave', () => {
-                    fileInputLabel.style.background = '#f0f0f0';
-                });
+      <!-- 4 -->
+      <div class="step-form" id="step-form-4">
+        <div class="form-group">
+          <label for="purchase-date" id="label-purchase-date">Pirkimo data *</label>
+          <input type="date" id="purchase-date">
+        </div>
 
-                fileInputLabel.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    fileInputLabel.style.background = '#f0f0f0';
-                    if (e.dataTransfer.files.length > 0) {
-                        handleFiles(e.dataTransfer.files);
-                    }
-                });
+        <div class="form-group">
+          <label for="purchase-number" id="label-purchase-number">Pirkimo dokumento numeris *</label>
+          <input type="text" id="purchase-number" placeholder="Pvz., SF-12345 arba čekio numeris">
+        </div>
 
-                // SPAUDŽIANT ANT ETIKETĖS – ATSIDARO FAILŲ PASIRINKIMAS
-                fileInputLabel.addEventListener('click', () => {
-                    fileInput.click();
-                });
-            }
+        <div class="form-group">
+          <label for="purchase-document">Įkelkite pirkimo dokumentą (čekis, sąskaita-faktūra)</label>
+          <input type="file" id="purchase-document" accept="image/*,application/pdf">
+          <small id="purchase-document-hint">
+            Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.
+          </small>
+        </div>
 
-            // KEITIMASIS INPUT'UI
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    handleFiles(fileInput.files);
-                    fileInput.value = ''; // Leidžia perkrauti tuos pačius failus
-                }
-            });
-            
-            // Pirkimo dokumento apdorojimas
-            if (purchaseDocumentInput) {
-                purchaseDocumentInput.addEventListener('change', () => {
-                    if (purchaseDocumentInput.files.length > 0) {
-                        handlePurchaseDocument(purchaseDocumentInput.files[0]);
-                    }
-                });
-            }
-        }
-        
-        function handlePurchaseDocument(file) {
-            const MAX_DOC_SIZE = 5 * 1024 * 1024;
-            
-            if (file.size > MAX_DOC_SIZE) {
-                alert('Dokumentas negali būti didesnis nei 5 MB.');
-                purchaseDocumentInput.value = '';
-                return;
-            }
-            
-            purchaseDocumentFile = file;
-            
-            // Įkelti dokumentą į Cloudinary
-            uploadToCloudinary(file, 
-                (url) => {
-                    purchaseDocumentUrl = url;
-                    if (currentStep === 5) {
-                        updatePurchaseDocumentSummary();
-                    }
-                    alert('Pirkimo dokumentas sėkmingai įkeltas');
-                }, 
-                (err) => {
-                    console.error('Nepavyko įkelti pirkimo dokumento', err);
-                    alert('Nepavyko įkelti pirkimo dokumento. Bandykite dar kartą.');
-                    purchaseDocumentInput.value = '';
-                }
-            );
-        }
+        <div class="form-group" id="consent-container" style="display: none;">
+          <label>
+            <input type="checkbox" id="consent-to-share">
+            Sutinku, kad mano kontaktiniai duomenys būtų perduoti meistrui, kuris atliks remontą arba diagnozę.
+            Su asmens duomenų apdorojimo tvarka susipažinau –
+            <a href="privacy.html" target="_blank">Privatumo politika</a>.
+          </label>
+        </div>
 
-        // Apdoroti failus
-        function handleFiles(files) {
-            uploadStatus.textContent = `Įkeliama ${files.length} failų...`;
-            
-            Array.from(files).forEach((file, index) => {
-                const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-                const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
-                const MAX_DOC_SIZE   = 5 * 1024 * 1024;
+        <div class="attachments">
+          <label for="attachment">Įkelkite sugadintos prekės nuotraukas arba vaizdo įrašus <span id="attachment-required-star"></span></label>
+          <label for="attachment" class="file-input-label">📎 Paspauskite arba vilkite failus čia</label>
+          <small>Pridėkite nuotraukas arba vaizdo įrašus, kurie patvirtina prekės gedimą.</small>
 
-                let isValid = true;
-                let errorMessage = '';
+          <div class="upload-status" id="upload-status"></div>
+          <div class="file-list" id="file-list"></div>
+          <input type="file" id="attachment" accept="image/*,video/*,.pdf" multiple style="display: none;">
+        </div>
 
-                if (file.type.startsWith('image/')) {
-                    if (file.size > MAX_IMAGE_SIZE) {
-                        isValid = false;
-                        errorMessage = `${file.name}: Nuotrauka negali būti didesnė nei 10 MB.`;
-                    }
-                } else if (file.type.startsWith('video/')) {
-                    if (file.size > MAX_VIDEO_SIZE) {
-                        isValid = false;
-                        errorMessage = `${file.name}: Video negali būti ilgesnis nei 20 MB.`;
-                    }
-                } else {
-                    if (file.size > MAX_DOC_SIZE) {
-                        isValid = false;
-                        errorMessage = `${file.name}: Dokumentas negali būti didesnis nei 5 MB.`;
-                    }
-                }
+        <div class="navigation-buttons">
+          <button type="button" class="btn-secondary" onclick="prevStep(4)">Atgal</button>
+          <button type="button" class="btn-next" onclick="nextStep(4)">Peržiūrėti</button>
+        </div>
+      </div>
 
-                if (!isValid) {
-                    alert(errorMessage);
-                    return;
-                }
+      <!-- 5 -->
+      <div class="step-form" id="step-form-5">
+        <h3 style="margin-bottom:20px;">Jūsų pretenzijos suvestinė</h3>
 
-                const tempUrl = URL.createObjectURL(file);
-                renderFilePreview(file, tempUrl, true);
-                
-                uploadToCloudinary(file, (url) => {
-                    uploadedUrls.push(url);
-                    updateFilePreview(url, file);
-                    
-                    if (index === files.length - 1) {
-                        uploadStatus.textContent = 'Visi failai sėkmingai įkelti.';
-                        setTimeout(() => uploadStatus.textContent = '', 3000);
-                    }
-                    
-                    // Atnaujinti suvestinę, jei esame 5 žingsnyje
-                    if (currentStep === 5) {
-                        updateSummaryFiles();
-                    }
-                }, (err) => {
-                    const item = document.querySelector(`[data-filename="${file.name}"]`);
-                    if (item) {
-                        item.innerHTML += '<div style="color: red; font-size: 0.7rem;">Įkelti nepavyko</div>';
-                    }
-                    console.error(`Nepavyko įkelti: ${file.name}`, err);
-                });
-            });
-        }
+        <div class="summary-item"><div class="summary-label">Tema:</div><div id="summary-topic"></div></div>
+        <div class="summary-item"><div class="summary-label">Produktas:</div><div id="summary-product"></div></div>
+        <div class="summary-item"><div class="summary-label">Aprašymas:</div><div id="summary-description"></div></div>
+        <div class="summary-item"><div class="summary-label">Reikalavimas:</div><div id="summary-request"></div></div>
+        <div class="summary-item"><div class="summary-label">Kontaktavimo būdas:</div><div id="summary-contact-method"></div></div>
+        <div class="summary-item"><div class="summary-label">Patogus laikas:</div><div id="summary-preferred-time"></div></div>
+        <div class="summary-item">
+          <div class="summary-label">Pirkimo dokumentas:</div>
+          <div id="summary-purchase-document"></div>
+          <div id="summary-purchase-file" class="summary-files-list"></div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Pridėti failai:</div>
+          <div id="summary-files-count"></div>
+          <div class="summary-files-list" id="summary-files-list"></div>
+        </div>
 
-        // Rodyti failo peržiūrą
-        function renderFilePreview(file, url, isTemp = false) {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.setAttribute('data-filename', file.name);
+        <div class="navigation-buttons">
+          <button id="btn-back-summary" type="button" class="btn-secondary">Atgal</button>
+          <button type="submit">Pateikti pretenziją</button>
+        </div>
+      </div>
+    </form>
+  </div>
 
-            const previewDiv = document.createElement('div');
-            previewDiv.className = 'file-preview';
+  <footer>
+    <div class="footer-content">
+      <img src="logo.jpg" alt="Rubineta Logo" class="footer-logo">
+      <div class="footer-nav">
+        <a href="index.html">Pagrindinis</a>
+        <a href="duku.html">DUK</a>
+        <a href="pretention.html">Pateikti pretenziją</a>
+      </div>
+      <div class="copyright">© 2025 Rubineta. Visos teisės saugomos. | info@rubineta.lt</div>
+    </div>
+  </footer>
 
-            if (file.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = file.name;
-                previewDiv.appendChild(img);
-            } else if (file.type.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.src = url;
-                video.controls = true;
-                previewDiv.appendChild(video);
-            } else {
-                const iconDiv = document.createElement('div');
-                iconDiv.className = 'file-icon';
-                iconDiv.textContent = '📄';
-                previewDiv.appendChild(iconDiv);
-            }
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+      alert('Prisijunkite, kad pateikti pretenziją.');
+      location.href = 'login.html';
+    }
 
-            if (isTemp) {
-                const loadingDiv = document.createElement('div');
-                loadingDiv.style.cssText = `
-                    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(255,255,255,0.7); display: flex;
-                    align-items: center; justify-content: center;
-                `;
-                loadingDiv.textContent = 'Įkeliama...';
-                previewDiv.appendChild(loadingDiv);
-            }
+    let currentStep = 1;
+    const totalSteps = 5;
+    const uploadedUrls = [];
+    let purchaseDocumentUrl = null;
+    let purchaseDocumentFile = null;
 
-            const fileInfo = document.createElement('div');
-            fileInfo.className = 'file-info';
+    function updateStepIndicator() {
+      for (let i = 1; i <= totalSteps; i++) {
+        const stepElement = document.getElementById('step-' + i);
+        if (i < currentStep) stepElement.className = 'step completed';
+        else if (i === currentStep) stepElement.className = 'step active';
+        else stepElement.className = 'step';
+      }
+      document.querySelectorAll('.step-form').forEach(function(f){ f.classList.remove('active'); });
+      document.getElementById('step-form-' + currentStep).classList.add('active');
+    }
 
-            const fileName = document.createElement('div');
-            fileName.className = 'file-name';
-            fileName.textContent = file.name;
-            fileInfo.appendChild(fileName);
-
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'remove-btn';
-            removeBtn.textContent = '✕';
-            removeBtn.onclick = () => removeFile(url, fileItem);
-
-            fileItem.appendChild(previewDiv);
-            fileItem.appendChild(fileInfo);
-            fileItem.appendChild(removeBtn);
-            fileList.appendChild(fileItem);
-        }
-
-        function updateFilePreview(url, file) {
-            const item = document.querySelector(`[data-filename="${file.name}"]`);
-            if (item) {
-                const loading = item.querySelector('div[style*="absolute"]');
-                if (loading) loading.remove();
-            }
-        }
-
-        function removeFile(url, element) {
-            element.remove();
-            const index = uploadedUrls.indexOf(url);
-            if (index > -1) uploadedUrls.splice(index, 1);
-            
-            // Atnaujinti suvestinę, jei esame 5 žingsnyje
-            if (currentStep === 5) {
-                updateSummaryFiles();
-            }
-        }
-
-        // Dinamiškai keisti pirkimo dokumento paaiškinimą
-        const topicSelect = document.getElementById('topic');
-        const hint = document.getElementById('purchase-document-hint');
-
-        if (topicSelect && hint) {
-            topicSelect.addEventListener('change', function() {
-                if (this.value === 'Produkto problema') {
-                    hint.innerHTML = '<strong>Dėmesio:</strong> Kreipiantis dėl produkto problemos, privalomas pirkimo dokumentas.';
-                    hint.style.color = 'red';
-                } else {
-                    hint.innerHTML = 'Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.';
-                    hint.style.color = '#6c757d';
-                }
-                updateAttachmentRequirement();
-                updateConsentVisibility();
-            });
-        }
-
-        // Atnaujinti sutikimo matomumą
-        function updateConsentVisibility() {
-            const request = document.getElementById('request');
-            const topic = document.getElementById('topic');
-            const consentContainer = document.getElementById('consent-container');
-            const consentCheckbox = document.getElementById('consent-to-share');
-
-            if (!request || !topic || !consentContainer || !consentCheckbox) return;
-
-            const show = request.value === 'send-technician' || topic.value === 'Produkto problema';
-            consentContainer.style.display = show ? 'block' : 'none';
-            consentCheckbox.required = show;
-            if (!show) consentCheckbox.checked = false;
-        }
-
-        // Atnaujinti nuotraukų privalomumą
-        function updateAttachmentRequirement() {
-            const topic = document.getElementById('topic');
-            const requiredStar = document.getElementById('attachment-required-star');
-            const attachments = document.querySelector('.attachments');
-
-            if (!topic || !requiredStar || !attachments) return;
-
-            const isProblem = topic.value === 'Produkto problema';
-
-            if (isProblem) {
-                requiredStar.textContent = ' *';
-                requiredStar.style.color = 'red';
-                attachments.style.border = '1px solid #ffc107';
-                attachments.style.borderRadius = '8px';
-                attachments.style.padding = '10px';
-                attachments.style.background = '#fff8e1';
-            } else {
-                requiredStar.textContent = '';
-                attachments.style.border = '';
-                attachments.style.padding = '';
-                attachments.style.background = '';
-            }
-        }
-
-        // Pradiniai patikrinimai
+    function nextStep(step) {
+      if (step === 1) {
+        const topic = document.getElementById('topic');
+        const product = document.getElementById('product');
+        if (!topic.value) { alert('Pasirinkite temą'); return; }
+        if (!product.value) { alert('Įveskite produkto pavadinimą'); return; }
         updateAttachmentRequirement();
         updateConsentVisibility();
-
-        // --- EVENT LISTENERIAI ---
-        const requestSelect = document.getElementById('request');
-        if (requestSelect) {
-            requestSelect.addEventListener('change', updateConsentVisibility);
-        } else {
-            console.error('❌ #request elementas nerastas.');
-        }
-
-        if (!topicSelect) {
-            console.error('❌ #topic elementas nerastas.');
-        }
-
-        // --- FORMOS SIUNTIMAS ---
-        const form = document.getElementById('claim-form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const topic = document.getElementById('topic');
-                const consentCheckbox = document.getElementById('consent-to-share');
-
-                if (!topic) {
-                    alert('Nepavyko rasti temos. Bandykite iš naujo.');
-                    return;
-                }
-
-                // Tikriname pirkimo dokumentą
-                if (topic.value === 'Produkto problema' && !purchaseDocumentUrl) {
-                    alert('Kreipdamasis dėl produkto problemos, privalote pateikti pirkimo dokumentą.');
-                    return;
-                }
-
-                // Tikriname nuotraukas
-                if (topic.value === 'Produkto problema' && uploadedUrls.length === 0) {
-                    alert('Kreipdamasis dėl produkto problemos, privalote pateikti nuotrauką ar vaizdo įrašą, patvirtinantį gedimą.');
-                    return;
-                }
-
-                // Tikriname sutikimą
-                if (consentCheckbox?.required && !consentCheckbox.checked) {
-                    alert('Prašome patvirtinti, kad sutinkate su duomenų perdavimu meistrui.');
-                    return;
-                }
-
-                // Siųsti pretenziją
-                const handleClaimSubmission = () => {
-                    const claim = {
-                        id: 'PRET-' + Date.now(),
-                        date: new Date().toISOString(),
-                        userId: currentUser.id,
-                        topic: topic.value,
-                        role: currentUser.role,
-                        product: document.getElementById('product').value,
-                        description: document.getElementById('description').value,
-                        request: document.getElementById('request').value,
-                        contactMethod: document.getElementById('contact-method').value,
-                        preferredTime: document.getElementById('preferred-time').value,
-                        contact: {
-                            name: currentUser.name,
-                            surname: currentUser.surname,
-                            email: currentUser.email,
-                            phone: currentUser.phone,
-                            street: currentUser.street,
-                            city: currentUser.city,
-                            postal: currentUser.postal
-                        },
-                        files: uploadedUrls,
-                        purchaseDocument: purchaseDocumentUrl,
-                        status: 'Nauja'
-                    };
-
-                    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-                    claims.push(claim);
-                    localStorage.setItem('claims', JSON.stringify(claims));
-
-                    fetch('https://pretenzijos-sistema.onrender.com/send-confirmation', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            email: currentUser.email,
-                            claimId: claim.id,
-                            language: 'lt',
-                            isRegistered: true
-                        })
-                    }).catch(console.error);
-
-                    alert('Pretenzija sėkmingai pateikta!');
-                    location.href = 'index.html';
-                };
-
-                handleClaimSubmission();
-            });
-        } else {
-            console.error('❌ #claim-form elementas nerastas.');
-        }
-    </script>
-
-<!-- Added: LT city + postal validation (non-invasive) -->
-<script>
-(function(){
-  // load lt_locations.json -> fill datalist; attach validation
-  const DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
-  function ensureDatalist(){
-    let dl = document.getElementById('lt-cities');
-    if (!dl){
-      dl = document.createElement('datalist');
-      dl.id = 'lt-cities';
-      document.body.appendChild(dl);
-    }
-    return dl;
-  }
-  function smartFindCityInput(){
-    // try common ids/names/placeholders in LT
-    const candidates = [
-      '#profile-city','#city','input[name=city]','input[name=miestas]',
-      'input[placeholder*="Miest"]','input[aria-label*="Miest"]'
-    ];
-    for (const sel of candidates){
-      const el = document.querySelector(sel);
-      if (el) return el;
-    }
-    // fallback: first text input near label "Miestas"
-    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Miestas/i.test(l.textContent||''));
-    for (const lb of labels){
-      const input = lb.parentElement?.querySelector('input');
-      if (input) return input;
-    }
-    return null;
-  }
-  function smartFindPostalInput(){
-    const candidates = [
-      '#profile-postal','#postal','input[name=postal]','input[name=pasto]','input[name="pašto"]',
-      'input[placeholder*="pašto"]','input[placeholder*="Pašto"]','input[placeholder*="kodas"]'
-    ];
-    for (const sel of candidates){
-      const el = document.querySelector(sel);
-      if (el) return el;
-    }
-    const labels = Array.from(document.querySelectorAll('label')).filter(l=>/Pašto kodas|Pašto|Paštas|Kodas/i.test(l.textContent||''));
-    for (const lb of labels){
-      const input = lb.parentElement?.querySelector('input');
-      if (input) return input;
-    }
-    return null;
-  }
-  function attachValidation(LT){
-    const cityEl = smartFindCityInput();
-    const postEl = smartFindPostalInput();
-    if (cityEl){
-      cityEl.setAttribute('list','lt-cities');
-    }
-    if (postEl){
-      postEl.setAttribute('pattern','^\\d{5}$');
-      postEl.setAttribute('inputmode','numeric');
-      if (!postEl.placeholder) postEl.setAttribute('placeholder','pvz., 01100');
-    }
-    const dl = ensureDatalist();
-    const uniq = [...new Set(LT.map(i=>i.city))].sort();
-    dl.innerHTML = uniq.map(c=>`<option value="${c}">`).join('');
-
-    function validate(){
-      if (!cityEl || !postEl) return true;
-      const city = (cityEl.value||'').trim();
-      const postal = (postEl.value||'').trim();
-      const okPostal = /^\d{5}$/.test(postal);
-      const match = LT.find(i => i.city === city && (i.postal[0] === postal[0] || i.postal.replace(/x/g,'') === postal));
-      if (!okPostal || !match){
-        postEl.setCustomValidity('Patikrinkite miestą ir 5 skaitmenų LT pašto kodą.');
-        postEl.reportValidity();
-        return false;
+        updatePurchaseFieldsRequirement();
+      } else if (step === 2) {
+        const description = document.getElementById('description');
+        if (!description.value) { alert('Įveskite problemos aprašymą'); return; }
+      } else if (step === 4) {
+        if (!validateStep4IfProblem()) return;
+        updateSummary();
       }
-      postEl.setCustomValidity('');
-      return true;
+
+      if (step < totalSteps) {
+        currentStep = step + 1;
+        updateStepIndicator();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
-    // Hook into any form submits on the page (progressive; non-breaking)
-    document.addEventListener('submit', function(e){
-      try{
-        if (!validate()){ e.preventDefault(); e.stopPropagation(); }
-      }catch(_){}
-    }, true);
+    function prevStep(step) {
+      if (step > 1) {
+        currentStep = step - 1;
+        updateStepIndicator();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
 
-    // Expose validator for custom JS if needed
-    window.__validateCityPostal = validate;
-  }
+    function updateSummary() {
+      document.getElementById('summary-topic').textContent = document.getElementById('topic').value;
+      document.getElementById('summary-product').textContent = document.getElementById('product').value;
+      document.getElementById('summary-description').textContent = document.getElementById('description').value;
 
-  function tryFetch(urls){
-    return new Promise((resolve)=>{
-      const u = urls.slice();
-      (function next(){
-        if (!u.length){ resolve(null); return; }
-        const url = u.shift();
-        fetch(url).then(r=> r.ok ? r.json() : null).then(data=>{
-          if (data) resolve(data); else next();
-        }).catch(next);
-      })();
-    });
-  }
+      const requestSelect = document.getElementById('request');
+      document.getElementById('summary-request').textContent = requestSelect.options[requestSelect.selectedIndex].text;
 
-  tryFetch(DATA_URLS).then(list=>{
-    if (!list) return;
-    attachValidation(list);
-  });
-})();
-</script>
+      const contactSelect = document.getElementById('contact-method');
+      document.getElementById('summary-contact-method').textContent = contactSelect.options[contactSelect.selectedIndex].text;
+
+      document.getElementById('summary-preferred-time').textContent = document.getElementById('preferred-time').value || 'Nenurodyta';
+      updatePurchaseDocumentSummary();
+      updateSummaryFiles();
+    }
+
+    function updatePurchaseDocumentSummary() {
+      const purchaseDocumentElement = document.getElementById('summary-purchase-document');
+      const purchaseFileContainer = document.getElementById('summary-purchase-file');
+      purchaseFileContainer.innerHTML = '';
+      if (purchaseDocumentUrl) {
+        purchaseDocumentElement.textContent = 'Įkeltas';
+        const fileName = getFileNameFromUrl(purchaseDocumentUrl) || 'pirkimo_dokumentas';
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'file-preview';
+        if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+          const img = document.createElement('img'); img.src = purchaseDocumentUrl; img.alt = fileName; previewDiv.appendChild(img);
+        } else {
+          const iconDiv = document.createElement('div'); iconDiv.className = 'file-icon'; iconDiv.textContent = '📄'; previewDiv.appendChild(iconDiv);
+        }
+        const fileInfo = document.createElement('div'); fileInfo.className = 'file-info';
+        const fileNameDiv = document.createElement('div'); fileNameDiv.className = 'file-name'; fileNameDiv.textContent = fileName; fileInfo.appendChild(fileNameDiv);
+        const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'remove-btn'; removeBtn.textContent = '✕'; removeBtn.onclick = function(){ removePurchaseDocument(); };
+        fileItem.appendChild(previewDiv); fileItem.appendChild(fileInfo); fileItem.appendChild(removeBtn); purchaseFileContainer.appendChild(fileItem);
+      } else {
+        purchaseDocumentElement.textContent = 'Neįkeltas';
+      }
+    }
+
+    function removePurchaseDocument() {
+      purchaseDocumentUrl = null;
+      purchaseDocumentFile = null;
+      document.getElementById('purchase-document').value = '';
+      updatePurchaseDocumentSummary();
+      alert('Pirkimo dokumentas pašalintas');
+    }
+
+    function updateSummaryFiles() {
+      const summaryFilesList = document.getElementById('summary-files-list');
+      const summaryFilesCount = document.getElementById('summary-files-count');
+      summaryFilesList.innerHTML = '';
+      summaryFilesCount.textContent = uploadedUrls.length + ' failų';
+      if (uploadedUrls.length > 0) {
+        uploadedUrls.forEach(function(url, index){
+          const fileName = getFileNameFromUrl(url);
+          const fileItem = document.createElement('div'); fileItem.className = 'file-item';
+          const previewDiv = document.createElement('div'); previewDiv.className = 'file-preview';
+          if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+            const img = document.createElement('img'); img.src = url; img.alt = fileName; previewDiv.appendChild(img);
+          } else if (fileName.match(/\.(mp4|mov|avi|wmv|webm)$/i)) {
+            const video = document.createElement('video'); video.src = url; video.controls = true; previewDiv.appendChild(video);
+          } else {
+            const iconDiv = document.createElement('div'); iconDiv.className = 'file-icon'; iconDiv.textContent = '📄'; previewDiv.appendChild(iconDiv);
+          }
+          const fileInfo = document.createElement('div'); fileInfo.className = 'file-info';
+          const fileNameDiv = document.createElement('div'); fileNameDiv.className = 'file-name'; fileNameDiv.textContent = fileName; fileInfo.appendChild(fileNameDiv);
+          const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'remove-btn'; removeBtn.textContent = '✕';
+          removeBtn.onclick = function(){ removeFileFromSummary(url, index); };
+          fileItem.appendChild(previewDiv); fileItem.appendChild(fileInfo); fileItem.appendChild(removeBtn); summaryFilesList.appendChild(fileItem);
+        });
+      }
+    }
+
+    function getFileNameFromUrl(url) { if (!url) return 'nežinomas'; return url.split('/').pop().split('?')[0]; }
+    function removeFileFromSummary(url, index) {
+      uploadedUrls.splice(index, 1);
+      updateSummaryFiles();
+      var selector = '.file-item[data-filename="' + getFileNameFromUrl(url) + '"]';
+      const fileItem = document.querySelector(selector);
+      if (fileItem) fileItem.remove();
+      alert('Failas pašalintas');
+    }
+
+    function uploadToCloudinary(file, onSuccess, onError) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'r6wao0fr');
+      let uploadUrl;
+      if (file.type.startsWith('image/')) uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/image/upload';
+      else if (file.type.startsWith('video/')) uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/video/upload';
+      else uploadUrl = 'https://api.cloudinary.com/v1_1/dtiiwo2bp/raw/upload';
+      fetch(uploadUrl, { method: 'POST', body: formData })
+        .then(function(r){ return r.json(); })
+        .then(function(data){ return data.secure_url ? onSuccess(data.secure_url) : onError(new Error('No secure_url')); })
+        .catch(onError);
+    }
+
+    const fileInput = document.getElementById('attachment');
+    const fileList = document.getElementById('file-list');
+    const uploadStatus = document.getElementById('upload-status');
+    const purchaseDocumentInput = document.getElementById('purchase-document');
+    const fileInputLabel = document.querySelector('.file-input-label');
+
+    if (!fileInput || !fileList || !uploadStatus) {
+      console.error('Klaida: vienas iš failų įkėlimo elementų nerastas.');
+    } else {
+      if (fileInputLabel) {
+        fileInputLabel.addEventListener('dragover', function(e){ e.preventDefault(); fileInputLabel.style.background = '#e0e0e0'; });
+        fileInputLabel.addEventListener('dragleave', function(){ fileInputLabel.style.background = '#f0f0f0'; });
+        fileInputLabel.addEventListener('drop', function(e){
+          e.preventDefault(); fileInputLabel.style.background = '#f0f0f0';
+          if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
+        });
+        fileInputLabel.addEventListener('click', function(){ fileInput.click(); });
+      }
+      fileInput.addEventListener('change', function(){
+        if (fileInput.files.length > 0) { handleFiles(fileInput.files); fileInput.value = ''; }
+      });
+      if (purchaseDocumentInput) {
+        purchaseDocumentInput.addEventListener('change', function(){
+          if (purchaseDocumentInput.files.length > 0) handlePurchaseDocument(purchaseDocumentInput.files[0]);
+        });
+      }
+    }
+
+    function handlePurchaseDocument(file) {
+      const MAX_DOC_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_DOC_SIZE) { alert('Dokumentas negali būti didesnis nei 5 MB.'); purchaseDocumentInput.value = ''; return; }
+      purchaseDocumentFile = file;
+      uploadToCloudinary(file,
+        function(url){ purchaseDocumentUrl = url; if (currentStep === 5) updatePurchaseDocumentSummary(); alert('Pirkimo dokumentas sėkmingai įkeltas'); },
+        function(err){ console.error('Nepavyko įkelti pirkimo dokumento', err); alert('Nepavyko įkelti pirkimo dokumento. Bandykite dar kartą.'); purchaseDocumentInput.value = ''; }
+      );
+    }
+
+    function handleFiles(files) {
+      uploadStatus.textContent = 'Įkeliama ' + files.length + ' failų...';
+      Array.from(files).forEach(function(file, index){
+        const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+        const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
+        const MAX_DOC_SIZE   = 5 * 1024 * 1024;
+        let isValid = true, errorMessage = '';
+        if (file.type.startsWith('image/')) { if (file.size > MAX_IMAGE_SIZE) { isValid = false; errorMessage = file.name + ': Nuotrauka negali būti didesnė nei 10 MB.'; } }
+        else if (file.type.startsWith('video/')) { if (file.size > MAX_VIDEO_SIZE) { isValid = false; errorMessage = file.name + ': Video negali būti didesnis nei 20 MB.'; } }
+        else { if (file.size > MAX_DOC_SIZE) { isValid = false; errorMessage = file.name + ': Dokumentas negali būti didesnis nei 5 MB.'; } }
+        if (!isValid) { alert(errorMessage); return; }
+        const tempUrl = URL.createObjectURL(file);
+        renderFilePreview(file, tempUrl, true);
+        uploadToCloudinary(file, function(url){
+          uploadedUrls.push(url);
+          updateFilePreview(url, file);
+          if (index === files.length - 1) {
+            uploadStatus.textContent = 'Visi failai sėkmingai įkelti.';
+            setTimeout(function(){ uploadStatus.textContent = ''; }, 3000);
+          }
+          if (currentStep === 5) updateSummaryFiles();
+        }, function(err){
+          const item = document.querySelector('[data-filename="' + file.name + '"]');
+          if (item) item.innerHTML += '<div style="color: red; font-size: 0.7rem;">Įkelti nepavyko</div>';
+          console.error('Nepavyko įkelti: ' + file.name, err);
+        });
+      });
+    }
+
+    function renderFilePreview(file, url, isTemp) {
+      if (isTemp === void 0) isTemp = false;
+      const fileItem = document.createElement('div');
+      fileItem.className = 'file-item';
+      fileItem.setAttribute('data-filename', file.name);
+      const previewDiv = document.createElement('div'); previewDiv.className = 'file-preview';
+      if (file.type.startsWith('image/')) { const img = document.createElement('img'); img.src = url; img.alt = file.name; previewDiv.appendChild(img); }
+      else if (file.type.startsWith('video/')) { const video = document.createElement('video'); video.src = url; video.controls = true; previewDiv.appendChild(video); }
+      else { const iconDiv = document.createElement('div'); iconDiv.className = 'file-icon'; iconDiv.textContent = '📄'; previewDiv.appendChild(iconDiv); }
+      if (isTemp) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;';
+        loadingDiv.textContent = 'Įkeliama...'; previewDiv.appendChild(loadingDiv);
+      }
+      const fileInfo = document.createElement('div'); fileInfo.className = 'file-info';
+      const fileName = document.createElement('div'); fileName.className = 'file-name'; fileName.textContent = file.name; fileInfo.appendChild(fileName);
+      const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'remove-btn'; removeBtn.textContent = '✕';
+      removeBtn.onclick = function(){ removeFile(url, fileItem); };
+      fileItem.appendChild(previewDiv); fileItem.appendChild(fileInfo); fileItem.appendChild(removeBtn); fileList.appendChild(fileItem);
+    }
+
+    function updateFilePreview(url, file) {
+      const item = document.querySelector('[data-filename="' + file.name + '"]');
+      if (item) {
+        const children = item.querySelectorAll('div');
+        for (var i = 0; i < children.length; i++) {
+          var el = children[i];
+          if (el && el.style && el.style.position === 'absolute') { el.remove(); }
+        }
+      }
+    }
+
+    function removeFile(url, element) {
+      element.remove();
+      const index = uploadedUrls.indexOf(url);
+      if (index > -1) uploadedUrls.splice(index, 1);
+      if (currentStep === 5) updateSummaryFiles();
+    }
+
+    const topicSelect = document.getElementById('topic');
+    const hint = document.getElementById('purchase-document-hint');
+
+    if (topicSelect && hint) {
+      topicSelect.addEventListener('change', function() {
+        if (this.value === 'Produkto problema') {
+          hint.innerHTML = '<strong>Dėmesio:</strong> Kreipiantis dėl produkto problemos, privalomas pirkimo dokumentas.';
+          hint.style.color = 'red';
+        } else {
+          hint.innerHTML = 'Dokumentas reikalingas tik tais atvejais, kai kreipiatės dėl produkto problemos.';
+          hint.style.color = '#6c757d';
+        }
+        updateAttachmentRequirement();
+        updateConsentVisibility();
+        updatePurchaseFieldsRequirement();
+      });
+    }
+
+    function updateConsentVisibility() {
+      const request = document.getElementById('request');
+      const topic = document.getElementById('topic');
+      const consentContainer = document.getElementById('consent-container');
+      const consentCheckbox = document.getElementById('consent-to-share');
+      if (!request || !topic || !consentContainer || !consentCheckbox) return;
+      const show = request.value === 'send-technician' || topic.value === 'Produkto problema';
+      consentContainer.style.display = show ? 'block' : 'none';
+      consentCheckbox.required = show;
+      if (!show) consentCheckbox.checked = false;
+    }
+
+    function updateAttachmentRequirement() {
+      const topic = document.getElementById('topic');
+      const requiredStar = document.getElementById('attachment-required-star');
+      const attachments = document.querySelector('.attachments');
+      if (!topic || !requiredStar || !attachments) return;
+      const isProblem = topic.value === 'Produkto problema';
+      if (isProblem) {
+        requiredStar.textContent = ' *'; requiredStar.style.color = 'red';
+        attachments.style.border = '1px solid #ffc107'; attachments.style.borderRadius = '8px';
+        attachments.style.padding = '10px'; attachments.style.background = '#fff8e1';
+      } else {
+        requiredStar.textContent = ''; attachments.style.border = ''; attachments.style.padding = ''; attachments.style.background = '';
+      }
+    }
+
+    // pirkimo datos ir numerio privalomumas tik „Produkto problema“
+    const purchaseDateInput = document.getElementById('purchase-date');
+    const purchaseNumberInput = document.getElementById('purchase-number');
+    const labelPurchaseDate = document.getElementById('label-purchase-date');
+    const labelPurchaseNumber = document.getElementById('label-purchase-number');
+
+    function updatePurchaseFieldsRequirement() {
+      const isProblem = (document.getElementById('topic') && document.getElementById('topic').value === 'Produkto problema');
+      if (purchaseDateInput) purchaseDateInput.required = !!isProblem;
+      if (purchaseNumberInput) purchaseNumberInput.required = !!isProblem;
+      if (labelPurchaseDate) labelPurchaseDate.textContent = isProblem ? 'Pirkimo data *' : 'Pirkimo data';
+      if (labelPurchaseNumber) labelPurchaseNumber.textContent = isProblem ? 'Pirkimo dokumento numeris *' : 'Pirkimo dokumento numeris';
+    }
+    updatePurchaseFieldsRequirement();
+    updateAttachmentRequirement();
+    updateConsentVisibility();
+
+    const requestSelect = document.getElementById('request');
+    if (requestSelect) requestSelect.addEventListener('change', updateConsentVisibility);
+    if (!topicSelect) console.error('❌ #topic elementas nerastas.');
+
+    // bendros pagalbinės validavimo funkcijos
+    function setError(input, message) {
+      if (!input) return;
+      input.setCustomValidity(message || '');
+      if (message) input.reportValidity();
+      if (message) input.classList.add('invalid'); else input.classList.remove('invalid');
+    }
+
+    function validateStep4IfProblem() {
+      const topic = document.getElementById('topic');
+      const isProblem = topic && topic.value === 'Produkto problema';
+      const dateEl = document.getElementById('purchase-date');
+      const nrEl   = document.getElementById('purchase-number');
+
+      if (!isProblem) {
+        setError(dateEl, '');
+        setError(nrEl, '');
+        return true;
+      }
+
+      let ok = true;
+
+      if (!dateEl || !dateEl.value) {
+        setError(dateEl, 'Pirkimo data privaloma, kai pasirinkta „Produkto problema“.');
+        ok = false;
+      } else {
+        setError(dateEl, '');
+      }
+
+      if (!nrEl || !nrEl.value || !nrEl.value.trim()) {
+        setError(nrEl, 'Pirkimo dokumento numeris privalomas, kai pasirinkta „Produkto problema“.');
+        ok = false;
+      } else {
+        setError(nrEl, '');
+      }
+
+      return ok;
+    }
+
+    // patikimas „Atgal“ mygtukas suvestinėje
+    (function ensureBackFromSummary(){
+      const backBtn = document.getElementById('btn-back-summary');
+      if (!backBtn) return;
+      backBtn.style.position = 'relative';
+      backBtn.style.zIndex = '10';
+      backBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        backBtn.disabled = false;
+        if (typeof currentStep !== 'number') { currentStep = 5; }
+        prevStep(currentStep);
+      });
+    })();
+
+    const form = document.getElementById('claim-form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const topic = document.getElementById('topic');
+        const consentCheckbox = document.getElementById('consent-to-share');
+
+        if (!topic) { alert('Nepavyko rasti temos. Bandykite iš naujo.'); return; }
+
+        if (!validateStep4IfProblem()) return;
+
+        if (topic.value === 'Produkto problema' && !purchaseDocumentUrl) {
+          alert('Kreipiantis dėl produkto problemos, būtina pridėti pirkimo dokumentą.');
+          return;
+        }
+        if (topic.value === 'Produkto problema' && uploadedUrls.length === 0) {
+          alert('Kreipiantis dėl produkto problemos, būtina pridėti bent vieną nuotrauką ar video.');
+          return;
+        }
+        if (consentCheckbox && consentCheckbox.required && !consentCheckbox.checked) {
+          alert('Prašome patvirtinti, kad sutinkate su duomenų perdavimu meistrui.');
+          return;
+        }
+
+        const claim = {
+          id: 'PRET-' + Date.now(),
+          date: new Date().toISOString(),
+          userId: currentUser.id,
+          topic: topic.value,
+          role: currentUser.role,
+          product: document.getElementById('product').value,
+          description: document.getElementById('description').value,
+          request: document.getElementById('request').value,
+          contactMethod: document.getElementById('contact-method').value,
+          preferredTime: document.getElementById('preferred-time').value,
+          contact: {
+            name: currentUser.name, surname: currentUser.surname, email: currentUser.email, phone: currentUser.phone,
+            street: currentUser.street, city: currentUser.city, postal: currentUser.postal
+          },
+          files: uploadedUrls,
+          purchaseDocument: purchaseDocumentUrl,
+          purchaseDate: purchaseDateInput ? purchaseDateInput.value : null,
+          purchaseNumber: purchaseNumberInput ? purchaseNumberInput.value : null,
+          status: 'Nauja'
+        };
+
+        const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+        claims.push(claim);
+        localStorage.setItem('claims', JSON.stringify(claims));
+
+        fetch('https://pretenzijos-sistema.onrender.com/send-confirmation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentUser.email, claimId: claim.id, language: 'lt', isRegistered: true })
+        }).catch(function(err){ console.error(err); });
+
+        alert('Pretenzija sėkmingai pateikta!');
+        location.href = 'index.html';
+      });
+    } else {
+      console.error('❌ #claim-form elementas nerastas.');
+    }
+  </script>
+
+  <!-- LT city + postal validation (paliekama kaip buvo) -->
+  <script>
+    (function(){
+      const DATA_URLS = ["./lt_locations.json","../lt_locations.json","/lt_locations.json"];
+      function ensureDatalist(){ var dl = document.getElementById('lt-cities'); if (!dl){ dl = document.createElement('datalist'); dl.id = 'lt-cities'; document.body.appendChild(dl);} return dl;}
+      function smartFindCityInput(){
+        const candidates = ['#profile-city','#city','input[name=city]','input[name=miestas]','input[placeholder*="Miest"]','input[aria-label*="Miest"]'];
+        for (var i=0;i<candidates.length;i++){ var sel=candidates[i]; var el=document.querySelector(sel); if (el) return el; }
+        const labels = Array.from(document.querySelectorAll('label')).filter(function(l){ return /Miestas/i.test(l.textContent||''); });
+        for (var j=0;j<labels.length;j++){ var lb=labels[j]; var input = lb.parentElement && lb.parentElement.querySelector('input'); if (input) return input; }
+        return null;
+      }
+      function smartFindPostalInput(){
+        const candidates = ['#profile-postal','#postal','input[name=postal]','input[name=pasto]','input[name="pašto"]','input[placeholder*="pašto"]','input[placeholder*="Pašto"]','input[placeholder*="kodas"]'];
+        for (var i=0;i<candidates.length;i++){ var sel=candidates[i]; var el=document.querySelector(sel); if (el) return el; }
+        const labels = Array.from(document.querySelectorAll('label')).filter(function(l){ return /Pašto kodas|Pašto|Paštas|Kodas/i.test(l.textContent||''); });
+        for (var j=0;j<labels.length;j++){ var lb=labels[j]; var input = lb.parentElement && lb.parentElement.querySelector('input'); if (input) return input; }
+        return null;
+      }
+      function attachValidation(LT){
+        const cityEl = smartFindCityInput();
+        const postEl = smartFindPostalInput();
+        if (cityEl){ cityEl.setAttribute('list','lt-cities'); }
+        if (postEl){ postEl.setAttribute('pattern','^\\d{5}$'); postEl.setAttribute('inputmode','numeric'); if (!postEl.placeholder) postEl.setAttribute('placeholder','pvz., 01100'); }
+        const dl = ensureDatalist();
+        const uniq = Array.from(new Set(LT.map(function(i){ return i.city; }))).sort();
+        dl.innerHTML = uniq.map(function(c){ return '<option value="' + c + '">'; }).join('');
+        function validate(){
+          if (!cityEl || !postEl) return true;
+          const city = (cityEl.value||'').trim();
+          const postal = (postEl.value||'').trim();
+          const okPostal = /^\\d{5}$/.test(postal);
+          const match = LT.find(function(i){ return i.city === city && (i.postal[0] === postal[0] || i.postal.replace(/x/g,'') === postal); });
+          if (!okPostal || !match){ postEl.setCustomValidity('Patikrinkite miestą ir 5 skaitmenų LT pašto kodą.'); postEl.reportValidity(); return false; }
+          postEl.setCustomValidity(''); return true;
+        }
+        document.addEventListener('submit', function(e){ try{ if (!validate()){ e.preventDefault(); e.stopPropagation(); } }catch(_){}
+        }, true);
+        window.__validateCityPostal = validate;
+      }
+      function tryFetch(urls){
+        return new Promise(function(resolve){
+          const u = urls.slice();
+          (function next(){ if (!u.length){ resolve(null); return; }
+            const url = u.shift();
+            fetch(url).then(function(r){ return r.ok ? r.json() : null; }).then(function(data){ if (data) resolve(data); else next(); }).catch(next);
+          })();
+        });
+      }
+      tryFetch(DATA_URLS).then(function(list){ if (!list) return; attachValidation(list); });
+    })();
+  </script>
 </body>
 </html>
