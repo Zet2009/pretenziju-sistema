@@ -157,6 +157,17 @@
             .pagination { flex-direction: column; gap: 10px; }
         }
     </style>
+
+<style>
+.comm-head{width:36px;text-align:center}
+.comm-cell{text-align:center}
+.comm-icon{display:inline-block;position:relative;font-size:18px;line-height:1}
+.comm-badge{position:absolute;top:-6px;right:-10px;background:#ef4444;color:#fff;border-radius:999px;
+  padding:0 6px;font-size:11px;line-height:18px;min-width:18px;border:2px solid #fff}
+.comm-muted{opacity:.35}
+.comm-btn{background:transparent;border:none;cursor:pointer;font-size:18px}
+</style>
+
 </head>
 <body>
 <header>
@@ -199,6 +210,7 @@
         <table id="claims-table">
             <thead>
             <tr>
+                <th class="comm-head" title="Naujos žinutės">✉️</th>
                 <th style="width: 6%;">ID<br><input type="text" id="filter-id" class="inline-filter" placeholder="Ieškoti..." oninput="applyInlineFilters()"></th>
                 <th style="width: 6%;">Data<br>
                     <input type="date" id="filter-date-from-header" class="inline-filter" onchange="applyInlineFilters()">–<br>
@@ -485,7 +497,8 @@ function renderClaims() {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${claim.id}');">${claim.id}</a></td>
+                <td class=\"comm-cell\" data-claim=\"${claim.id}\"></td>
+<td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${claim.id}');">${claim.id}</a></td>
                 <td>${claim.date ? new Date(claim.date).toLocaleDateString('lt-LT') : ''}</td>
                 <td>${safeLower((claim.contact?.name||'')) ? `${claim.contact.name} ${claim.contact?.surname||''}` : ''}</td>
                 <td>${claim.contact?.city || ''}</td>
@@ -511,9 +524,13 @@ function renderClaims() {
                     </select>
                 </td>
             `;
-            tbody.appendChild(tr);
+            
+            tr.setAttribute('data-claim-id', claim.id);
+tbody.appendChild(tr);
         });
     }
+
+    updateCommBadges();
 
     // Puslapiavimo info
     document.getElementById('pagination-info').textContent = `Rodoma ${totalClaims ? (startIndex + 1) : 0}-${endIndex} iš ${totalClaims}`;
@@ -963,7 +980,9 @@ function assignResponsible(id) {
 }
 
 function viewClaimDetails(id) {
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    
+    try{ localStorage.setItem(`chatSeen_admin_${id}`, String(Date.now())); }catch(e){}
+const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const claim = claims.find(c => c.id === id);
     if (!claim) return;
 
@@ -1147,5 +1166,308 @@ document.addEventListener('DOMContentLoaded', () => {
     loadClaims();
 });
 </script>
+
+<script>
+(function(){
+  if (window.CommBadge) return;
+  window.CommBadge = {
+    getClaims: ()=>{ try{return JSON.parse(localStorage.getItem('claims')||'[]')}catch(_){return[]} },
+    newCount: (claim)=>{
+      const seen = parseInt(localStorage.getItem(`chatSeen_admin_${claim.id}`)||'0',10);
+      const msgs = (claim.messages||[]).map(m=>{
+        if (m && !m.from && m.author){ // legacy
+          if (m.author==='quality') return {from:'admin',to:'user',time:m.time};
+          if (m.author==='customer') return {from:'user',to:'admin',time:m.time};
+          if (m.author==='master') return {from:'master',to:'admin',time:m.time};
+        }
+        return m;
+      }).filter(Boolean);
+      let cnt = 0;
+      for (const m of msgs){
+        const t = Date.parse(m.time||0)||0;
+        if (t>seen && ((m.from==='user'&&m.to==='admin')||(m.from==='master'&&m.to==='admin'))) cnt++;
+      }
+      return cnt;
+    },
+    paint: ()=>{
+      const claims = CommBadge.getClaims();
+      document.querySelectorAll('td.comm-cell').forEach(td=>{
+        const id = td.getAttribute('data-claim');
+        const claim = claims.find(c=>String(c.id)===String(id));
+        if (!claim){ td.innerHTML=''; return; }
+        const cnt = CommBadge.newCount(claim);
+        const has = cnt>0;
+        td.innerHTML = `<button class="comm-btn" title="${has? `Naujos žinutės: ${cnt}` : 'Nėra naujų'}" onclick="viewClaimDetails('${id}')">
+          <span class="comm-icon ${has?'':'comm-muted'}">${has?'🔔':'📨'}${has?`<span class='comm-badge'>${cnt}</span>`:''}</span>
+        </button>`;
+      });
+    }
+  };
+  window.updateCommBadges = ()=>CommBadge.paint();
+  // periodinis atnaujinimas (kai kiti langai įrašo naujas žinutes)
+  setInterval(()=>{ try{ CommBadge.paint(); }catch(e){} }, 3000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(()=>CommBadge.paint(), 200); });
+})();
+
+
+/* === AUTO PATCH v4 === */
+
+// ---- Ensure global bindings so inline onclick works in all browsers ----
+(function(){
+  // Defensive modal helpers
+  const openModalSafe = (html) => {
+      if (typeof openModal === 'function') { openModal(html); return; }
+      const body = document.getElementById('modal-body');
+      const modal = document.getElementById('claimModal');
+      if (body && modal) { body.innerHTML = html; modal.style.display = 'flex'; }
+  };
+  const showClaimModal = () => { const m=document.getElementById('claimModal'); if(m) m.style.display='flex'; };
+  const setHeader = (t, withClose=true) => { if (typeof setModalHeader==='function') setModalHeader(t, withClose); else { const h=document.getElementById('modal-title'); if(h) h.textContent=t; } };
+
+  // 1) Installer docs
+  window.viewInstallerDocs = function(id){
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.id === id);
+      if (!user || !user.documents || user.documents.length === 0) {
+          alert('Nėra įkeltų dokumentų.');
+          return;
+      }
+      const docs = (user.documents||[]).map(doc => `
+        <div class="file-item">
+            <a href="${doc.url}" target="_blank" style="text-decoration:none;">📎 ${doc.name||'Failas'}</a>
+        </div>`).join('');
+      const html = `
+        <div class="modal-section">
+          <h3>Dokumentai – ${(user.name||'')} ${(user.surname||'')}</h3>
+          <div class="file-list">${docs}</div>
+          <p><strong>Patvirtinimo data:</strong> ${user.submissionDate || 'Nenurodyta'}</p>
+        </div>`;
+      setHeader('Meistro dokumentai', false);
+      openModalSafe(html);
+      showClaimModal();
+  };
+
+  // 2) Approve / Reject installer
+  window.approveInstaller = function(id){
+      if (!confirm('Ar tikrai norite patvirtinti šį meistrą?')) return;
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.id === id);
+      if (user) {
+          user.status = 'approved';
+          localStorage.setItem('users', JSON.stringify(users));
+          if (typeof loadUsers==='function') loadUsers();
+          alert(`Meistras ${(user.name||'')} ${(user.surname||'')} patvirtintas!`);
+      }
+  };
+
+  window.openRejectionModal = function(id){
+      const body = `
+        <div class="modal-section">
+            <h3>Atmesti meistrą</h3>
+            <p>Kodėl atmetate šį meistrą?</p>
+            <textarea id="rejection-reason" placeholder="Įrašykite priežastį..." style="width:100%;padding:8px;margin:10px 0;"></textarea>
+            <button class="btn btn-danger" onclick="rejectInstaller('${id}')">Atmesti</button>
+        </div>`;
+      if (typeof openModal==='function') openModal(body); else {
+          const mb = document.getElementById('modal-body'); if (mb) mb.innerHTML = body;
+          showClaimModal();
+      }
+  };
+
+  window.rejectInstaller = function(id){
+      const reason = (document.getElementById('rejection-reason')?.value || '').trim();
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.id === id);
+      if (user) {
+          user.status = 'rejected';
+          user.rejectionReason = reason;
+          localStorage.setItem('users', JSON.stringify(users));
+          if (typeof closeModal==='function') closeModal();
+          if (typeof loadUsers==='function') loadUsers();
+          alert(`Meistras ${(user.name||'')} ${(user.surname||'')} atmestas.`);
+      }
+  };
+
+  // 3) User history with full details
+  window.viewUserHistory = function(id){
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.id === id);
+      if (!user) { alert('Vartotojas nerastas.'); return; }
+
+      const fields = [
+          ['Vardas', user.name||''],
+          ['Pavardė', user.surname||''],
+          ['El. paštas', user.email||''],
+          ['Telefonas', user.phone||''],
+          ['Rolė', user.role||''],
+          ['Būsena', user.status||''],
+          ['Adresas', user.address||''],
+          ['Miestas', user.city||''],
+          ['Pašto kodas', user.postcode||user.zip||''],
+          ['Įmonė', user.company||''],
+          ['Įmonės kodas', user.companyCode||''],
+          ['PVM kodas', user.vat||''],
+          ['Sukūrimo data', user.createdAt ? new Date(user.createdAt).toLocaleString('lt-LT') : (user.dateCreated||'')],
+          ['Pateikimo data', user.submissionDate||'']
+      ];
+      const details = `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+          <tbody>
+            ${fields.map(([k,v]) => `<tr>
+              <td style="width:30%;padding:6px 8px;border-bottom:1px solid #eee;"><strong>${k}</strong></td>
+              <td style="padding:6px 8px;border-bottom:1px solid #eee;">${v||''}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+
+      const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+      const fullName = `${(user.name||'').trim()} ${(user.surname||'').trim()}`.trim();
+      const userClaims = claims.filter(c => {
+          const ce = c && c.contact;
+          const matchEmail = ce?.email && user.email && ce.email === user.email;
+          const matchName = ce && (`${(ce.name||'').trim()} ${(ce.surname||'').trim()}`.trim() === fullName);
+          return matchEmail || matchName;
+      });
+
+      const list = userClaims.length ? `
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr>
+            <th style="text-align:left;">ID</th>
+            <th style="text-align:left;">Data</th>
+            <th style="text-align:left;">Produktas</th>
+            <th style="text-align:left;">Būsena</th>
+            <th style="text-align:left;">Veiksmai</th>
+          </tr></thead>
+          <tbody>
+            ${userClaims.map(c => `
+              <tr>
+                <td><a href="#" onclick="event.preventDefault(); viewClaimDetails('${c.id}')">${c.id}</a></td>
+                <td>${c.date ? new Date(c.date).toLocaleDateString('lt-LT') : ''}</td>
+                <td>${c.product||''}</td>
+                <td>${c.status||''}</td>
+                <td><button class="btn btn-primary" onclick="viewClaimDetails('${c.id}')">Peržiūrėti</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : '<p>Šis vartotojas neturi pretenzijų.</p>';
+
+      setHeader('Vartotojo istorija', false);
+      const html = `<div class="modal-section">
+        <h3>${user.name||''} ${user.surname||''} (${user.email||''})</h3>
+        ${details}
+        <h3>Pretenzijų istorija</h3>
+        ${list}
+      </div>`;
+      openModalSafe(html);
+      showClaimModal();
+  };
+
+  // 4) Partner modal helpers
+  window.openAddPartnerModal = function(){
+      ['edit-partner-id','partner-name','partner-contact','partner-phone','partner-email','partner-cities'].forEach(id => {
+          const el = document.getElementById(id); if (el) el.value = '';
+      });
+      const titleEl = document.getElementById('partnerModalTitle');
+      if (titleEl) titleEl.textContent = 'Naujas partneris';
+      const modal = document.getElementById('partnerModal');
+      if (modal) modal.style.display = 'flex';
+  };
+
+  window.openEditPartnerModal = function(id){
+      const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+      const partner = partners.find(p => p.id === id);
+      if (!partner) { alert('Partneris nerastas.'); return; }
+      document.getElementById('partnerModalTitle').textContent = 'Redaguoti partnerį';
+      document.getElementById('edit-partner-id').value = partner.id;
+      document.getElementById('partner-name').value = partner.name||'';
+      document.getElementById('partner-contact').value = partner.contactPerson||'';
+      document.getElementById('partner-phone').value = partner.phone||'';
+      document.getElementById('partner-email').value = partner.email||'';
+      document.getElementById('partner-cities').value = partner.cities||'';
+      const modal = document.getElementById('partnerModal');
+      if (modal) modal.style.display = 'flex';
+  };
+
+  window.savePartner = function(){
+      const id = document.getElementById('edit-partner-id').value || ('PART-' + Date.now());
+      const name = (document.getElementById('partner-name').value || '').trim();
+      const contactPerson = (document.getElementById('partner-contact').value || '').trim();
+      const phone = (document.getElementById('partner-phone').value || '').trim();
+      const email = (document.getElementById('partner-email').value || '').trim();
+      const cities = (document.getElementById('partner-cities').value || '').trim();
+      if (!name || !contactPerson || !phone || !email) {
+          alert('Užpildykite visus privalomus laukus.');
+          return;
+      }
+      const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+      const idx = partners.findIndex(p => p.id === id);
+      const partner = { id, name, contactPerson, phone, email, cities };
+      if (idx > -1) partners[idx] = partner; else partners.push(partner);
+      localStorage.setItem('servicePartners', JSON.stringify(partners));
+      if (typeof closePartnerModal==='function') closePartnerModal();
+      if (typeof loadPartners==='function') loadPartners();
+      alert(`Partneris ${name} išsaugotas!`);
+  };
+
+  window.deletePartner = function(id){
+      if (!confirm('Ar tikrai norite ištrinti šį partnerį?')) return;
+      const partners = JSON.parse(localStorage.getItem('servicePartners') || '[]');
+      const updated = partners.filter(p => p.id !== id);
+      localStorage.setItem('servicePartners', JSON.stringify(updated));
+      if (typeof loadPartners==='function') loadPartners();
+      alert('Serviso partneris ištrintas.');
+  };
+
+  // 5) Header filters (partners + claims)
+  window.setupHeaderFilters = function(tableId){
+      const table = document.getElementById(tableId);
+      if(!table) return;
+      const thead = table.querySelector('thead');
+      const headerRow = thead?.querySelector('tr');
+      if(!headerRow) return;
+      if (thead.querySelector('tr.header-filters')) return;
+      const filterRow = document.createElement('tr'); filterRow.className = 'header-filters';
+      [...headerRow.children].forEach((th, idx) => {
+          const cell = document.createElement('th');
+          if (idx < headerRow.children.length - 1) {
+              const input = document.createElement('input');
+              input.type = 'text'; input.placeholder = 'Filtruoti...'; input.style.width = '95%';
+              input.addEventListener('input', () => window.applyHeaderFilters(tableId));
+              cell.appendChild(input);
+          }
+          filterRow.appendChild(cell);
+      });
+      thead.appendChild(filterRow);
+  };
+
+  window.applyHeaderFilters = function(tableId){
+      const table = document.getElementById(tableId);
+      if(!table) return;
+      const filterInputs = table.querySelectorAll('thead tr.header-filters input');
+      const rows = table.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+          const cells = row.children;
+          let visible = true;
+          filterInputs.forEach((inp, i) => {
+              if(!visible) return;
+              const val = (inp.value||'').toLowerCase();
+              if(val){
+                  const cellText = (cells[i]?.innerText||'').toLowerCase();
+                  if(!cellText.includes(val)) visible = false;
+              }
+          });
+          row.style.display = visible ? '' : 'none';
+      });
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+      window.setupHeaderFilters && window.setupHeaderFilters('partners-table');
+    //  window.setupHeaderFilters && window.setupHeaderFilters('claims-table');
+  });
+})();
+
+/* === /AUTO PATCH v4 === */
+</script>
+
 </body>
 </html>
+
