@@ -102,7 +102,84 @@
             color: #2e7d32;
             border: 1px solid #a5d6a7;
         }
+
+        @media (max-width: 600px) {
+    .zen-chat-input {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #zen-master-input,
+    #zen-master-send {
+        width: 100%;
+        margin-top: 5px;
+    }
+}
     </style>
+
+<style>
+/* === zen-chat scoped styles === */
+.zen-chat-thread{border:1px solid #e5e7eb;border-radius:10px;padding:10px;max-height:280px;overflow:auto;background:#fff}
+.zen-chat-row{margin:8px 0;display:flex}
+.zen-chat-bubble{max-width:78%;border:1px solid #e5e7eb;padding:8px 10px;border-radius:12px;background:#f8fafc}
+.zen-chat-row.zen-right{justify-content:flex-end}
+.zen-bubble-admin{background:#e8f5e9}
+.zen-bubble-user{background:#e8f0fe}
+.zen-bubble-master{background:#fff3cd}
+.zen-chat-meta{font-size:11px;color:#6b7280;margin-bottom:4px}
+.zen-chat-files{margin-top:6px;font-size:12px}
+.zen-chat-input{display:flex;gap:8px;margin-top:8px;align-items:center}
+.zen-pill{display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:2px 8px;font-size:12px;color:#4b5563}
+.zen-muted{color:#6b7280;font-size:14px}
+.zen-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:12px 0}
+</style>
+
+<script>
+// === zen-chat utils (namespaced) ===
+(function(){
+  if (window.ZenChat) return; // singleton
+  window.ZenChat = {
+    getClaims: function(){ try{return JSON.parse(localStorage.getItem('claims')||'[]')}catch(_){return []} },
+    setClaims: function(arr){ localStorage.setItem('claims', JSON.stringify(arr)); },
+    fmt: function(ts){ try{return new Date(ts).toLocaleString('lt-LT')}catch(_){return ts} },
+    icon: function(name){
+      const n=(name||'').toLowerCase();
+      if(/\.(jpg|jpeg|png|webp|gif)$/.test(n)) return '🖼️';
+      if(/\.(mp4|webm|mov)$/.test(n)) return '🎥';
+      if(/\.(pdf)$/.test(n)) return '📄';
+      return '📎';
+    },
+    legacyToNew: function(m){
+      if(m && m.from && m.to) return m;
+      if(!m) return m;
+      if(m.author==='quality') return {from:'admin', to:'user', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
+      if(m.author==='customer') return {from:'user', to:'admin', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
+      if(m.author==='master') return {from:'master', to:'admin', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
+      return m;
+    },
+    uploadFiles: async function(fileList){
+      const out=[]; for(const f of fileList){ const url=URL.createObjectURL(f);
+        out.push({name:f.name, url, type:(/\.(jpg|jpeg|png|webp|gif)$/i.test(f.name)?'image':/\.(mp4|webm|mov)$/i.test(f.name)?'video':/\.(pdf)$/i.test(f.name)?'pdf':'other')}); }
+      return out;
+    },
+    renderThread: function(container, list, perspective){
+      if(!list.length){ container.innerHTML='<div class="zen-muted">Nėra žinučių</div>'; return; }
+      container.innerHTML = list.map(m=>{
+        const side = (m.from===perspective)?'zen-right':'';
+        const bubbleClass = m.from==='admin'?'zen-bubble-admin':(m.from==='user'?'zen-bubble-user':'zen-bubble-master');
+        const files=(m.files||[]).map(f=>`<div><a href="${f.url}" target="_blank">${ZenChat.icon(f.name)} ${f.name}</a></div>`).join('');
+        return `<div class="zen-chat-row ${side}">
+          <div class="zen-chat-bubble ${bubbleClass}">
+            <div class="zen-chat-meta">${m.from} → ${m.to} • <small>${ZenChat.fmt(m.time)}</small></div>
+            <div style="white-space:pre-wrap">${(m.text||'')}</div>
+            ${files?`<div class="zen-chat-files">${files}</div>`:''}
+          </div>
+        </div>`;
+      }).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+})();
+</script>
 </head>
 <body>
     <div class="container">
@@ -140,6 +217,21 @@
         <!-- Įspėjimų konteineris -->
         <div id="alert-container"></div>
 
+
+        <!-- === zen-chat: Master chat with admin === -->
+        <div class="section" style="margin-top: 30px;">
+            <h2>5. Susirašinėjimas su administratoriumi</h2>
+            <div id="zen-master-thread" class="zen-chat-thread"></div>
+            <div class="zen-chat-input">
+                <input id="zen-master-input" placeholder="Žinutė adminui…" style="flex:1; padding:10px;">
+                <input id="zen-master-files" type="file" multiple>
+                <button id="zen-master-send" style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    Siųsti
+                </button>
+            </div>
+            <div id="zen-master-files-preview" class="zen-muted" style="margin-top: 6px;"></div>
+        </div>
+
         <div style="margin-top: 20px; text-align: center;">
             <button id="markAsResolved" onclick="markAsResolved()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">
                 ✅ Išsprendžiau
@@ -149,9 +241,11 @@
                 📝 Išsiųsti apklausą
             </button>
         </div>
-    </div>
 
-    <footer>© 2025 Rubineta. Visos teisės saugomos.</footer>
+
+    </div> <!-- VIENAS teisingas .container uždarymas čia -->
+    
+
 
     <script>
         // Klaidų rodymo funkcija
@@ -375,6 +469,77 @@
                 qualityAttachmentsContainer.innerHTML = '<p>Nėra papildomų dokumentų.</p>';
             }
         });
+    </script>
+
+ 
+    <footer style="text-align: center; margin-top: 40px; color: var(--gray); font-size: 12px; padding: 20px; border-top: 1px solid #eee;">
+        © 2025 Rubineta. Visos teisės saugomos. | 
+        <a href="mailto:hello@rubineta.com" style="color: #17a2b8; text-decoration: none;">hello@rubineta.com</a>
+    </footer>
+
+    <script>
+        // === zen-chat: Master page wiring ===
+        (function(){
+          const params = new URLSearchParams(location.search);
+          const id = params.get('id');
+          let claims = ZenChat.getClaims();
+          let claim = claims.find(c => c.id === id) || claims[0];
+          if (!claim) return;
+
+          if (Array.isArray(claim.messages)) {
+              claim.messages = claim.messages.map(ZenChat.legacyToNew);
+              ZenChat.setClaims(claims);
+          }
+
+          const thread = document.getElementById('zen-master-thread');
+          const input = document.getElementById('zen-master-input');
+          const files = document.getElementById('zen-master-files');
+          const preview = document.getElementById('zen-master-files-preview');
+
+          function draw() {
+              const fresh = ZenChat.getClaims().find(x => x.id === claim.id);
+              if (!fresh) return;
+              claim = fresh;
+              const msgs = (claim.messages || []).filter(m => 
+                  (m.from === 'master' && m.to === 'admin') || 
+                  (m.from === 'admin' && m.to === 'master')
+              );
+              ZenChat.renderThread(thread, msgs, 'master');
+          }
+
+          files.addEventListener('change', () => {
+              preview.textContent = [...files.files].map(f => f.name).join(', ');
+          });
+
+          document.getElementById('zen-master-send').addEventListener('click', async () => {
+              const text = (input.value || '').trim();
+              const uploaded = await ZenChat.uploadFiles(files.files);
+              if (!text && uploaded.length === 0) return;
+
+              const all = ZenChat.getClaims();
+              const c = all.find(x => x.id === claim.id);
+              if (!c) return;
+
+              if (!Array.isArray(c.messages)) c.messages = [];
+              
+              c.messages.push({ 
+                  id: 'msg_' + Math.random().toString(36).slice(2), 
+                  from: 'master', 
+                  to: 'admin', 
+                  text, 
+                  files: uploaded, 
+                  time: new Date().toISOString() 
+              });
+
+              ZenChat.setClaims(all);
+              input.value = '';
+              files.value = '';
+              preview.textContent = '';
+              draw();
+          });
+
+          draw();
+        })();
     </script>
 </body>
 </html>
