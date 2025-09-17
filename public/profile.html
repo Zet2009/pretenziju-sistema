@@ -4,9 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Profilis – Rubineta</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
-    :root{--primary:#2D2D2D;--primary-light:#4A4A4A;--secondary:#FFCC00;--light:#F5F5F5;--white:#FFFFFF;--dark:#212529;--gray:#75757d;--font:'Roboto',sans-serif}
+    :root{--primary:#2D2D2D;--primary-light:#4A4A4A;--secondary:#FFCC00;--light:#F5F5F5;--white:#FFFFFF;--dark:#212529;--gray:#75757d;--font:system-ui,-apple-system,Segoe UI,Roboto,Arial}
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:var(--font);background:var(--light);color:var(--dark);line-height:1.3;font-size:12px}
     header{background:var(--white);padding:10px 20px;box-shadow:0 2px 10px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
@@ -46,12 +45,7 @@
     @media (max-width:1200px){main{width:80%}}
     @media (max-width:768px){main{width:95%}.stats-bar{flex-direction:column;gap:6px}th,td{padding:4px 6px;font-size:10px}}
 
-    /* Miesto pasiūlymų dropdown */
-    .suggestions-container{
-      position:absolute;left:0;right:0;top:100%;
-      background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:1000;
-      max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none
-    }
+    .suggestions-container{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:1000;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none}
     .suggestion-item{padding:8px 10px;cursor:pointer;font-size:12px}
     .suggestion-item:hover{background:#f6f6f6}
     .with-suggestions{position:relative}
@@ -61,8 +55,7 @@
     .comm-head{width:32px;text-align:center}
     .comm-cell{text-align:center}
     .comm-icon{display:inline-block;position:relative;font-size:18px;line-height:1}
-    .comm-badge{position:absolute;top:-6px;right:-10px;background:#ef4444;color:#fff;border-radius:999px;
-      padding:0 6px;font-size:11px;line-height:18px;min-width:18px;border:2px solid #fff}
+    .comm-badge{position:absolute;top:-6px;right:-10px;background:#ef4444;color:#fff;border-radius:999px;padding:0 6px;font-size:11px;line-height:18px;min-width:18px;border:2px solid #fff}
     .comm-muted{opacity:.35}
     .comm-btn{background:transparent;border:none;cursor:pointer;font-size:18px}
   </style>
@@ -89,60 +82,23 @@
       <div style="background:#fff;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);">
         <h2>Asmeninė informacija</h2>
         <form id="profile-form">
-          <div class="form-group">
-            <label>Vardas *</label>
-            <input type="text" id="profile-name" required>
-          </div>
-          <div class="form-group">
-            <label>Pavardė *</label>
-            <input type="text" id="profile-surname" required>
-          </div>
-          <div class="form-group">
-            <label>El. paštas *</label>
-            <input type="email" id="profile-email" required>
-          </div>
-          <div class="form-group">
-            <label>Telefonas *</label>
-            <input type="tel" id="profile-phone" required>
-          </div>
-
-          <div class="form-group">
-            <label>Šalis *</label>
+          <div class="form-group"><label>Vardas *</label><input type="text" id="profile-name" required></div>
+          <div class="form-group"><label>Pavardė *</label><input type="text" id="profile-surname" required></div>
+          <div class="form-group"><label>El. paštas *</label><input type="email" id="profile-email" required></div>
+          <div class="form-group"><label>Telefonas *</label><input type="tel" id="profile-phone" required></div>
+          <div class="form-group"><label>Šalis *</label>
             <select id="profile-country" required>
-              <option value="lt" selected>Lietuva</option>
-              <option value="lv">Latvija</option>
-              <option value="ee">Estija</option>
-              <option value="pl">Lenkija</option>
-              <option value="de">Vokietija</option>
-              <option value="fr">Prancūzija</option>
-              <option value="se">Švedija</option>
-              <option value="no">Norvegija</option>
-              <option value="fi">Suomija</option>
-              <option value="gb">Jungtinė Karalystė</option>
-              <option value="us">JAV</option>
-              <option value="other">Kita</option>
+              <option value="lt" selected>Lietuva</option><option value="lv">Latvija</option><option value="ee">Estija</option><option value="pl">Lenkija</option><option value="de">Vokietija</option><option value="fr">Prancūzija</option><option value="se">Švedija</option><option value="no">Norvegija</option><option value="fi">Suomija</option><option value="gb">Jungtinė Karalystė</option><option value="us">JAV</option><option value="other">Kita</option>
             </select>
             <div class="hint" id="country-hint">Lietuvai taikoma LT pašto kodo forma (5 skaitmenys).</div>
           </div>
-
-          <div class="form-group">
-            <label>Adresas (gatvė, namo nr., butas) *</label>
-            <input type="text" id="profile-street" required>
-          </div>
-
+          <div class="form-group"><label>Adresas (gatvė, namo nr., butas) *</label><input type="text" id="profile-street" required></div>
           <div class="form-group with-suggestions">
-            <label>Miestas *</label>
-            <input type="text" id="profile-city" required autocomplete="off">
+            <label>Miestas *</label><input type="text" id="profile-city" required autocomplete="off">
             <div id="city-suggestions" class="suggestions-container"></div>
           </div>
-
-          <div class="form-group">
-            <label>Pašto kodas *</label>
-            <input type="text" id="profile-postal" required inputmode="numeric" pattern="^\d{5}$" placeholder="pvz., 01100">
-            <div class="hint" id="postal-hint">Įveskite 5 skaitmenų LT pašto kodą.</div>
-          </div>
-
-          <button type="button" onclick="saveProfile()">Išsaugoti pakeitimus</button>
+          <div class="form-group"><label>Pašto kodas *</label><input type="text" id="profile-postal" required inputmode="numeric" pattern="^\d{5}$" placeholder="pvz., 01100"><div class="hint" id="postal-hint">Įveskite 5 skaitmenų LT pašto kodą.</div></div>
+          <button type="button" id="save-profile">Išsaugoti pakeitimus</button>
         </form>
       </div>
 
@@ -168,8 +124,15 @@
       </div>
 
       <table id="claims-table">
-        <thead><tr><th class="comm-head" title="Naujos žinutės">✉️</th><th>ID</th><th>Data</th><th>Produktas</th><th>Tema</th><th>Būsena</th><th>Veiksmas</th></tr></thead>
-        <tbody id="claims-body"><tr><td colspan="7" style="text-align:center;">Kraunama...</td></tr></tbody>
+        <thead>
+          <tr>
+            <th class="comm-head" title="Naujos žinutės">✉️</th>
+            <th>ID</th><th>Data</th><th>Produktas</th><th>Tema</th><th>Būsena</th><th>Veiksmas</th>
+          </tr>
+        </thead>
+        <tbody id="claims-body">
+          <tr><td colspan="7" style="text-align:center;">Kraunama...</td></tr>
+        </tbody>
       </table>
     </div>
   </main>
@@ -190,13 +153,11 @@
     document.getElementById('profile-postal').value  = currentUser.postal  || '';
     document.getElementById('profile-country').value = currentUser.country || 'lt';
 
-    function saveProfile(){
+    document.getElementById('save-profile').addEventListener('click', function(){
       var users = JSON.parse(localStorage.getItem('users') || '[]');
       var idx = users.findIndex(function(u){ return u.id === currentUser.id; });
       var updated = {
-        id: currentUser.id,
-        role: currentUser.role,
-        status: currentUser.status,
+        id: currentUser.id, role: currentUser.role, status: currentUser.status,
         name: document.getElementById('profile-name').value,
         surname: document.getElementById('profile-surname').value,
         email: document.getElementById('profile-email').value,
@@ -210,7 +171,7 @@
       localStorage.setItem('users', JSON.stringify(users));
       localStorage.setItem('currentUser', JSON.stringify(updated));
       alert('Profilis atnaujintas!');
-    }
+    });
 
     // Montuotojo statusas
     if (currentUser.role === 'installer'){
@@ -254,9 +215,22 @@
             if (!claim){ td.innerHTML=''; return; }
             const cnt = UserCommBadge.newCountForUser(claim, userId);
             const has = cnt>0;
-            td.innerHTML = '<button class="comm-btn" title="'+(has?('Naujos žinutės: '+cnt):'Nėra naujų')+'" onclick="openClaim('+JSON.stringify(id)+')">'+
-              '<span class="comm-icon '+(has?'':'comm-muted')+'">'+(has?'🔔':'📨')+(has?('<span class=\'comm-badge\'>'+cnt+'</span>'):'')+'</span>'+
-            '</button>';
+            td.innerHTML = '';
+            const btn = document.createElement('button');
+            btn.className = 'comm-btn';
+            btn.title = has ? ('Naujos žinutės: '+cnt) : 'Nėra naujų';
+            const span = document.createElement('span');
+            span.className = 'comm-icon ' + (has?'':'comm-muted');
+            span.textContent = has ? '🔔' : '📨';
+            if (has){
+              const b = document.createElement('span');
+              b.className='comm-badge';
+              b.textContent = String(cnt);
+              span.appendChild(b);
+            }
+            btn.appendChild(span);
+            btn.addEventListener('click', function(){ openClaim(id); });
+            td.appendChild(btn);
           });
         }
       };
@@ -264,10 +238,9 @@
     })();
 
     function openClaim(id){
-      try{
-        localStorage.setItem('chatSeen_user_'+currentUser.id+'_'+id, String(Date.now()));
-      }catch(e){}
-      location.href='claim-user.html?id='+encodeURIComponent(id);
+      try{ localStorage.setItem('chatSeen_user_'+currentUser.id+'_'+id, String(Date.now())); }catch(e){}
+      // Pastaba: jei tavo failo pavadinimas kitas (pvz., claim-user.pro.html), pakeisk čia.
+      location.href = 'claim-user.html?id=' + encodeURIComponent(id);
     }
 
     // Pretenzijų istorija
@@ -277,19 +250,32 @@
       var tbody = document.getElementById('claims-body'); tbody.innerHTML = '';
       var open=0, resolved=0;
       if (userClaims.length===0){
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
+        var tr = document.createElement('tr');
+        var td = document.createElement('td'); td.colSpan = 7; td.style.textAlign='center'; td.textContent='Jūs dar nepateikėte pretenzijų.';
+        tr.appendChild(td); tbody.appendChild(tr);
       } else {
         userClaims.forEach(function(claim){
           var tr = document.createElement('tr');
+          // icon cell
+          var tdIcon = document.createElement('td'); tdIcon.className='comm-cell'; tdIcon.setAttribute('data-claim', claim.id); tr.appendChild(tdIcon);
+          // id
+          var tdId = document.createElement('td'); tdId.textContent = claim.id; tr.appendChild(tdId);
+          // date
+          var tdDate = document.createElement('td'); tdDate.textContent = new Date(claim.date).toLocaleDateString('lt-LT'); tr.appendChild(tdDate);
+          // product
+          var tdProd = document.createElement('td'); tdProd.textContent = claim.product; tr.appendChild(tdProd);
+          // topic
+          var tdTopic = document.createElement('td'); tdTopic.textContent = claim.topic; tr.appendChild(tdTopic);
+          // status
+          var tdStatus = document.createElement('td');
           var statusClass = (claim.status==='Išspręsta')?'status-resolved':((claim.status==='Nauja')?'status-new':((claim.status==='Perduota servisui')?'status-sent':'status-pending'));
-          tr.innerHTML =
-            '<td class="comm-cell" data-claim="'+claim.id+'"></td>'+
-            '<td>'+claim.id+'</td>'+
-            '<td>'+new Date(claim.date).toLocaleDateString('lt-LT')+'</td>'+
-            '<td>'+claim.product+'</td>'+
-            '<td>'+claim.topic+'</td>'+
-            '<td><span class="status-dropdown '+statusClass+'">'+claim.status+'</span></td>'+
-            '<td><a href="javascript:void(0)" onclick="openClaim(\'' + claim.id + '\')" class="btn" style="padding:4px 8px; font-size:10px;">Peržiūrėti</a></td>';
+          var span = document.createElement('span'); span.className = 'status-dropdown '+statusClass; span.textContent = claim.status; tdStatus.appendChild(span); tr.appendChild(tdStatus);
+          // action
+          var tdAction = document.createElement('td');
+          var btn = document.createElement('a'); btn.href='javascript:void(0)'; btn.className='btn'; btn.style.cssText='padding:4px 8px;font-size:10px;'; btn.textContent='Peržiūrėti';
+          btn.addEventListener('click', function(){ openClaim(claim.id); });
+          tdAction.appendChild(btn); tr.appendChild(tdAction);
+
           tbody.appendChild(tr);
           if (claim.status==='Išspręsta') resolved++; else open++;
         });
@@ -312,72 +298,19 @@
       else { tabClaims.classList.add('active'); contentClaims.classList.add('active'); loadClaimsHistory(); }
     }
 
-    // Miesto paieška
+    // Miesto paieška (be išorinių kvietimų, kad nekeltų klaidų lokaliai)
     function initAddressSearch() {
       const cityInput = document.getElementById('profile-city');
-      const postalInput = document.getElementById('profile-postal');
-      const countrySelect = document.getElementById('profile-country');
-
-      function createSuggestionsContainer(inputElement) {
-        const existing = document.getElementById('city-suggestions');
-        if (existing) return existing;
-        const container = document.createElement('div');
-        container.id = 'city-suggestions';
-        container.className = 'suggestions-container';
-        inputElement.parentNode.insertBefore(container, inputElement.nextSibling);
-        return container;
-      }
-
-      const suggestionsContainer = createSuggestionsContainer(cityInput);
-
-      async function searchCities() {
-        const cityValue = cityInput.value.trim();
-        if (cityValue.length < 2) { suggestionsContainer.style.display = 'none'; return; }
-        try {
-          const country = countrySelect ? countrySelect.value.toLowerCase() : 'lt';
-          if (country === 'lt') {
-            const url = new URL('https://api.postit.lt/v2/');
-            url.searchParams.append('city', cityValue);
-            url.searchParams.append('key', 'postit.lt-examplekey'); // <- pakeisk į savo raktą
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Network error');
-            const data = await response.json();
-            if (data.success && Array.isArray(data.data)) {
-              const cities = data.data.map(item => ({ name: item.city, admin1: item.municipality, postal: item.post_code }));
-              showCitySuggestions(cities);
-            }
-          } else {
-            const serverUrl = '/api/cities?country=' + country + '&q=' + encodeURIComponent(cityValue);
-            const response = await fetch(serverUrl);
-            const cities = await response.json();
-            showCitySuggestions(cities);
-          }
-        } catch (err) {
-          console.warn('Adresų paieška nepavyko:', err);
-          suggestionsContainer.style.display = 'none';
-        }
-      }
-
-      function showCitySuggestions(cities) {
-        suggestionsContainer.innerHTML = '';
-        if (!cities || cities.length === 0) { suggestionsContainer.style.display = 'none'; return; }
-        suggestionsContainer.style.display = 'block';
-        cities.forEach(place => {
-          const div = document.createElement('div');
-          div.className = 'suggestion-item';
-          div.textContent = place.admin1 ? (place.name + ' (' + place.admin1 + ')') : place.name;
-          div.addEventListener('mousedown', () => {
-            cityInput.value = place.name;
-            if (place.postal) postalInput.value = place.postal;
-            suggestionsContainer.style.display = 'none';
-          });
-          suggestionsContainer.appendChild(div);
-        });
-      }
-
-      function debounce(func, wait) { let t; return function(){ clearTimeout(t); t=setTimeout(()=>func.apply(this, arguments), wait); }; }
-      cityInput.addEventListener('input', debounce(searchCities, 500));
-      document.addEventListener('click', (e) => { if (e.target !== cityInput && !suggestionsContainer.contains(e.target)) suggestionsContainer.style.display = 'none'; });
+      const suggestions = document.getElementById('city-suggestions');
+      function hide(){ suggestions.style.display='none'; }
+      cityInput.addEventListener('input', function(){
+        const v = cityInput.value.trim();
+        if (v.length < 2) return hide();
+        suggestions.innerHTML = '<div class="suggestion-item">'+v+'</div>';
+        suggestions.style.display = 'block';
+        suggestions.firstChild.addEventListener('mousedown', function(){ cityInput.value=v; hide(); });
+      });
+      document.addEventListener('click', function(e){ if (e.target!==cityInput && !suggestions.contains(e.target)) hide(); });
     }
 
     document.addEventListener('DOMContentLoaded', function(){
@@ -395,7 +328,7 @@
       var postalHint = document.getElementById('postal-hint');
       var countryHint = document.getElementById('country-hint');
       if (cc === 'lt'){
-        postal.setAttribute('pattern','^\\d{5}$');
+        postal.setAttribute('pattern','^\d{5}$');
         postal.setAttribute('inputmode','numeric');
         postal.placeholder = 'pvz., 01100';
         if (postalHint)  postalHint.textContent = 'Įveskite 5 skaitmenų LT pašto kodą.';
@@ -412,4 +345,3 @@
   </script>
 </body>
 </html>
-
