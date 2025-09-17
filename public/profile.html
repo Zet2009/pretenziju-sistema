@@ -1,4 +1,4 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="lt">
 <head>
   <meta charset="UTF-8" />
@@ -46,7 +46,7 @@
     @media (max-width:1200px){main{width:80%}}
     @media (max-width:768px){main{width:95%}.stats-bar{flex-direction:column;gap:6px}th,td{padding:4px 6px;font-size:10px}}
 
-    /* Miesto pasiūlymų dropdown – kaip anon puslapyje */
+    /* Miesto pasiūlymų dropdown */
     .suggestions-container{
       position:absolute;left:0;right:0;top:100%;
       background:#fff;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;z-index:1000;
@@ -56,6 +56,15 @@
     .suggestion-item:hover{background:#f6f6f6}
     .with-suggestions{position:relative}
     .hint{font-size:10px;color:#6c757d;margin-top:4px}
+
+    /* Naujos žinutės indikatorius */
+    .comm-head{width:32px;text-align:center}
+    .comm-cell{text-align:center}
+    .comm-icon{display:inline-block;position:relative;font-size:18px;line-height:1}
+    .comm-badge{position:absolute;top:-6px;right:-10px;background:#ef4444;color:#fff;border-radius:999px;
+      padding:0 6px;font-size:11px;line-height:18px;min-width:18px;border:2px solid #fff}
+    .comm-muted{opacity:.35}
+    .comm-btn{background:transparent;border:none;cursor:pointer;font-size:18px}
   </style>
 </head>
 <body>
@@ -97,7 +106,6 @@
             <input type="tel" id="profile-phone" required>
           </div>
 
-          <!-- Šalis (prieš adresą) -->
           <div class="form-group">
             <label>Šalis *</label>
             <select id="profile-country" required>
@@ -160,8 +168,8 @@
       </div>
 
       <table id="claims-table">
-        <thead><tr><th>ID</th><th>Data</th><th>Produktas</th><th>Tema</th><th>Būsena</th><th>Veiksmas</th></tr></thead>
-        <tbody id="claims-body"><tr><td colspan="6" style="text-align:center;">Kraunama...</td></tr></tbody>
+        <thead><tr><th class="comm-head" title="Naujos žinutės">✉️</th><th>ID</th><th>Data</th><th>Produktas</th><th>Tema</th><th>Būsena</th><th>Veiksmas</th></tr></thead>
+        <tbody id="claims-body"><tr><td colspan="7" style="text-align:center;">Kraunama...</td></tr></tbody>
       </table>
     </div>
   </main>
@@ -214,25 +222,74 @@
       else if (currentUser.status === 'rejected'){ statusText.textContent='Atmestas'; statusDesc.textContent='Registracija atmesta. Jei norite sužinoti priežastį, susisiekite su info@rubineta.lt'; }
     }
 
+    // Indikatoriaus helperis
+    (function(){
+      if (window.UserCommBadge) return;
+      window.UserCommBadge = {
+        getClaims: function(){ try{return JSON.parse(localStorage.getItem('claims')||'[]')}catch(_){return[]} },
+        normMsg: function(m){
+          if (m && m.from && m.to) return m;
+          if (!m) return m;
+          if (m.author==='quality') return {from:'admin', to:'user', time:m.time};
+          if (m.author==='customer') return {from:'user', to:'admin', time:m.time};
+          if (m.author==='master') return {from:'master', to:'admin', time:m.time};
+          return m;
+        },
+        newCountForUser: function(claim, userId){
+          const key = `chatSeen_user_${userId}_${claim.id}`;
+          const seen = parseInt(localStorage.getItem(key)||'0',10);
+          const msgs = (claim.messages||[]).map(UserCommBadge.normMsg).filter(Boolean);
+          let cnt = 0;
+          for (const m of msgs){
+            const t = Date.parse(m.time||0)||0;
+            if (t>seen && (m.from==='admin' && m.to==='user') && String(claim.userId)===String(userId)) cnt++;
+          }
+          return cnt;
+        },
+        paint: function(userId){
+          const claims = UserCommBadge.getClaims().filter(c=>String(c.userId)===String(userId));
+          document.querySelectorAll('td.comm-cell').forEach(td=>{
+            const id = td.getAttribute('data-claim');
+            const claim = claims.find(c=>String(c.id)===String(id));
+            if (!claim){ td.innerHTML=''; return; }
+            const cnt = UserCommBadge.newCountForUser(claim, userId);
+            const has = cnt>0;
+            td.innerHTML = '<button class="comm-btn" title="'+(has?('Naujos žinutės: '+cnt):'Nėra naujų')+'" onclick="openClaim('+JSON.stringify(id)+')">'+
+              '<span class="comm-icon '+(has?'':'comm-muted')+'">'+(has?'🔔':'📨')+(has?('<span class=\'comm-badge\'>'+cnt+'</span>'):'')+'</span>'+
+            '</button>';
+          });
+        }
+      };
+      window.updateUserCommBadges = function(uid){ try{ UserCommBadge.paint(uid); }catch(e){} };
+    })();
+
+    function openClaim(id){
+      try{
+        localStorage.setItem('chatSeen_user_'+currentUser.id+'_'+id, String(Date.now()));
+      }catch(e){}
+      location.href='claim-user.html?id='+encodeURIComponent(id);
+    }
+
     // Pretenzijų istorija
     function loadClaimsHistory(){
       var claims = JSON.parse(localStorage.getItem('claims') || '[]');
-      var userClaims = claims.filter(function(c){ return c.userId === currentUser.id; });
+      var userClaims = claims.filter(function(c){ return String(c.userId) === String(currentUser.id); });
       var tbody = document.getElementById('claims-body'); tbody.innerHTML = '';
       var open=0, resolved=0;
       if (userClaims.length===0){
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Jūs dar nepateikėte pretenzijų.</td></tr>';
       } else {
         userClaims.forEach(function(claim){
           var tr = document.createElement('tr');
           var statusClass = (claim.status==='Išspręsta')?'status-resolved':((claim.status==='Nauja')?'status-new':((claim.status==='Perduota servisui')?'status-sent':'status-pending'));
           tr.innerHTML =
+            '<td class="comm-cell" data-claim="'+claim.id+'"></td>'+
             '<td>'+claim.id+'</td>'+
             '<td>'+new Date(claim.date).toLocaleDateString('lt-LT')+'</td>'+
             '<td>'+claim.product+'</td>'+
             '<td>'+claim.topic+'</td>'+
             '<td><span class="status-dropdown '+statusClass+'">'+claim.status+'</span></td>'+
-            '<td><a href="claim-user.html?id='+claim.id+'" class="btn" style="padding:4px 8px; font-size:10px;">Peržiūrėti</a></td>';
+            '<td><a href="javascript:void(0)" onclick="openClaim(\'' + claim.id + '\')" class="btn" style="padding:4px 8px; font-size:10px;">Peržiūrėti</a></td>';
           tbody.appendChild(tr);
           if (claim.status==='Išspręsta') resolved++; else open++;
         });
@@ -240,6 +297,8 @@
       document.getElementById('total-claims').textContent = userClaims.length;
       document.getElementById('open-claims').textContent = open;
       document.getElementById('resolved-claims').textContent = resolved;
+
+      updateUserCommBadges(currentUser.id);
     }
 
     function openTab(name){
@@ -253,7 +312,7 @@
       else { tabClaims.classList.add('active'); contentClaims.classList.add('active'); loadClaimsHistory(); }
     }
 
-    // --- IDENTIŠKA ADRESO PAIEŠKA kaip „pretention-anonymous“ ---
+    // Miesto paieška
     function initAddressSearch() {
       const cityInput = document.getElementById('profile-city');
       const postalInput = document.getElementById('profile-postal');
@@ -316,27 +375,18 @@
         });
       }
 
-      function debounce(func, wait) {
-        let timeout;
-        return function() {
-          clearTimeout(timeout);
-          const args = arguments, ctx = this;
-          timeout = setTimeout(function(){ func.apply(ctx, args); }, wait);
-        };
-      }
-
+      function debounce(func, wait) { let t; return function(){ clearTimeout(t); t=setTimeout(()=>func.apply(this, arguments), wait); }; }
       cityInput.addEventListener('input', debounce(searchCities, 500));
-      document.addEventListener('click', (e) => {
-        if (e.target !== cityInput && !suggestionsContainer.contains(e.target)) {
-          suggestionsContainer.style.display = 'none';
-        }
-      });
+      document.addEventListener('click', (e) => { if (e.target !== cityInput && !suggestionsContainer.contains(e.target)) suggestionsContainer.style.display = 'none'; });
     }
 
     document.addEventListener('DOMContentLoaded', function(){
-      initAddressSearch();              // 👈 kaip anon puslapyje
-      // Paprastos taisyklės pagal šalį (neprivaloma, bet patogu)
+      initAddressSearch();
       applyCountryRules();
+      setInterval(function(){
+        var claimsVisible = document.getElementById('claims').classList.contains('active');
+        if (claimsVisible) updateUserCommBadges(currentUser.id);
+      }, 3000);
     });
 
     function applyCountryRules(){
