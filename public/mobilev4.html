@@ -1,658 +1,351 @@
 <!DOCTYPE html>
-<html lang="lt">
+<html lang="lt" manifest="manifest.appcache">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Rubineta – Master Mobile (PWA)</title>
-<meta name="theme-color" content="#111111"/>
-<style>
-  :root{
-    --bg:#f6f7f9; --card:#ffffff; --ink:#111; --muted:#6b7280; --brand:#111; --accent:#0ea5e9; --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444; --ring:#e5e7eb;
-    --radius:16px; --shadow:0 6px 20px rgba(0,0,0,.08);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial}
-  header{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--ring)}
-  .container{max-width:740px;margin:0 auto;padding:12px}
-  .hstack{display:flex;gap:8px;align-items:center}
-  .stack{display:flex;flex-direction:column;gap:8px}
-  .btn{appearance:none;border:1px solid var(--ring);background:#fff;border-radius:12px;padding:10px 14px;font-weight:600}
-  .btn.solid{background:var(--brand);color:#fff;border-color:var(--brand)}
-  .btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}
-  .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
-  input,select,textarea{width:100%;border:1px solid var(--ring);border-radius:12px;padding:10px 12px;font:inherit;background:#fff}
-  textarea{min-height:100px;resize:vertical}
-  .card{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
-  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ring);background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;color:#374151}
-  .status{font-size:12px;font-weight:700}
-  .status.New{color:var(--bad)} .status.Approved{color:var(--accent)}
-  .status.Sent{color:#2563eb} .status.Resolved{color:var(--ok)}
-  .grid{display:grid;gap:8px}
-  .jobs{display:grid;gap:10px}
-  .job{display:flex;justify-content:space-between;gap:10px}
-  .muted{color:var(--muted)}
-  .badge{display:inline-flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:4px 10px;font-size:12px}
-  .dot{width:8px;height:8px;border-radius:999px;background:var(--warn);display:inline-block}
-  .sticky-footer{position:sticky;bottom:0;background:linear-gradient(0deg,#fff 70%,rgba(255,255,255,.8));border-top:1px solid var(--ring)}
-  .toolbar{display:flex;gap:8px}
-  .thumb{width:100%;height:90px;object-fit:cover;border-radius:10px;border:1px solid var(--ring)}
-  .chips{display:flex;gap:6px;flex-wrap:wrap}
-  .kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .kpi .card{padding:12px}
-  .hidden{display:none}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Rubineta Master</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" id="manifest-link">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <style>
+        :root {
+            --primary: #2D2D2D;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+            --gray: #757575;
+            --font: 'Roboto', 'Arial', sans-serif;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--primary);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Viršutinė juosta */
+        .header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 14px 16px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        /* Pagrindinis turinys */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--white);
+        }
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .info-row b {
+            color: var(--primary);
+        }
+
+        /* Mygtukai */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        /* Naujas darbas */
+        .new-job-alert {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* Lankstus mygtukas apačioje */
+        .action-bar {
+            padding: 12px 16px;
+            background: var(--white);
+            border-top: 1px solid #eee;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Statusas */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .status-new { background: #f44336; }
+        .status-assigned { background: #ff9800; }
+        .status-completed { background: #4caf50; }
+
+        /* Loading ir klaidos */
+        .loading, .error {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+        }
+    </style>
 </head>
 <body>
-<header>
-  <div class="container hstack" style="justify-content:space-between;">
-    <div class="hstack" style="gap:10px">
-      <strong>🔧 Master Mobile</strong>
-      <span id="master-pill" class="pill">Meistras</span>
-    </div>
-    <div class="hstack">
-      <button id="btn-change-master" class="btn">Keisti</button>
-      <button id="btn-install" class="btn solid hidden">Įsidiegti</button>
-    </div>
-  </div>
-</header>
 
-<main class="container">
-  <!-- KPI + valdikliai -->
-  <div class="kpi">
-    <div class="card stack">
-      <div class="muted">Ryšys / sinchronizacija</div>
-      <div class="chips" id="sync-flags">
-        <span class="pill" id="flag-online">🌐 Prisijungęs</span>
-        <span class="pill" id="flag-offline" style="display:none">📴 Offline</span>
-        <span class="pill" id="flag-queued" style="display:none">⏳ Eilėje: <b id="q-count">0</b></span>
-        <span class="pill" id="flag-pending" style="display:none">📌 „tik-prisegė“</span>
-      </div>
-      <div class="hstack">
-        <button class="btn" id="btn-sync-now">Sinchronizuoti</button>
-        <button class="btn" id="btn-notify-test">🔔 Test pranešimas</button>
-      </div>
-    </div>
-    <div class="card stack">
-      <div class="muted">Quick actions</div>
-      <div class="hstack">
-        <button class="btn" id="btn-seed">Seed demo</button>
-        <button class="btn bad" id="btn-clear">Išvalyti</button>
-      </div>
-      <div class="muted" style="font-size:12px">Priminimas: šiame demo duomenys saugomi local/IDB.</div>
-    </div>
-  </div>
-
-  <!-- Paieška ir filtrai -->
-  <div class="card hstack" style="justify-content:space-between;flex-wrap:wrap;">
-    <input id="search" placeholder="Paieška (ID, produktas, miestas)" style="flex:1;min-width:220px">
-    <select id="filter" style="width:180px">
-      <option value="assigned">Man priskirtos</option>
-      <option value="all">Visos</option>
-    </select>
-  </div>
-
-  <!-- Užduočių sąrašas -->
-  <section class="jobs" id="jobs"></section>
-
-  <!-- Detalė -->
-  <section id="detail" class="card stack hidden">
-    <div class="hstack" style="justify-content:space-between">
-      <div class="hstack" style="gap:6px">
-        <button class="btn" id="btn-back">◀ Atgal</button>
-        <span class="muted">ID:</span>
-        <strong id="d-id"></strong>
-        <span id="d-status" class="status"></span>
-      </div>
-      <div class="chips">
-        <a class="pill" id="d-call" href="#">📞</a>
-        <a class="pill" id="d-sms" href="#">💬</a>
-        <a class="pill" id="d-map" href="#" target="_blank" rel="noreferrer">🗺️</a>
-      </div>
+    <!-- Viršutinė juosta -->
+    <div class="header">
+        <a href="#" class="back-btn" id="backButton" style="display:none;">←</a>
+        Rubineta Master
     </div>
 
-    <div class="grid" style="grid-template-columns:1fr 1fr">
-      <div class="stack">
-        <div><span class="muted">Produktas:</span> <b id="d-product"></b></div>
-        <div><span class="muted">Produkto ID:</span> <b id="d-productid"></b></div>
-        <div class="muted">Gedimo rūšis:</div>
-        <div id="d-issue" class="card" style="padding:10px"></div>
-        <div class="muted">Aprašymas:</div>
-        <div id="d-desc" class="card" style="padding:10px"></div>
-      </div>
-      <div class="stack">
-        <div class="muted">Klientas</div>
-        <div class="card" style="padding:10px" id="d-contact"></div>
-        <div class="hstack">
-          <button class="btn" id="btn-start">Pradėti laiką</button>
-          <button class="btn" id="btn-stop">Stabdyti</button>
-          <span class="pill" id="pill-time">Sukaupta: 0.00 h</span>
-        </div>
-      </div>
+    <!-- Pagrindinis turinys -->
+    <div class="content" id="app-content">
+        <div class="loading">⏳ Kraunama...</div>
     </div>
 
-    <div class="stack">
-      <div class="muted">Kokybės skyriaus rekomendacijos</div>
-      <div id="d-qa" class="card" style="padding:10px">—</div>
+    <!-- Veiksmų juosta -->
+    <div class="action-bar" id="actionBar" style="display:none;">
+        <button class="btn btn-primary" onclick="completeJob()">Pažymėti kaip atlikta</button>
     </div>
 
-    <div class="stack">
-      <div class="hstack" style="justify-content:space-between">
-        <div class="muted">Meistro failai</div>
-        <div class="hstack">
-          <input id="file-input" type="file" accept="image/*,video/*,application/pdf" capture="environment" multiple class="hidden">
-          <button class="btn" id="btn-add-files">📎 Pridėti</button>
-        </div>
-      </div>
-      <div id="d-files" class="grid" style="grid-template-columns:repeat(3,1fr)"></div>
-      <small class="muted">📌 „tik-prisegė“ – failai pažymimi kaip <b>pending</b> iki sėkmingos sinchronizacijos.</small>
-    </div>
+    <script>
+        // === 1. PWA registracija ir Push Notifications ===
+        function registerServiceWorker() {
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("/sw.js")
+                    .then(reg => console.log("✅ ServiceWorker registered:", reg))
+                    .catch(err => console.error("❌ SW registration failed:", err));
+            }
+        }
 
-    <div class="stack">
-      <div class="muted">Chat su administratoriumi</div>
-      <div id="d-chat" class="card stack" style="max-height:240px;overflow:auto"></div>
-      <div class="hstack">
-        <input id="chat-input" placeholder="Žinutė administratoriui…">
-        <button class="btn solid" id="chat-send">Siųsti</button>
-      </div>
-    </div>
+        async function initPush() {
+            if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
 
-    <div class="stack">
-      <div class="muted">Atliktų darbų ataskaita</div>
-      <textarea id="rep-work" placeholder="Atlikti darbai…"></textarea>
-      <div class="grid" style="grid-template-columns:1fr 1fr">
-        <label>Darbo valandos <input id="rep-labor" type="number" step="0.25" value="0"></label>
-        <label>Atstumas (km) <input id="rep-km" type="number" step="0.1" value="0"></label>
-      </div>
-      <label>Papildomos išlaidos (€) <input id="rep-extra" type="number" step="0.01" value="0"></label>
-      <div class="hstack" style="justify-content:space-between">
-        <div class="pill" id="rep-total">Bendra suma: € 0.00</div>
-        <div class="toolbar">
-          <button class="btn" onclick="window.print()">PDF</button>
-          <button class="btn ok" id="rep-save">Užbaigti ir išsaugoti</button>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") return;
 
-<div class="sticky-footer">
-  <div class="container hstack" style="gap:8px">
-    <button class="btn solid" id="btn-tab-list" style="flex:1">🗂️ Mano užduotys</button>
-    <button class="btn" id="btn-tab-all" style="flex:1">📋 Visos</button>
-  </div>
-</div>
+            const reg = await navigator.serviceWorker.ready;
+            try {
+                const subscription = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: "BKbJqRkZcUWzYxgVwvQlOZKXmT1dL0Hh9p9N9S0sG1j4M7B3n0p8Y6j3j3j3j3j3j3j3j3j3j3j3j3j3j3j3" // ← pakeisk į savo VAPID public key
+                });
+                console.log("🔔 Push prisijungta:", subscription);
 
-<script>
-/* =========================================================
-   MINIMAL OFFLINE STACK (IDB + Sync Queue + SW hooks)
-========================================================= */
-// --- tiny idb helpers ---
-const idbOpen = (name, version=1, upgradeCb) => new Promise((res, rej)=>{
-  const req = indexedDB.open(name, version);
-  req.onupgradeneeded = (e)=> upgradeCb && upgradeCb(e.target.result);
-  req.onsuccess = ()=> res(req.result);
-  req.onerror = ()=> rej(req.error);
-});
-const idbTx = (db, store, mode='readonly') => db.transaction(store, mode).objectStore(store);
-const idbAll = (store) => new Promise((res,rej)=>{ const out=[]; const c=store.openCursor(); c.onsuccess=e=>{const cur=e.target.result; if(cur){ out.push(cur.value); cur.continue(); } else res(out) }; c.onerror=()=>rej(c.error) });
-const idbPut = (store, val)=> new Promise((res,rej)=>{ const r=store.put(val); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error) });
-const idbDel = (store, key)=> new Promise((res,rej)=>{ const r=store.delete(key); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error) });
+                // Siųsti pretenzijų serveriui
+                fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                });
+            } catch (err) {
+                console.error("❌ Nepavyko prisijungti prie push:", err);
+            }
+        }
 
-let syncDB;
-(async()=>{
-  syncDB = await idbOpen('rubineta-sync', 1, (db)=>{
-    if(!db.objectStoreNames.contains('ops')) db.createObjectStore('ops', { keyPath:'id' });
-  });
-})();
+        // === 2. Pridėti manifestą dinamiškai ===
+        const manifest = {
+            name: "Rubineta Master Mobile",
+            short_name: "MasterMobile",
+            start_url: "/mobilev5.html",
+            display: "standalone",
+            background_color: "#ffffff",
+            theme_color: "#000000",
+            icons: [
+                { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+                { src: "/icon-512.png", sizes: "512x512", type: "image/png" }
+            ]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('manifest-link').href = url;
 
-async function queueOp(op){
-  const store = idbTx(syncDB, 'ops', 'readwrite');
-  await idbPut(store, op);
-  updateQueueIndicator();
-  try{
-    if('serviceWorker' in navigator && 'SyncManager' in window){
-      const reg = await navigator.serviceWorker.ready;
-      await reg.sync.register('sync-queue');
-    } else {
-      // fallback – try immediately
-      processQueue();
-    }
-  }catch(e){}
-}
+        // === 3. Duomenų krovimas (imitacija localStorage arba API) ===
+        let currentClaim = null;
 
-async function getQueue(){ return idbAll(idbTx(syncDB,'ops')); }
-async function removeOp(id){ return idbDel(idbTx(syncDB,'ops','readwrite'), id); }
-async function processQueue(){
-  const ops = await getQueue();
-  for(const op of ops){
-    try{
-      // DEMO: imitate network call
-      await new Promise(r=>setTimeout(r,400));
-      // If navigator.onLine false -> throw to retry
-      if(!navigator.onLine) throw new Error('offline');
-      // pretend OK -> remove
-      await removeOp(op.id);
-    }catch(e){
-      // keep for next round
-    }
-  }
-  updateQueueIndicator();
-}
+        function loadJobs() {
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            const assignedToMe = claims.filter(c => 
+                c.assignedPartner === localStorage.getItem('currentUserEmail') && 
+                c.status !== 'Uždaryta'
+            );
 
-window.addEventListener('online', processQueue);
-function legacyToNew(m){
-  if (m && m.from && m.to) return m;
-  if (!m) return m;
-  if (m.author==='quality') return {from:'admin', to:'user', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
-  if (m.author==='customer') return {from:'user', to:'admin', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
-  if (m.author==='master')   return {from:'master', to:'admin', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
-  return m;
-}
-function migrateClaims(){
-  const claims = Zen.getClaims();
-  let changed = false;
-  claims.forEach(c=>{
-    if (Array.isArray(c.messages)) {
-      const mapped = c.messages.map(legacyToNew);
-      if (JSON.stringify(mapped)!==JSON.stringify(c.messages)) {
-        c.messages = mapped; changed = true;
-      }
-    }
-  });
-  if (changed) Zen.setClaims(claims);
-}
-/* =========================================================
-   DATA (uses same localStorage 'claims' shape as admin side)
-========================================================= */
-const Zen = {
-  getClaims(){ try{ return JSON.parse(localStorage.getItem('claims')||'[]'); }catch(_){ return []; } },
-  setClaims(v){ localStorage.setItem('claims', JSON.stringify(v)); },
-  fmt(ts){ try { return new Date(ts).toLocaleString('lt-LT'); } catch { return ts; } },
-  icon(n=''){ n=n.toLowerCase(); if(/\.(jpg|jpeg|png|webp|gif)$/.test(n)) return '🖼️'; if(/\.(mp4|webm|mov)$/.test(n)) return '🎥'; if(/\.pdf$/.test(n)) return '📄'; return '📎'; },
-  async uploadFiles(fileList){
-    const out=[];
-    for(const file of fileList){
-      const ab = await file.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(ab)));
-      const url = `data:${file.type||'application/octet-stream'};base64,${b64}`;
-      out.push({name:file.name, dataUrl:url, type:/\.(jpg|jpeg|png|webp|gif)$/i.test(file.name)?'image':/\.(mp4|webm|mov)$/i.test(file.name)?'video':/\.pdf$/i.test(file.name)?'pdf':'file', pending:true});
-    }
-    return out;
-  }
-};
+            const content = document.getElementById('app-content');
+            if (assignedToMe.length === 0) {
+                content.innerHTML = '<div class="card"><p>Nėra priskirtų darbų.</p></div>';
+                return;
+            }
 
-/* =========================================================
-   UI STATE
-========================================================= */
-let CURRENT = JSON.parse(localStorage.getItem('currentMaster')||'null') || {name:'UAB Servisas'};
-let pageFilter = 'assigned';
-let openId = null;
-let timerStart = null;
+            content.innerHTML = '';
+            assignedToMe.forEach(job => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>Pretenzija: ${job.id}</h3>
+                    <div class="info-row"><b>Klientas:</b> ${job.contact?.name} ${job.contact?.surname}</div>
+                    <div class="info-row"><b>Adresas:</b> ${[job.contact?.street, job.contact?.city, job.contact?.postal].filter(Boolean).join(', ')}</div>
+                    <div class="info-row"><b>Produktas:</b> ${job.product}</div>
+                    <div class="info-row"><b>Statusas:</b> <span class="status-badge status-${job.status.toLowerCase().replace(/\s+/g, '-')}">${job.status}</span></div>
+                    <div class="info-row"><b>Gedimas:</b> ${job.description}</div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="viewDetails('${job.id}')">Detalės</button>
+                        <button class="btn btn-secondary" onclick="callClient('${job.contact?.phone}')">Skambinti</button>
+                    </div>
+                `;
+                content.appendChild(card);
+            });
+        }
 
-const $ = (q)=>document.querySelector(q);
-const elJobs = $('#jobs');
-const elDetail = $('#detail');
+        // === 4. Funkcijos ===
+        function viewDetails(id) {
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+            currentClaim = claims.find(c => c.id === id);
+            if (!currentClaim) {
+                alert('Darbas nerastas.');
+                return;
+            }
 
-// master name editing
-$('#master-pill').textContent = CURRENT.name || 'Meistras';
-$('#btn-change-master').onclick = ()=>{
-  const name = prompt('Serviso / meistro vardas:', CURRENT.name||'');
-  if(!name) return;
-  CURRENT = {...CURRENT, name};
-  localStorage.setItem('currentMaster', JSON.stringify(CURRENT));
-  $('#master-pill').textContent = CURRENT.name;
-  renderList();
-};
+            const content = document.getElementById('app-content');
+            const statusClass = currentClaim.status.toLowerCase().replace(/\s+/g, '-');
+            content.innerHTML = `
+                <div class="card">
+                    <h3>${currentClaim.product}</h3>
+                    <div class="info-row"><b>ID:</b> ${currentClaim.id}</div>
+                    <div class="info-row"><b>Klientas:</b> ${currentClaim.contact?.name} ${currentClaim.contact?.surname}</div>
+                    <div class="info-row"><b>Telefonas:</b> <a href="tel:${currentClaim.contact?.phone}">${currentClaim.contact?.phone}</a></div>
+                    <div class="info-row"><b>Adresas:</b> ${[currentClaim.contact?.street, currentClaim.contact?.city, currentClaim.contact?.postal].filter(Boolean).join(', ')}</div>
+                    <div class="info-row"><b>Statusas:</b> <span class="status-badge status-${statusClass}">${currentClaim.status}</span></div>
+                    <div class="info-row"><b>Gedimas:</b> ${currentClaim.description}</div>
+                    <div class="info-row"><b>Poreikis:</b> ${{
+                        'send-part': 'Siųsti dalį',
+                        'send-technician': 'Atvykti patikrinti',
+                        'refund': 'Grąžinti pinigus',
+                        'exchange': 'Keisti produktą'
+                    }[currentClaim.request] || currentClaim.request}</div>
+                </div>
+                ${currentClaim.files && currentClaim.files.length > 0 ? `
+                <div class="card">
+                    <h3>Foto / dokumentai</h3>
+                    ${currentClaim.files.map(f => `<a href="${f}" target="_blank">📎 Nuotrauka</a><br>`).join('')}
+                </div>` : ''}
+            `;
 
-// tabs
-$('#btn-tab-list').onclick = ()=>{ pageFilter='assigned'; $('#filter').value='assigned'; renderList(); };
-$('#btn-tab-all').onclick = ()=>{ pageFilter='all'; $('#filter').value='all'; renderList(); };
-$('#filter').onchange = (e)=>{ pageFilter=e.target.value; renderList(); };
-$('#search').oninput = ()=> renderList();
+            document.getElementById('actionBar').style.display = 'block';
+            document.querySelector('.back-btn').style.display = 'inline';
+        }
 
-// seed / clear
-$('#btn-seed').onclick = ()=>{
-  const have = Zen.getClaims();
-  if(have.length) { alert('Jau yra duomenų.'); return; }
-  const now = Date.now();
-  const demo = [{
-    id:'CLM-'+(now%100000), date:new Date(now-7200000).toISOString(), topic:'Nutekėjimas',
-    role:'Vartotojas', product:'Rubineta ECO 123', productId:'SKU-12345',
-    description:'Po sumontavimo laša iš snapo ir perjungėjo.', request:'Garantinis remontas',
-    contact:{name:'Jonas',surname:'Kazlauskas', phone:'+37060000000', email:'jonas@example.com', city:'Vilnius', street:'Gedimino pr. 1', postal:'01103'},
-    issueType:'Nutekėjimai (Leaking Issues)', status:'Perduota servisui', assignedPartner:CURRENT.name,
-    messages:[{id:'m1', from:'admin', to:'master', text:'Prašau priimti ir pateikti ataskaitą.', time:new Date(now-7000000).toISOString(), read:false}]
-  },{
-    id:'CLM-'+(now%100000+1), date:new Date(now-3600000).toISOString(), topic:'Dangos defektas',
-    role:'Vartotojas', product:'Rubineta ROYAL 456', productId:'SKU-67890',
-    description:'Chromas nusilupa ties rankenėle.', request:'Keitimas',
-    contact:{name:'Asta',surname:'Petrauskienė', phone:'+37061111111', email:'asta@example.com', city:'Kaunas', street:'Laisvės al. 10', postal:'44295'},
-    issueType:'Paviršiaus ir dangos problemos (Surface and Coating Problems)', status:'Patvirtinta', assignedPartner:CURRENT.name,
-    messages:[]
-  }];
-  Zen.setClaims(demo);
-  renderList();
-};
-$('#btn-clear').onclick = ()=>{ if(confirm('Išvalyti visus demo duomenis?')){ localStorage.removeItem('claims'); renderList(); } };
+        function completeJob() {
+            if (!currentClaim) return;
 
-// list render
-function renderList(){
-  elDetail.classList.add('hidden');
-  const q = ($('#search').value||'').toLowerCase();
-  const items = Zen.getClaims()
-    .filter(c => pageFilter==='all' || (c.assignedPartner||'').toLowerCase()=== (CURRENT.name||'').toLowerCase())
-    .filter(c => !q || (c.product||'').toLowerCase().includes(q) || (c.id||'').toLowerCase().includes(q) || (c.contact?.city||'').toLowerCase().includes(q))
-    .sort((a,b)=> new Date(b.date||0)-new Date(a.date||0));
+            if (confirm('Ar tikrai baigėte šį darbą?')) {
+                currentClaim.status = 'Uždaryta';
+                currentClaim.completedAt = new Date().toISOString();
 
-  elJobs.innerHTML = items.map(c=>{
-    const unread = (c.messages||[]).filter(m=>m.from==='admin' && m.to==='master' && !m.read).length;
-    return `
-      <div class="card job" onclick="openDetail('${c.id}')">
-        <div>
-          <div><b>${c.product||''}</b></div>
-          <div class="muted">${c.contact?.city||''} • ${new Date(c.date).toLocaleDateString('lt-LT')}</div>
-          <div class="muted">${(c.description||'').slice(0,80)}${(c.description||'').length>80?'…':''}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="badge">${c.status||'Nauja'}</div>
-          <div class="muted">#${c.id}</div>
-          ${unread>0?`<div class="pill" style="margin-top:6px;background:#fee2e2;border-color:#fecaca;color:#b91c1c">✉️ ${unread}</div>`:''}
-        </div>
-      </div>
-    `;
-  }).join('') || `<div class="muted">Nėra užduočių.</div>`;
-}
-window.openDetail = (id)=> showDetail(id);
+                const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+                const index = claims.findIndex(c => c.id === currentClaim.id);
+                if (index !== -1) {
+                    claims[index] = currentClaim;
+                    localStorage.setItem('claims', JSON.stringify(claims));
+                }
 
-function showDetail(id){
-  const all = Zen.getClaims();
-  const c = all.find(x=>x.id===id);
-  if(!c){ alert('Pretenzija nerasta'); return; }
-  openId = id;
+                alert('✅ Darbas pažymėtas kaip atliktas');
+                document.getElementById('actionBar').style.display = 'none';
+                loadJobs();
+            }
+        }
 
-  $('#d-id').textContent = c.id;
-  $('#d-status').textContent = c.status; $('#d-status').className='status '+(c.status||'');
-  $('#d-product').textContent = c.product||'';
-  $('#d-productid').textContent = c.productId||'';
-  $('#d-issue').textContent = c.issueType||'—';
-  $('#d-desc').textContent = c.description||'—';
-  $('#d-qa').textContent = c.qualityExternalComment || '—';
+        function callClient(phone) {
+            if (phone) {
+                window.location.href = `tel:${phone}`;
+            } else {
+                alert('Nenurodytas telefono numeris');
+            }
+        }
 
-  const contactHtml = `
-    <div><b>${c.contact?.name||''} ${c.contact?.surname||''}</b></div>
-    <div>${c.contact?.phone||''}</div>
-    <div>${c.contact?.email||''}</div>
-    <div>${c.contact?.street||''}, ${c.contact?.city||''}</div>
-  `;
-  $('#d-contact').innerHTML = contactHtml;
+        function goBack() {
+            document.getElementById('actionBar').style.display = 'none';
+            loadJobs();
+            document.querySelector('.back-btn').style.display = 'none';
+        }
 
-  const addr = `${c.contact?.street||''}, ${c.contact?.city||''}`.trim();
-  $('#d-call').href = c.contact?.phone ? `tel:${c.contact.phone}` : '#';
-  $('#d-sms').href  = c.contact?.phone ? `sms:${c.contact.phone}` : '#';
-  $('#d-map').href  = addr ? `https://maps.google.com/?q=${encodeURIComponent(addr)}` : '#';
+        // === 5. Paleidimas ===
+        document.getElementById('backButton').onclick = goBack;
 
-  // files
-  renderFiles(c);
-  // chat
-  renderChat(c);
-  // timer
-  $('#pill-time').textContent = `Sukaupta: ${((c.timeSpentSec||0)/3600).toFixed(2)} h`;
-  timerStart = null;
+        window.onload = () => {
+            registerServiceWorker();
+            initPush();
+            loadJobs();
+        };
 
-  // report fields
-  $('#rep-work').value = c.masterReport?.work || '';
-  $('#rep-labor').value = c.masterReport?.laborHours || 0;
-  $('#rep-km').value = c.masterReport?.travelKm || 0;
-  $('#rep-extra').value = c.masterReport?.extraCosts || 0;
-  updateTotal();
+        // Jei nori, kad automatiškai atnaujintų (kai pasikeičia duomenys)
+        window.addEventListener('storage', () => {
+            if (document.getElementById('actionBar').style.display === 'none') {
+                loadJobs();
+            }
+        });
+    </script>
 
-  elDetail.classList.remove('hidden');
-  // mark admin→master messages read (locally)
-  c.messages?.forEach(m=>{ if(m.from==='admin' && m.to==='master') m.read=true; });
-  Zen.setClaims(all); renderList();
-}
-
-function renderFiles(c){
-  const box = $('#d-files'); box.innerHTML = '';
-  (c.masterFiles||[]).forEach((f,i)=>{
-    const link = f.dataUrl || f.url;
-    const pin = f.pending ? `<span class="dot" title="tik-prisegė"></span>` : '';
-    let el;
-    if(f.type==='image') el = `<div>${pin}<img class="thumb" alt="${f.name}" src="${link}"></div>`;
-    else if(f.type==='video') el = `<div>${pin}<video class="thumb" controls><source src="${link}"></video></div>`;
-    else el = `<a class="pill" href="${link}" target="_blank">${Zen.icon(f.name)} ${f.name}</a>`;
-    box.insertAdjacentHTML('beforeend', el);
-  });
-  $('#flag-pending').style.display = (c.masterFiles||[]).some(x=>x.pending) ? '' : 'none';
-}
-
-function renderChat(c){
-  const box = $('#d-chat'); box.innerHTML='';
-  const msgs = (c.messages||[]).filter(m=> (m.from==='master'&&m.to==='admin') || (m.from==='admin'&&m.to==='master'));
-  if(!msgs.length){ box.innerHTML='<div class="muted">Nėra žinučių</div>'; return; }
-  msgs.forEach(m=>{
-    const me = m.from==='master';
-    const wrap = document.createElement('div');
-    wrap.style.display='flex';
-    wrap.style.justifyContent = me?'flex-end':'flex-start';
-    wrap.style.margin='4px 0';
-    const bubble = document.createElement('div');
-    bubble.className='card';
-    bubble.style.maxWidth='80%';
-    bubble.style.background = me?'#e0f2fe':'#e8f5e9';
-    bubble.innerHTML = `<div class="muted" style="font-size:12px">${m.from} → ${m.to} • ${Zen.fmt(m.time)}</div>
-                        <div style="white-space:pre-wrap">${m.text||''}</div>`;
-    if(m.files?.length){
-      bubble.insertAdjacentHTML('beforeend','<div style="margin-top:6px" class="chips">'+ m.files.map(f=>`<span class="pill">${Zen.icon(f.name)} ${f.name}</span>`).join('') +'</div>');
-    }
-    wrap.appendChild(bubble); box.appendChild(wrap);
-  });
-  box.scrollTop = box.scrollHeight;
-}
-
-// detail controls
-$('#btn-back').onclick = ()=>{ elDetail.classList.add('hidden'); openId=null; renderList(); };
-$('#btn-start').onclick = ()=>{ if(!timerStart) timerStart=Date.now(); };
-$('#btn-stop').onclick  = ()=>{ if(!openId || !timerStart) return; const all=Zen.getClaims(); const c=all.find(x=>x.id===openId); c.timeSpentSec=(c.timeSpentSec||0)+Math.floor((Date.now()-timerStart)/1000); timerStart=null; Zen.setClaims(all); $('#pill-time').textContent=`Sukaupta: ${((c.timeSpentSec||0)/3600).toFixed(2)} h`; };
-
-$('#btn-add-files').onclick = ()=> $('#file-input').click();
-$('#file-input').onchange = async (e)=>{
-  if(!openId) return;
-  const files = await Zen.uploadFiles(e.target.files);
-  const all = Zen.getClaims(); const c = all.find(x=>x.id===openId);
-  c.masterFiles = [...(c.masterFiles||[]), ...files];
-  c.updatedAt = Date.now();
-  Zen.setClaims(all);
-  renderFiles(c);
-  // queue sync op
-  for(const f of files){
-    await queueOp({ id:'op_'+Math.random().toString(36).slice(2), type:'upload', claimId:c.id, fileName:f.name });
-  }
-};
-
-$('#chat-send').onclick = async ()=>{
-  if(!openId) return;
-  const text = ($('#chat-input').value||'').trim();
-  if(!text) return;
-  const all=Zen.getClaims(); const c=all.find(x=>x.id===openId);
-  c.messages = [...(c.messages||[]), { id:'msg_'+Math.random().toString(36).slice(2), from:'master', to:'admin', text, time:new Date().toISOString() }];
-  c.updatedAt = Date.now();
-  Zen.setClaims(all);
-  $('#chat-input').value='';
-  renderChat(c);
-  await queueOp({ id:'op_'+Math.random().toString(36).slice(2), type:'message', claimId:c.id });
-};
-
-// report
-['rep-work','rep-labor','rep-km','rep-extra'].forEach(id=> $( '#'+id ).addEventListener('input', updateTotal));
-function updateTotal(){
-  const h = parseFloat($('#rep-labor').value||0);
-  const km = parseFloat($('#rep-km').value||0);
-  const ex = parseFloat($('#rep-extra').value||0);
-  const parts = 0; // v0: be dalių eilutės
-  const total = h*25 + km*0.35 + ex + parts;
-  $('#rep-total').textContent = `Bendra suma: € ${total.toFixed(2)}`;
-}
-$('#rep-save').onclick = async ()=>{
-  if(!openId) return;
-  const all=Zen.getClaims(); const c=all.find(x=>x.id===openId);
-  const total = (parseFloat($('#rep-labor').value||0)*25) + (parseFloat($('#rep-km').value||0)*0.35) + (parseFloat($('#rep-extra').value||0)||0);
-  c.masterReport = {
-    work: $('#rep-work').value||'',
-    laborHours: parseFloat($('#rep-labor').value||0),
-    travelKm: parseFloat($('#rep-km').value||0),
-    extraCosts: parseFloat($('#rep-extra').value||0),
-    total,
-    finalizedAt: new Date().toISOString()
-  };
-  c.status = 'Išspręsta';
-  c.updatedAt = Date.now();
-  Zen.setClaims(all);
-  renderList();
-  notify('Būsena atnaujinta', `Pretenzija #${c.id} -> Išspręsta`);
-  await queueOp({ id:'op_'+Math.random().toString(36).slice(2), type:'report', claimId:c.id });
-};
-
-// search refresh on storage change
-window.addEventListener('storage', renderList);
-
-// queue indicators
-async function updateQueueIndicator(){
-  const count = (await getQueue()).length;
-  $('#q-count').textContent = count;
-  $('#flag-queued').style.display = count? '' : 'none';
-}
-
-/* =========================================================
-   CONFLICT RESOLUTION (simple LWW + merge arrays)
-========================================================= */
-function resolveConflict(local, remote){
-  // Demo strategija: LWW pagal updatedAt; failų masyvus sujungiame pagal name
-  if((remote.updatedAt||0) > (local.updatedAt||0)){
-    const merged = {...local, ...remote};
-    const lf = local.masterFiles||[], rf = remote.masterFiles||[];
-    const by = new Map([...lf, ...rf].map(x=>[x.name, x]));
-    merged.masterFiles = [...by.values()];
-    return merged;
-  }
-  return local;
-}
-
-/* =========================================================
-   PWA: manifest + service worker + background sync + push
-========================================================= */
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; $('#btn-install').classList.remove('hidden'); });
-$('#btn-install').onclick = async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; $('#btn-install').classList.add('hidden'); };
-
-(async function registerSW(){
-  if(!('serviceWorker' in navigator)) return;
-
-  // --- dynamic manifest (single-file delivery) ---
-  const manifest ={
-  "name": "Rubineta Master Mobile",
-  "short_name": "Master",
-  "start_url": "/mobilev4.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#111111",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Crect width='100%25' height='100%25' fill='%23111'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='260' fill='white'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ]
-}
-let mEl = document.querySelector('link[rel="manifest"]');
-if (!mEl) { mEl = document.createElement('link'); mEl.rel = 'manifest'; document.head.appendChild(mEl); }
-// jei failai guli šalia mobilev4.html:
-mEl.href = './manifest.webmanifest';
-// jei dėsi į šaknį – naudok: mEl.href = '/manifest.webmanifest';
-
-  // --- service worker (as blob) ---
-  const SECURE = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-
-if ('serviceWorker' in navigator && SECURE) {
-  try {
-    const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    navigator.serviceWorker.addEventListener('message', (ev)=>{
-      if (ev.data?.type === 'SYNC_OK') updateQueueIndicator();
-    });
-    console.log('✅ SW užregistruotas', reg);
-  } catch (e) {
-    console.error('❌ SW registracijos klaida:', e);
-  }
-} else {
-  console.warn('SW praleidžiamas: nesaugus kontekstas arba nepalaikomas.', location.origin);
-}
-
-})();
-
-// manual sync
-$('#btn-sync-now').onclick = ()=> processQueue();
-
-// online/offline flags
-function updateConn(){
-  $('#flag-online').style.display = navigator.onLine? '' : 'none';
-  $('#flag-offline').style.display = navigator.onLine? 'none' : '';
-}
-updateConn();
-window.addEventListener('online', updateConn);
-window.addEventListener('offline', updateConn);
-
-/* =========================================================
-   NOTIFICATIONS
-========================================================= */
-async function ensurePermission(){
-  if(!('Notification' in window)) return false;
-  if(Notification.permission === 'granted') return true;
-  if(Notification.permission === 'denied') return false;
-  const p = await Notification.requestPermission();
-  return p==='granted';
-}
-async function getQueue(){ if (!syncDB) return []; return idbAll(idbTx(syncDB,'ops')); }
-async function queueOp(op){
-  if (!syncDB) { console.warn('IDB dar nepasiruošęs, praleidžiam:', op.type); return; }
-  const store = idbTx(syncDB,'ops','readwrite');
-  await idbPut(store, op);
-  // ...
-}
-
-async function notify(title, body){
-  const ok = await ensurePermission();
-  if(!ok) return;
-  if('serviceWorker' in navigator){
-    const reg = await navigator.serviceWorker.ready;
-    reg.showNotification(title, { body });
-  } else new Notification(title, { body });
-}
-$('#btn-notify-test').onclick = ()=> notify('Test pranešimas', 'Sveikas, meistre!');
-
-/* INIT */
-migrateClaims();           // <-- nauja eilutė
-// jei „Man priskirtos“ nieko neranda – perjunk į „Visos“
-function smartDefaultFilter(){
-  const mine = Zen.getClaims().some(c => (c.assignedPartner||'').toLowerCase()===(CURRENT.name||'').toLowerCase());
-  pageFilter = mine ? 'assigned' : 'all';
-  const sel = document.querySelector('#filter');
-  if (sel) sel.value = pageFilter;
-}
-smartDefaultFilter();
-renderList();
-updateQueueIndicator();
-
-// jei atėjo su ?id=CLM-... -> atidaryk detales iškart
-const urlId = new URLSearchParams(location.search).get('id');
-if (urlId) {
-  // užtikrinam, kad matysis ir jei nepriskirta
-  pageFilter = 'all';
-  const sel = document.querySelector('#filter'); if (sel) sel.value='all';
-  renderList();
-  showDetail(urlId);
-}
-</script>
 </body>
 </html>
-
