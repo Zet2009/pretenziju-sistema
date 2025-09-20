@@ -241,27 +241,7 @@ async function processQueue(){
 }
 
 window.addEventListener('online', processQueue);
-function legacyToNew(m){
-  if (m && m.from && m.to) return m;
-  if (!m) return m;
-  if (m.author==='quality') return {from:'admin', to:'user', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
-  if (m.author==='customer') return {from:'user', to:'admin', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
-  if (m.author==='master')   return {from:'master', to:'admin', text:m.text, files:m.attachments||[], time:m.time, id:m.id};
-  return m;
-}
-function migrateClaims(){
-  const claims = Zen.getClaims();
-  let changed = false;
-  claims.forEach(c=>{
-    if (Array.isArray(c.messages)) {
-      const mapped = c.messages.map(legacyToNew);
-      if (JSON.stringify(mapped)!==JSON.stringify(c.messages)) {
-        c.messages = mapped; changed = true;
-      }
-    }
-  });
-  if (changed) Zen.setClaims(claims);
-}
+
 /* =========================================================
    DATA (uses same localStorage 'claims' shape as admin side)
 ========================================================= */
@@ -550,44 +530,91 @@ $('#btn-install').onclick = async ()=>{ if(!deferredPrompt) return; deferredProm
   if(!('serviceWorker' in navigator)) return;
 
   // --- dynamic manifest (single-file delivery) ---
-  const manifest ={
-  "name": "Rubineta Master Mobile",
-  "short_name": "Master",
-  "start_url": "/mobilev4.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#111111",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Crect width='100%25' height='100%25' fill='%23111'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='260' fill='white'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ]
-}
-let mEl = document.querySelector('link[rel="manifest"]');
-if (!mEl) { mEl = document.createElement('link'); mEl.rel = 'manifest'; document.head.appendChild(mEl); }
-// jei failai guli šalia mobilev4.html:
-mEl.href = './manifest.webmanifest';
-// jei dėsi į šaknį – naudok: mEl.href = '/manifest.webmanifest';
+  const manifest = {
+    name: "Rubineta Master Mobile",
+    short_name: "Master",
+    start_url: location.pathname + location.search,
+    display: "standalone",
+    background_color: "#111111",
+    theme_color: "#111111",
+    icons: [
+      { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Crect width='100%25' height='100%25' fill='%23111'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='260' fill='white'%3E🔧%3C/text%3E%3C/svg%3E", sizes:"512x512", type:"image/svg+xml" }
+    ]
+  };
+  const mBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const mUrl = URL.createObjectURL(mBlob);
+  let mEl = document.querySelector('link[rel="manifest"]');
+  if(!mEl){ mEl = document.createElement('link'); mEl.rel='manifest'; document.head.appendChild(mEl); }
+  mEl.href = mUrl;
 
   // --- service worker (as blob) ---
-  const SECURE = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const swCode = `
+    const CACHE = 'master-cache-v1';
+    const CORE = ['${location.pathname}'];
+    // idb helper inside SW
+    const idbOpen=(n,v=1,u)=>new Promise((res,rej)=>{const r=indexedDB.open(n,v);r.onupgradeneeded=e=>u&&u(e.target.result);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+    const idbTx=(db,s,m='readonly')=>db.transaction(s,m).objectStore(s);
+    const idbAll=(st)=>new Promise((res,rej)=>{const out=[];const c=st.openCursor();c.onsuccess=e=>{const cur=e.target.result;if(cur){out.push(cur.value);cur.continue();}else res(out)};c.onerror=()=>rej(c.error)});
+    const idbDel=(st,k)=>new Promise((res,rej)=>{const r=st.delete(k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)});
+    let syncDB;
+    (async()=>{ syncDB=await idbOpen('rubineta-sync',1,(db)=>{ if(!db.objectStoreNames.contains('ops')) db.createObjectStore('ops',{keyPath:'id'}) }); })();
 
-if ('serviceWorker' in navigator && SECURE) {
-  try {
-    const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    navigator.serviceWorker.addEventListener('message', (ev)=>{
-      if (ev.data?.type === 'SYNC_OK') updateQueueIndicator();
+    self.addEventListener('install', (e)=> {
+      e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));
     });
-    console.log('✅ SW užregistruotas', reg);
-  } catch (e) {
-    console.error('❌ SW registracijos klaida:', e);
-  }
-} else {
-  console.warn('SW praleidžiamas: nesaugus kontekstas arba nepalaikomas.', location.origin);
-}
+    self.addEventListener('activate', (e)=> { e.waitUntil(self.clients.claim()); });
 
+    // App Shell cache-first
+    self.addEventListener('fetch', (e)=>{
+      const {request} = e;
+      if(request.method!=='GET'){ return; }
+      e.respondWith(
+        caches.match(request).then(res => res || fetch(request).then(resp=>{
+          const clone = resp.clone();
+          caches.open(CACHE).then(c=>c.put(request, clone)).catch(()=>{});
+          return resp;
+        }).catch(()=> res || new Response('',{status:504})))
+      );
+    });
+
+    // Background Sync
+    self.addEventListener('sync', async (event)=>{
+      if(event.tag !== 'sync-queue') return;
+      event.waitUntil((async()=>{
+        const ops = await idbAll(idbTx(syncDB,'ops'));
+        for(const op of ops){
+          try{
+            // Try fake endpoint; if offline -> throw to retry later
+            if(!self.navigator.onLine) throw new Error('offline');
+            // simulate latency
+            await new Promise(r=>setTimeout(r,300));
+            await idbDel(idbTx(syncDB,'ops','readwrite'), op.id);
+            // notify clients
+            const cl = await self.clients.matchAll({type:'window'});
+            cl.forEach(c => c.postMessage({type:'SYNC_OK', id:op.id}));
+          }catch(e){
+            // will retry next time
+          }
+        }
+      })());
+    });
+
+    // Push Notifications (requires real push server; here we only display)
+    self.addEventListener('push', (e)=>{
+      const data = e.data ? e.data.json() : {title:'Rubineta', body:'Naujas pranešimas'};
+      e.waitUntil(self.registration.showNotification(data.title, {body:data.body, icon:'/favicon.ico', badge:'/favicon.ico', data}));
+    });
+
+    self.addEventListener('notificationclick', (e)=>{
+      e.notification.close();
+      e.waitUntil(self.clients.openWindow('${location.pathname}'));
+    });
+  `;
+  const swUrl = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
+  await navigator.serviceWorker.register(swUrl, {scope: './'});
+  navigator.serviceWorker.addEventListener('message', (ev)=>{
+    if(ev.data?.type==='SYNC_OK') updateQueueIndicator();
+  });
 })();
 
 // manual sync
@@ -612,14 +639,6 @@ async function ensurePermission(){
   const p = await Notification.requestPermission();
   return p==='granted';
 }
-async function getQueue(){ if (!syncDB) return []; return idbAll(idbTx(syncDB,'ops')); }
-async function queueOp(op){
-  if (!syncDB) { console.warn('IDB dar nepasiruošęs, praleidžiam:', op.type); return; }
-  const store = idbTx(syncDB,'ops','readwrite');
-  await idbPut(store, op);
-  // ...
-}
-
 async function notify(title, body){
   const ok = await ensurePermission();
   if(!ok) return;
@@ -630,28 +649,12 @@ async function notify(title, body){
 }
 $('#btn-notify-test').onclick = ()=> notify('Test pranešimas', 'Sveikas, meistre!');
 
-/* INIT */
-migrateClaims();           // <-- nauja eilutė
-// jei „Man priskirtos“ nieko neranda – perjunk į „Visos“
-function smartDefaultFilter(){
-  const mine = Zen.getClaims().some(c => (c.assignedPartner||'').toLowerCase()===(CURRENT.name||'').toLowerCase());
-  pageFilter = mine ? 'assigned' : 'all';
-  const sel = document.querySelector('#filter');
-  if (sel) sel.value = pageFilter;
-}
-smartDefaultFilter();
+/* =========================================================
+   INIT
+========================================================= */
 renderList();
 updateQueueIndicator();
-
-// jei atėjo su ?id=CLM-... -> atidaryk detales iškart
-const urlId = new URLSearchParams(location.search).get('id');
-if (urlId) {
-  // užtikrinam, kad matysis ir jei nepriskirta
-  pageFilter = 'all';
-  const sel = document.querySelector('#filter'); if (sel) sel.value='all';
-  renderList();
-  showDetail(urlId);
-}
 </script>
 </body>
 </html>
+
