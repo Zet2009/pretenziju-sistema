@@ -72,22 +72,22 @@
   /* Nauji stiliai parašo aktyvavimui */
   .sig-container { position: relative; }
   .sig-overlay { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0; 
-    background: rgba(255,255,255,0.9); 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    border-radius: 10px;
-    flex-direction: column;
-    gap: 10px;
+    position:absolute; 
+    top:0; 
+    left:0; 
+    right:0; 
+    bottom:0; 
+    background:rgba(255,255,255,0.9); 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    border-radius:10px;
+    flex-direction:column;
+    gap:10px;
   }
   .sig-disabled { 
-    pointer-events: none; 
-    opacity: 0.7; 
+    pointer-events:none; 
+    opacity:0.7; 
   }
 
   .offline{position:sticky;top:0;z-index:20;margin:-12px -12px 12px -12px;padding:8px 12px;background:#fff3cd;border-bottom:1px solid #facc15;font-size:13px}
@@ -649,7 +649,7 @@ function renderDetail(id){
 
   renderGallery();
 
-  // camera - FIXED VERSION
+  // camera - PATAISYTA VERSIJA
   const camVideo=document.getElementById('camVideo');
   const camCanvas=document.getElementById('camCanvas');
   const camStart=document.getElementById('camStart');
@@ -659,41 +659,49 @@ function renderDetail(id){
 
   camStart.addEventListener('click', async ()=>{
     try{
-      // Pataisytas kameros paleidimas - paprastesnis būdas
+      // Paprastesnis kameros paleidimas
       const constraints = {
         video: {
-          facingMode: 'environment', // galinė kamera
           width: { ideal: 1280 },
           height: { ideal: 720 }
         },
         audio: false
       };
       
-      camStream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Bandome įvairius būdus paleisti kamerą
+      camStream = await navigator.mediaDevices.getUserMedia(constraints)
+        .catch(async () => {
+          // Bandome su paprastesniais nustatymais
+          return await navigator.mediaDevices.getUserMedia({ 
+            video: true, 
+            audio: false 
+          });
+        });
+      
       camVideo.srcObject = camStream;
       
-      // Laukiam kol video bus įkeltas
       camVideo.onloadedmetadata = () => {
-        camVideo.play();
-        camShot.disabled = false;
-        camStop.disabled = false;
-        camStart.disabled = true;
+        camVideo.play()
+          .then(() => {
+            camShot.disabled = false;
+            camStop.disabled = false;
+            camStart.disabled = true;
+            toast('Kamera sėkmingai paleista');
+          })
+          .catch(e => {
+            console.error('Klaida leidžiant video:', e);
+            toast('Klaida paleidžiant kamerą');
+          });
       };
-    } catch(e) {
+      
+      camVideo.onerror = (e) => {
+        console.error('Video klaida:', e);
+        toast('Kamera nepaleista');
+      };
+      
+    } catch(e){
       console.error('Kameros klaida:', e);
-      // Bandome su paprastesniais nustatymais
-      try {
-        camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        camVideo.srcObject = camStream;
-        camVideo.onloadedmetadata = () => {
-          camVideo.play();
-          camShot.disabled = false;
-          camStop.disabled = false;
-          camStart.disabled = true;
-        };
-      } catch(error) {
-        alert('Nepavyko paleisti kameros. Patikrinkite leidimus arba bandykite kitą naršyklę.');
-      }
+      alert('Nepavyko paleisti kameros. Patikrinkite leidimus arba bandykite kitą naršyklę.');
     }
   });
 
@@ -703,41 +711,38 @@ function renderDetail(id){
       return;
     }
     
-    try {
+    try{
       const video = camVideo;
       const canvas = camCanvas;
       
-      // Nustatome canvas dydį pagal video
+      // Tikriname ar video turi teisingus matmenis
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        toast('Kamera dar neparengta. Palaukite.');
+        return;
+      }
+      
+      // Nustatome canvas dydį
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      // Nupiešiame vaizdą ant canvas
+      // Nupiešiame vaizdą
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      // Sukuriame mažesnę kopiją (suspaudimui)
-      const tempCanvas = document.createElement('canvas');
-      const maxWidth = 1200;
-      const ratio = Math.min(maxWidth / canvas.width, 1);
-      tempCanvas.width = canvas.width * ratio;
-      tempCanvas.height = canvas.height * ratio;
-      
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-      
       // Konvertuojame į dataURL
-      const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.8);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
       
       // Įrašome į laukiančių nuotraukų sąrašą
-      pendingCamImages.push(dataUrl); 
+      pendingCamImages.push(dataUrl);
       lastCaptured = dataUrl;
       
       // Atnaujiname galeriją
       renderGallery();
       document.getElementById('annStart').disabled = false;
       
-      toast('Nuotrauka sėkmingai padaryta!');
-    } catch(error) {
+      toast('Nuotrauka sėkmingai padaryta! Įkelta: ' + pendingCamImages.length);
+      
+    }catch(error){
       console.error('Nuotraukos kūrimo klaida:', error);
       toast('Klaida kuriant nuotrauką');
     }
@@ -745,7 +750,9 @@ function renderDetail(id){
 
   camStop.addEventListener('click', ()=>{
     if(camStream){ 
-      camStream.getTracks().forEach(track => track.stop()); 
+      camStream.getTracks().forEach(track => {
+        track.stop();
+      });
       camStream = null; 
     }
     camVideo.pause(); 
@@ -753,6 +760,7 @@ function renderDetail(id){
     camShot.disabled = true;
     camStop.disabled = true;
     camStart.disabled = false;
+    toast('Kamera išjungta');
   });
 
   // annotate last captured - FIXED CALIBRATION
