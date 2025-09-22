@@ -1,76 +1,159 @@
 <!DOCTYPE html>
 <html lang="lt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Meistro užduotys</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>:root{--ink:#1f2937; --muted:#6b7280;--bg:#f6f7f9; --card:#ffffff; --line:#e5e7eb;--primary:#111111; --accent:#ffcc00; --accent-ink:#111111;--ok:#16a34a; --warn:#f59e0b; --info:#0ea5e9;--radius:14px; --shadow:0 4px 14px rgba(17,24,39,.06);}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Roboto',sans-serif;line-height:1.5;color:var(--ink);background:var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}main{max-width:800px;margin:0 auto;padding:12px}.section{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.pill{padding:4px 8px;border-radius:999px;font-size:12px;background:#f1f5f9;color:#64748b}.pill.ok{background:#dcfce7;color:#166534}.pill.warn{background:#fef3c7;color:#92400e}.pill.info{background:#e0f2fe;color:#0369a1}.btn{padding:8px 12px;border:none;border-radius:999px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}.btn-dark{background:var(--ink);color:#fff}.btn-accent{background:var(--accent);color:var(--accent-ink)}.btn-ok{background:var(--ok);color:#fff}.meta{font-size:13px;color:var(--muted)}.line{margin:4px 0}.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.file{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden}.file img,.file video{width:100%;height:auto;display:block;max-height:160px;object-fit:cover}.del{position:absolute;top:6px;right:6px;background:red;color:#fff;border:none;width:24px;height:24px;border-radius:999px;font-size:14px;opacity:0.9;z-index:2}.sig{border:1px solid var(--line);border-radius:10px;background:#fff;width:100%;height:220px;cursor:crosshair}.annotate-bar{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.stat-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.chip{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#f8fafc;font-size:13px}.checklist-item{display:flex;gap:8px;align-items:center;padding:4px 0}.search{display:flex;align-items:center;gap:8px;background:#fff;padding:10px;border-radius:10px;margin-bottom:12px}.search div:first-child{color:var(--muted)}.search input{flex:1;border:none;background:transparent;font-size:14px}input::placeholder{color:var(--muted)}.tabs{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}.tab{padding:8px 12px;border-radius:10px;background:#f1f5f9;border:none;font-size:14px;white-space:nowrap}.tab.active{background:var(--primary);color:#fff}.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}.tiny-actions{display:flex;gap:6px;margin-top:12px}.offline{background:#dc2626;color:#fff;text-align:center;padding:8px;border-radius:10px;margin-bottom:12px;font-size:14px}.brand{display:flex;align-items:center;gap:8px}.avatar{width:32px;height:32px;background:var(--accent);border-radius:999px}.t{font-weight:500}.bar{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:12px}@media print{header, .search, .tabs, .cta, .tiny-actions, #dropzone, .cam-wrap, #sigSave, #sigClear, #scanBtn, #serialSave, .offline { display:none !important; }body { background:#fff; }.section { box-shadow:none; border:none; }}</style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Meistro užduotys</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280;
+    --bg:#f6f7f9; --card:#ffffff; --line:#e5e7eb;
+    --primary:#111111; --accent:#ffcc00; --accent-ink:#111111;
+    --ok:#16a34a; --warn:#f59e0b; --info:#0ea5e9;
+    --radius:14px; --shadow:0 4px 14px rgba(17,24,39,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  header{position:sticky;top:0;z-index:10;background:var(--card);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .avatar{width:28px;height:28px;border-radius:8px;background:#111}
+  .brand .t{font-weight:700}
+  .btn{border:none;border-radius:12px;padding:10px 12px;font-weight:600;cursor:pointer}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn-accent{background:var(--accent);color:var(--accent-ink)}
+  .btn-dark{background:#0f172a;color:#fff}
+  .btn-ok{background:var(--ok);color:#fff}
+  .btn-warn{background:#fff5e6;border:1px solid #ffd69b}
+  main{padding:12px}
+
+  .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .search input{border:none;outline:none;flex:1;font-size:14px}
+  .tabs{display:flex;gap:8px;overflow:auto;padding:10px 0}
+  .tab{border:2px solid #0001;background:#fff;border-radius:999px;padding:8px 12px;font-weight:600;white-space:nowrap}
+  .tab.active{border-color:#111;color:#111}
+  .cnt{margin-left:6px;font-weight:700}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
+  .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;background:#f3f4f6}
+  .pill.ok{background:#e9f9ef;border-color:#bce8c8}
+  .pill.warn{background:#fff5e6;border-color:#ffd69b}
+  .pill.info{background:#e8f5fe;border-color:#bfe3ff}
+  .meta{font-size:12px;color:var(--muted)}
+  .title{font-weight:700;margin:8px 0}
+  .line{font-size:13px;margin:4px 0}
+  .tiny-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .tiny-actions .btn{padding:6px 10px;border-radius:10px;font-size:13px}
+  .cta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+  .cta .btn{padding:12px 10px;border-radius:12px}
+
+  .section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+  .section h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .section h3::before{content:"";width:6px;height:6px;background:#111;border-radius:50%}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .file{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;position:relative}
+  .file img,.file video{max-width:100%;border-radius:6px}
+  .file .del{position:absolute;top:6px;right:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+
+  #dropzone{border:2px dashed #cbd5e1;border-radius:12px;padding:16px;text-align:center;cursor:pointer}
+  .cam-wrap{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fafafa;margin-top:10px}
+  .cam-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .cam-video{width:100%;border-radius:10px;background:#000;max-height:280px}
+  .annotate-bar{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+
+  .stat-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .chip{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#f8fafc;font-size:13px}
+  .checklist-item{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .checklist-item input[type="text"]{flex:1;padding:8px;border:1px solid var(--line);border-radius:8px}
+  canvas.sig{width:100%;height:140px;border:1px dashed var(--line);border-radius:10px;background:#fff;touch-action:none}
+
+  .offline{position:sticky;top:0;z-index:20;margin:-12px -12px 12px -12px;padding:8px 12px;background:#fff3cd;border-bottom:1px solid #facc15;font-size:13px}
+
+  /* spausdinimas: tik detalės ataskaitai */
+  @media print{
+    header, .search, .tabs, .cta, .tiny-actions, #dropzone, .cam-wrap, #sigSave, #sigClear, #scanBtn, #serialSave, .offline { display:none !important; }
+    body { background:#fff; }
+    .section { box-shadow:none; border:none; }
+  }
+</style>
 </head>
 <body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <div class="avatar"></div>
+      <div class="t">Meistro užduotys</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" id="shareBtn" title="Dalintis nuoroda">Dalintis</button>
+      <button class="btn btn-ghost" id="logoutBtn">Atsijungti</button>
+    </div>
+  </div>
+</header>
 
-<div id="app"></div>
+<main id="app"></main>
 
 <script>
+/* ========= local data + helpers ========= */
+const getClaims = () => { try{return JSON.parse(localStorage.getItem('claims')||'[]')}catch(_){return []} };
+const setClaims = (v) => localStorage.setItem('claims', JSON.stringify(v));
+const fmt = (ts) => { try{return new Date(ts).toLocaleString('lt-LT')}catch(_){return ts} };
+const byId = (arr,id)=> arr.findIndex(x=>x.id===id);
 
-// --- BENDROS FUNKCIJOS ---
 const app = document.getElementById('app');
-const claimId = new URLSearchParams(location.search).get('id');
+const params = new URLSearchParams(location.search);
+const claimId = params.get('id');
 
-function toast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:10px;z-index:9999;';
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
-}
-
-function getClaims() {
-  return JSON.parse(localStorage.getItem('claims') || '[]');
-}
-
-function setClaims(cs) {
-  localStorage.setItem('claims', JSON.stringify(cs));
-}
-
-function saveClaim() {
-  const all = getClaims();
-  const i = all.findIndex(c => c.id === claim.id);
-  if (i > -1) {
-    all[i] = claim;
-    setClaims(all);
+window.addEventListener('online', drawOffline);
+window.addEventListener('offline', drawOffline);
+function drawOffline(){
+  const old = document.querySelector('.offline');
+  if (old) old.remove();
+  if (!navigator.onLine){
+    const bar = document.createElement('div');
+    bar.className = 'offline';
+    bar.textContent = 'Offline režimas: pakeitimai bus saugoti įrenginyje.';
+    app.prepend(bar);
   }
 }
 
-function addHistory(action) {
-  claim.history = claim.history || [];
-  claim.history.push({
-    user: 'Meistras',
-    time: new Date().toISOString(),
-    action
+/* ========= MIGRACIJA (atsparumas skirtingoms struktūroms) ========= */
+function migrate(){
+  const cs = getClaims();
+  let changed=false;
+  cs.forEach(c=>{
+    c.history = Array.isArray(c.history) ? c.history : [];
+    c.parts = Array.isArray(c.parts) ? c.parts : [];
+    if (Array.isArray(c.files)) {
+      // normalizuojam vartotojo failus (string -> object)
+      c.files = c.files.map(item=>{
+        if (typeof item==='string'){
+          const url=item; const name=url.split('/').pop()||'failas';
+          const type = /\.(jpg|jpeg|png|webp|gif)$/i.test(url) ? 'image'
+                    : /\.(mp4|webm|mov)$/i.test(url) ? 'video'
+                    : /\.(pdf)$/i.test(url) ? 'pdf' : 'file';
+          return {name, url, type};
+        }
+        return item;
+      });
+      changed = true;
+    }
   });
+  if (changed) setClaims(cs);
 }
+migrate();
 
-function drawOffline() {
-  if (navigator.onLine) return;
-  const offline = document.createElement('div');
-  offline.className = 'offline';
-  offline.textContent = '⚠️ Jūs esate neprisijungęs prie interneto. Duomenys saugomi lokaliniame talpykloje.';
-  app.insertBefore(offline, app.firstChild);
-}
-
-function migrate() {}
-
-// --- ROUTER ---
+/* ========= Router ========= */
 if (claimId) renderDetail(claimId); else renderList();
 
-// --- LIST ---
-function renderList() {
+/* =================== LIST =================== */
+function renderList(){
   let claims = getClaims();
   app.innerHTML = `
     <div class="search">
-      <div>🔎</div>
-      <input id="q" placeholder="Ieškoti užduočių (ID, produktas, adresas, klientas)…" />
+      <div>🔎</div><input id="q" placeholder="Ieškoti užduočių (ID, produktas, adresas, klientas)…" />
     </div>
     <div class="tabs" id="tabs">
       <button class="tab active" data-filter="atviros">Atviros <span class="cnt" id="c-atv">0</span></button>
@@ -82,133 +165,155 @@ function renderList() {
     <div id="list"></div>
   `;
   drawOffline();
+
   const q = document.getElementById('q');
   const tabs = document.getElementById('tabs');
-  const listEl = document.getElementById('list');
+  const list = document.getElementById('list');
   let filter = 'atviros';
 
-  function counters() {
-    const c = { atv: 0, vyk: 0, dal: 0, uzb: 0, vis: claims.length };
-    claims.forEach(x => {
-      if (x.status === 'Užbaigta') c.uzb++;
-      else if (x.status === 'Vykdoma') c.vyk++;
-      else if (x.status === 'Laukia dalių') c.dal++;
+  function counters(){
+    const c = {atv:0,vyk:0,dal:0,uzb:0,vis:claims.length};
+    claims.forEach(x=>{
+      if(x.status==='Užbaigta') c.uzb++;
+      else if(x.status==='Vykdoma') c.vyk++;
+      else if(x.status==='Laukia dalių') c.dal++;
       else c.atv++;
     });
-    ['atv','vyk','dal','uzb','vis'].forEach(k => {
-      const el = document.getElementById(`c-${k}`);
-      if (el) el.textContent = c[k];
-    });
+    document.getElementById('c-atv').textContent=c.atv;
+    document.getElementById('c-vyk').textContent=c.vyk;
+    document.getElementById('c-dal').textContent=c.dal;
+    document.getElementById('c-uzb').textContent=c.uzb;
+    document.getElementById('c-vis').textContent=c.vis;
   }
 
-  function apply() {
-    const term = (q.value || '').toLowerCase().trim();
-    const filtered = claims.filter(c => {
-      if (filter === 'vykdomos' && c.status !== 'Vykdoma') return false;
-      if (filter === 'dalys' && c.status !== 'Laukia dalių') return false;
-      if (filter === 'uzbaigtos' && c.status !== 'Užbaigta') return false;
-      if (filter === 'atviros' && c.status === 'Užbaigta') return false;
-      if (!term) return true;
-      const hay = [c.id, c.product, c.description, c?.contact?.street, c?.contact?.city, c?.contact?.name, c?.contact?.surname].join(' ').toLowerCase();
+  function card(c){
+    const addr = [c?.contact?.street, c?.contact?.city].filter(Boolean).join(', ');
+    const phone = c?.contact?.phone || '';
+    const tel = phone? `tel:${phone.replace(/\s+/g,'')}` : 'javascript:void(0)';
+    const sms = phone? `sms:${phone.replace(/\s+/g,'')}?body=${encodeURIComponent('Sveiki, vykstu dėl garantinio… / Rubineta')}` : 'javascript:void(0)';
+    const mapsQ = encodeURIComponent(addr || (c?.contact?.street||'')); 
+    const nav = (/(Android|iPhone|iPad)/i.test(navigator.userAgent))
+      ? `geo:0,0?q=${mapsQ}` : `https://www.google.com/maps/search/?api=1&query=${mapsQ}`;
+    const pillCls = c.status==='Užbaigta'?'pill ok': c.status==='Laukia dalių'?'pill warn': c.status==='Vykdoma'?'pill info':'pill';
+
+    return `
+    <div class="card">
+      <div class="head">
+        <div class="${pillCls}">${c.status||'Nauja'}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="location.href='master-mobile.html?id=${c.id}'">Peržiūrėti</button>
+          <button class="btn btn-ghost" onclick="navigator.share?navigator.share({title:'Užduotis #${c.id}',url:location.origin+location.pathname+'?id=${c.id}' }):copyLink('${c.id}')">Dalintis</button>
+        </div>
+      </div>
+      <div class="meta">#${c.id} • ${new Date(c.date).toLocaleDateString('lt-LT')}</div>
+      <div class="title">${c.description || 'Užduotis'}</div>
+      <div class="line"><b>Produktas:</b> ${c.product || '-'}</div>
+      <div class="line">${addr ? addr + ' • ' : ''}<b>Klientas:</b> ${c?.contact?.name||''} ${c?.contact?.surname||''}</div>
+
+      <div class="tiny-actions">
+        <a class="btn btn-ghost" href="${tel}">📞 Skambinti</a>
+        <a class="btn btn-ghost" href="${nav}" target="_blank">🧭 Maršrutas</a>
+        <a class="btn btn-ghost" href="${sms}">💬 Priminti</a>
+      </div>
+
+      <div class="cta">
+        <button class="btn btn-accent" onclick="setStatus('${c.id}','Vykdoma')">Pradėti</button>
+        <button class="btn btn-dark" onclick="markParts('${c.id}')">Dalys</button>
+        <button class="btn btn-ok" onclick="setStatus('${c.id}','Užbaigta')">Užbaigti</button>
+      </div>
+    </div>`;
+  }
+
+  function apply(){
+    const term = (q.value||'').toLowerCase().trim();
+    const filtered = claims.filter(c=>{
+      if (filter==='vykdomos' && c.status!=='Vykdoma') return false;
+      if (filter==='dalys' && c.status!=='Laukia dalių') return false;
+      if (filter==='uzbaigtos' && c.status!=='Užbaigta') return false;
+      if (filter==='atviros' && (c.status==='Užbaigta')) return false;
+      const hay = [c.id,c.product,c.description,c?.contact?.street,c?.contact?.city,c?.contact?.name,c?.contact?.surname].join(' ').toLowerCase();
       return hay.includes(term);
     });
-    listEl.innerHTML = filtered.map(c => {
-      const addr = [c?.contact?.street, c?.contact?.city].filter(Boolean).join(', ');
-      const phone = c?.contact?.phone;
-      const pillCls = c.status==='Užbaigta'?'pill ok': c.status==='Laukia dalių'?'pill warn': c.status==='Vykdoma'?'pill info':'pill';
-      return `<div class="card">
-        <div class="head">
-          <div><span class="${pillCls}">${c.status}</span> #${c.id}</div>
-          <div>${c.date ? new Date(c.date).toLocaleDateString('lt-LT') : ''}</div>
-        </div>
-        <div class="line"><b>Produktas:</b> ${c.product||''}</div>
-        <div class="line"><b>Aprašymas:</b> ${c.description||''}</div>
-        <div class="line"><b>Adresas:</b> ${addr||''}</div>
-        <div class="line"><b>Kontaktas:</b> ${[c?.contact?.name, c?.contact?.surname, c?.contact?.phone].filter(Boolean).join(' • ')}</div>
-        <div class="tiny-actions">
-          <a href="?id=${c.id}" class="btn btn-dark">Redaguoti</a>
-          <button class="btn btn-ghost" onclick="copyLink('${c.id}')">Kopijuoti nuorodą</button>
-          <button class="btn btn-dark" onclick="markParts('${c.id}')">Dalys</button>
-          <button class="btn btn-ok" onclick="setStatus('${c.id}','Užbaigta')">Užbaigti</button>
-        </div>
-      </div>`;
-    }).join('');
+    list.innerHTML = filtered.map(card).join('') || `<div class="meta" style="padding:8px 2px">Nieko nerasta.</div>`;
+    counters();
   }
 
-  q.addEventListener('input', apply);
-  tabs.addEventListener('click', e => {
-    const btn = e.target.closest('.tab');
-    if (!btn) return;
-    document.querySelector('.tab.active').classList.remove('active');
-    btn.classList.add('active');
-    filter = btn.dataset.filter;
+  tabs.addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('tab')) return;
+    [...tabs.children].forEach(t=>t.classList.remove('active'));
+    e.target.classList.add('active');
+    filter = e.target.dataset.filter;
     apply();
   });
+  q.addEventListener('input', apply);
 
-  window.markParts = (id) => {
+  window.setStatus = function(id, status){
     const all = getClaims();
-    const i = all.findIndex(c => c.id === id);
-    if (i === -1) return;
-    all[i].status = 'Laukia dalių';
-    all[i].history = all[i].history || [];
-    const note = prompt('Kokių dalių reikia / komentaras?','');
-    if (note) {
-      all[i].parts = (all[i].parts||[]).concat([{id:'p_'+Date.now(), text:note, done:false}]);
-      all[i].history.push({user:'Meistras', time:new Date().toISOString(), action:'Pažymėta: Laukia dalių ('+note+')'});
-    } else {
-      all[i].history.push({user:'Meistras', time:new Date().toISOString(), action:'Pažymėta: Laukia dalių'});
+    const i = byId(all,id);
+    if (i>-1){
+      all[i].status = status;
+      all[i].history = all[i].history || [];
+      all[i].history.push({ user:'Meistras', time:new Date().toISOString(), action:`Būsena: ${status}` });
+      if (status==='Laukia dalių' && !all[i].parts?.length) {
+        // jei nėra dalių – pridėti tuščią eilutę, kad meistras nepamirštų
+        all[i].parts = [{ id:'p_'+Date.now(), text:'(įrašykite dalis)', done:false }];
+      }
+      setClaims(all);
+      claims = all;
+      apply();
     }
-    setClaims(all);
-    claims = all;
-    apply();
-  };
-
-  window.setStatus = (id, status) => {
+  }
+  window.markParts = function(id){
     const all = getClaims();
-    const i = all.findIndex(c => c.id === id);
-    if (i === -1) return;
-    all[i].status = status;
-    all[i].history = all[i].history || [];
-    all[i].history.push({user:'Meistras', time:new Date().toISOString(), action:`Statusas pakeistas į "${status}"`});
-    setClaims(all);
-    claims = all;
-    apply();
-  };
+    const i = byId(all,id);
+    if (i>-1){
+      all[i].status = 'Laukia dalių';
+      all[i].history = all[i].history || [];
+      const note = prompt('Kokių dalių reikia / komentaras?','');
+      if (note) {
+        all[i].parts = (all[i].parts||[]).concat([{id:'p_'+Date.now(), text:note, done:false}]);
+        all[i].history.push({user:'Meistras', time:new Date().toISOString(), action:'Pažymėta: Laukia dalių ('+note+')'});
+      } else {
+        all[i].history.push({user:'Meistras', time:new Date().toISOString(), action:'Pažymėta: Laukia dalių'});
+      }
+      setClaims(all); claims=all; apply();
+    }
+  }
 
-  counters();
   apply();
 }
 
-// --- DETAIL ---
-function renderDetail(id) {
-  const claim = getClaims().find(c => c.id === id);
-  if (!claim) return;
-
-  const fmt = d => new Date(d).toLocaleString('lt-LT');
+/* =================== DETAIL =================== */
+function renderDetail(id){
+  let claims = getClaims();
+  let claim = claims.find(c=>c.id===id);
+  if(!claim){ app.innerHTML='<div class="card">Pretenzija nerasta.</div>'; return; }
 
   app.innerHTML = `
-    <div class="section">
-      <h3>Informacija</h3>
-      <div class="meta"><span class="pill">#${claim.id}</span> <span class="pill">${claim.status||'Nauja'}</span></div>
-      <div class="line"><b>Data:</b> ${fmt(claim.date)}</div>
-      <div class="line"><b>Produktas:</b> ${claim.product||''}</div>
-      <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
-      <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
-      <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
+    <div class="section" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="flex:1">
+        <h3>Informacija</h3>
+        <div class="meta"><span class="pill">#${claim.id}</span> <span class="pill">${claim.status||'Nauja'}</span></div>
+        <div class="line"><b>Data:</b> ${fmt(claim.date)}</div>
+        <div class="line"><b>Produktas:</b> ${claim.product||''}</div>
+        <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
+        <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
+        <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
 
-      <div class="stat-box" style="margin-top:8px">
-        <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
-        <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
-        <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
-        <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
-        <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
-      </div>
+        <div class="stat-box" style="margin-top:8px">
+          <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
+          <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
+          <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
+          <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
+          <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
+        </div>
 
-      <div class="stat-box">
-        <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
-        <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
-        <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
-        <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
+        <div class="stat-box">
+          <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
+          <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
+          <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
+          <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
+        </div>
       </div>
     </div>
 
@@ -241,24 +346,33 @@ function renderDetail(id) {
       <div id="dropzone">
         Nutempkite failus arba spauskite pasirinkti
         <br><small class="meta">JPG, PNG, WEBP, MP4, PDF (iki ~10 MB; nuotraukos automatiškai sumažinamos)</small>
-        <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf">
+        <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf" capture="environment">
       </div>
       <div id="selected-files" class="meta" style="margin-top:8px"></div>
 
-      <!-- Anotavimo juosta -->
-      <div class="annotate-bar">
-        <button class="btn btn-ghost" id="annStart">✏️ Anotuoti paskutinę</button>
-        <button class="btn btn-ghost" id="annSave" disabled>💾 Išsaugoti anotaciją</button>
+      <div class="cam-wrap">
+        <div class="cam-row" style="margin-bottom:8px">
+          <button type="button" id="camStart" class="btn btn-accent">📷 Kamera</button>
+          <button type="button" id="camShot"  class="btn btn-ghost" disabled>📸 Nufotografuoti</button>
+          <button type="button" id="camStop"   class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
+        </div>
+        <video id="camVideo" class="cam-video" playsinline muted></video>
+        <canvas id="camCanvas" style="display:none"></canvas>
+
+        <div class="annotate-bar">
+          <button class="btn btn-ghost" id="annStart" disabled>✏️ Anotuoti paskutinę</button>
+          <button class="btn btn-ghost" id="annSave"  disabled>💾 Išsaugoti anotaciją</button>
+        </div>
+        <canvas id="annCanvas" class="sig" style="display:none;height:220px"></canvas>
       </div>
-      <canvas id="annCanvas" class="sig" style="display:none; max-height:80vh;"></canvas>
+
+      <div style="margin-top:12px;text-align:right">
+        <button id="save-report" class="btn btn-dark">Išsaugoti ataskaitą</button>
+      </div>
 
       <hr style="margin:14px 0">
       <h4 style="margin-bottom:8px">Jau įkelta</h4>
       <div id="report-gallery" class="grid2"></div>
-
-      <div style="margin-top:12px;text-align:right">
-        <button id="save-report" class="btn btn-dark">✅ Išsaugoti ataskaitą</button>
-      </div>
     </div>
 
     <div class="section">
@@ -270,7 +384,7 @@ function renderDetail(id) {
         <button class="btn btn-ok" id="sigSave">Pridėti prie ataskaitos</button>
       </div>
     </div>
-
+    
     <div class="section">
       <h3>Darbo užbaigimas</h3>
       <div class="stat-box">
@@ -280,406 +394,637 @@ function renderDetail(id) {
     </div>
 
     <div class="section">
+      <h3>Serijos/QR skenavimas</h3>
+      <div class="stat-box">
+        <button class="btn btn-ghost" id="scanBtn">📷 Skenuoti</button>
+        <input id="serialInput" placeholder="Arba įrašykite kodą ranka" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
+        <button class="btn btn-ghost" id="serialSave">Išsaugoti</button>
+      </div>
+      <div id="serialOut" class="meta" style="margin-top:6px"></div>
+    </div>
+
+    <!-- ISTORIJA DABAR PASKUTINĖ -->
+    <div class="section">
       <h3>Istorija</h3>
       <div id="historyBox" class="meta"></div>
     </div>
   `;
 
-  // --- GALERIJA ---
-  function renderGallery() {
-    const gallery = document.getElementById('report-gallery');
-    if (!gallery) return;
-    
-    const arr = [...(claim.masterAttachments || [])];
-    
-    // Rodyti pendingFiles
-    if (Array.isArray(pendingFiles)) {
-      pendingFiles.forEach(f => arr.push({ ...f, _pending: true }));
-    }
+  drawOffline();
 
-    if (!arr.length) {
-      gallery.innerHTML = '<div class="meta">Nėra pateiktų įrašų</div>';
-      return;
-    }
+  /* quick actions */
+  const phone = claim?.contact?.phone || '';
+  const addr  = [claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ');
+  if (phone){
+    document.getElementById('btnCall').href = `tel:${phone.replace(/\s+/g,'')}`;
+    const base = phone.replace(/\s+/g,'');
+    document.getElementById('btnSms').href  = `sms:${base}?body=${encodeURIComponent('Sveiki, atvykstu per ~30 min. / Rubineta')}`;
+    document.getElementById('btnSms2').href = `sms:${base}?body=${encodeURIComponent('Sveiki, vėluosiu ~15–20 min. Atsiprašau.')}`;
+  }
+  const mapsQ = encodeURIComponent(addr || (claim?.contact?.street||''));  
+  document.getElementById('btnNav').href = (/(Android|iPhone|iPad)/i.test(navigator.userAgent))
+    ? `geo:0,0?q=${mapsQ}` : `https://www.google.com/maps/search/?api=1&query=${mapsQ}`;
 
-    gallery.innerHTML = '';
-    arr.reverse().forEach((att, idx) => {
-      const src = att.dataUrl || att.url;
-      const el = document.createElement('div');
-      el.className = 'file';
-      el.innerHTML = `<button class="del" data-i="${idx}" ${att._pending?'disabled':''}>🗑</button>
-                      <div style="font-size:12px;margin-bottom:6px">${att.name||'failas'} ${att._pending?'<span class="pill warn">pending</span>':''}</div>`;
-      
-      if (att.type === 'image') el.innerHTML += `<img loading="lazy" src="${src}">`;
-      else if (att.type === 'video') el.innerHTML += `<video controls preload="metadata"><source src="${src}"></video>`;
-      else if (att.type === 'pdf') el.innerHTML += `<a href="${src}" target="_blank">📄 PDF</a>`;
-      else el.innerHTML += `<a href="${src}" target="_blank">📎 Failas</a>`;
-      
+  // share/back/print
+  document.getElementById('backBtn').onclick = ()=> history.length>1 ? history.back() : (location.href='master-mobile.html');
+  document.getElementById('printBtn').onclick = ()=> window.print();
+  document.getElementById('shareBtn')?.addEventListener('click', ()=> copyLink(claim.id));
+
+  /* history */
+  function drawHistory(){
+    const box = document.getElementById('historyBox');
+    const arr = (claim.history||[]).slice().reverse();
+    box.innerHTML = arr.length? arr.map(h=>`${new Date(h.time).toLocaleString('lt-LT')} • ${h.user}: ${h.action}`).join('<br>') : 'Nėra įrašų.';
+  }
+  drawHistory();
+
+  /* parts checklist */
+  claim.parts = Array.isArray(claim.parts) ? claim.parts : [];
+  const partsEl = document.getElementById('parts');
+  const partInput = document.getElementById('partInput');
+  document.getElementById('addPart').onclick = () => {
+    const t = partInput.value.trim(); if(!t) return;
+    claim.parts.push({ id: 'p_'+Date.now(), text: t, done: false });
+    saveClaim(); partInput.value=''; drawParts();
+    addHistory('Pridėta dalis: '+t); drawHistory();
+  };
+  function drawParts(){
+    partsEl.innerHTML='';
+    if(!claim.parts.length){ partsEl.innerHTML = '<div class="meta">Nėra įrašų.</div>'; return; }
+    claim.parts.forEach(p=>{
+      const row = document.createElement('div');
+      row.className = 'checklist-item';
+      row.innerHTML = `
+        <input type="checkbox" ${p.done?'checked':''}>
+        <input type="text" value="${p.text.replace(/"/g,'&quot;')}">
+        <button class="btn btn-ghost">✖</button>
+      `;
+      const [cb,txt,del]=row.children;
+      cb.onchange = ()=>{ p.done=cb.checked; saveClaim(); };
+      txt.onchange = ()=>{ p.text=txt.value; saveClaim(); };
+      del.onclick = ()=>{ claim.parts = claim.parts.filter(x=>x.id!==p.id); saveClaim(); drawParts(); };
+      partsEl.appendChild(row);
+    });
+  }
+  drawParts();
+
+  /* timer (persist across refresh if norėtum – galima rašyti į claim.timerStart) */
+  let tStart = null, tTick=null;
+  const tOut = document.getElementById('timerOut');
+  const tStartBtn = document.getElementById('timerStart');
+  const tStopBtn  = document.getElementById('timerStop');
+  tStartBtn.onclick = ()=>{
+    if (tStart) return;
+    tStart = Date.now();
+    tStartBtn.disabled = true; tStopBtn.disabled=false;
+    tick();
+  };
+  tStopBtn.onclick = ()=>{
+    if (!tStart) return;
+    const dur = Date.now()-tStart;
+    addHistory(`Darbo laikas: ${fmtDur(dur)}`); drawHistory();
+    tStart=null; clearInterval(tTick);
+    tOut.textContent='00:00:00';
+    tStartBtn.disabled=false; tStopBtn.disabled=true;
+  };
+  function tick(){ tTick=setInterval(()=>{ tOut.textContent = fmtDur(Date.now()-tStart); }, 500); }
+  function fmtDur(ms){
+    const s=Math.floor(ms/1000), h=String(Math.floor(s/3600)).padStart(2,'0'),
+          m=String(Math.floor((s%3600)/60)).padStart(2,'0'), ss=String(s%60).padStart(2,'0');
+    return `${h}:${m}:${ss}`;
+  }
+
+  /* files: user & quality */
+  renderFilesArray(document.getElementById('user-files'), normalizeUserFiles(claim.files));
+  renderFilesArray(document.getElementById('quality-attachments'), normalizeQualityFiles(claim.qualityAttachments));
+  document.getElementById('quality-note').textContent =
+    (claim.qualityExternalComment || claim.qualityAdvice || 'Nėra rekomendacijų.');
+
+  /* photo report + camera + annotate */
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('file-input');
+  const list  = document.getElementById('selected-files');
+  const gallery = document.getElementById('report-gallery');
+  const MAX_MB = 10;
+  const ACCEPT = /\.(jpg|jpeg|png|webp|mp4|pdf)$/i;
+
+  dz.addEventListener('click', ()=> input.click());
+  dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.style.background='#f8fafc'; });
+  dz.addEventListener('dragleave', ()=> dz.style.background='transparent');
+  dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.background='transparent'; handleFiles(e.dataTransfer.files); });
+  input.addEventListener('change', ()=> handleFiles(input.files));
+
+  let pendingFiles=[]; let pendingCamImages=[]; let lastCaptured=null;
+
+  async function compressImage(file, maxW=1600, maxH=1600, quality=0.85){
+    const img = new Image();
+    const buf = await file.arrayBuffer();
+    const blobUrl = URL.createObjectURL(new Blob([buf], {type:file.type||'image/jpeg'}));
+    await new Promise((res,reject)=>{ img.onload=()=>res(); img.onerror=reject; img.src=blobUrl; });
+    let {width:w, height:h} = img;
+    const ratio = Math.min(maxW/w, maxH/h, 1);
+    const cw = Math.round(w*ratio), ch = Math.round(h*ratio);
+    const can = document.createElement('canvas');
+    const dpr = Math.min(window.devicePixelRatio||1,2);
+    can.width = cw*dpr; can.height = ch*dpr;
+    can.getContext('2d').scale(dpr,dpr);
+    can.getContext('2d').drawImage(img,0,0,cw,ch);
+    URL.revokeObjectURL(blobUrl);
+    const type = (file.type && file.type.includes('png')) ? 'image/png' : 'image/jpeg';
+    const dataUrl = can.toDataURL(type, quality);
+    return dataUrl;
+  }
+
+  async function handleFiles(files){
+    pendingFiles=[]; const notes=[];
+    for (const f of [...files]){
+      if(!ACCEPT.test(f.name)) { notes.push(`❌ ${f.name} (formatas neleidžiamas)`); continue; }
+      if(/\.(jpg|jpeg|png|webp)$/i.test(f.name) && f.size > MAX_MB*1024*1024){
+        // pabandom sumažinti
+        try{
+          const dataUrl = await compressImage(f);
+          // jei vis dar per didelis dataURL – atmesti
+          if (dataUrl.length/1.37 > MAX_MB*1024*1024) { // apytikslis b64->bytes
+            notes.push(`❌ ${f.name} (per didelis net po mažinimo)`); continue;
+          }
+          pendingFiles.push({name:f.name.replace(/\.(png|jpg|jpeg|webp)$/i,'.jpg'), dataUrl, type:'image'});
+          notes.push(`✓ ${f.name} (sumažinta)`);
+        }catch(e){
+          notes.push(`❌ ${f.name} (nepavyko sumažinti)`); 
+        }
+        continue;
+      }
+      if (f.size>MAX_MB*1024*1024){ notes.push(`❌ ${f.name} (> ${MAX_MB}MB)`); continue; }
+      // ne vaizdas arba mažas vaizdas – paverčiam į dataUrl
+      const ok = await fileToDataUrl(f);
+      pendingFiles.push(ok);
+      notes.push(`✓ ${f.name}`);
+    }
+    list.textContent = notes.join(', ');
+  }
+
+  async function fileToDataUrl(file){
+    const buf=await file.arrayBuffer();
+    const b64=btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const mime=file.type||'application/octet-stream';
+    const dataUrl=`data:${mime};base64,${b64}`;
+    const lower=file.name.toLowerCase();
+    const type=/\.(jpg|jpeg|png|webp|gif)$/.test(lower)?'image':
+               /\.(mp4|webm|mov)$/.test(lower)?'video':
+               /\.(pdf)$/.test(lower)?'pdf':'file';
+    return {name:file.name,dataUrl,type};
+  }
+
+  function renderGallery(){
+    gallery.innerHTML='';
+    const arr=(claim.masterAttachments||[]).slice();
+    pendingCamImages.forEach((dataUrl,i)=>arr.push({name:`kamera-${i+1}.jpg`, dataUrl, type:'image', _pending:true}));
+    if(!arr.length){ gallery.innerHTML='<div class="meta">Nėra pateiktų įrašų</div>'; return; }
+    arr.forEach((att,idx)=>{
+      const src=att.dataUrl||att.url;
+      const el=document.createElement('div'); el.className='file';
+      el.innerHTML = `
+        <button class="del" data-i="${idx}" ${att._pending?'disabled title="Bus pridėta išsaugojus"':''}>🗑</button>
+        <div style="font-size:12px;margin-bottom:6px">${att.name||'failas'} ${att._pending?'<span class="pill warn">pending</span>':''}</div>
+      `;
+      if(att.type==='image') el.innerHTML+=`<img loading="lazy" src="${src}" style="max-width:100%;height:auto;border-radius:6px">`;
+      else if(att.type==='video') el.innerHTML+=`<video controls preload="metadata" style="max-width:100%"><source src="${src}"></video>`;
+      else if(att.type==='pdf') el.innerHTML+=`<a href="${src}" target="_blank">📄 PDF</a>`;
+      else el.innerHTML+=`<a href="${src}" target="_blank">📎 Failas</a>`;
       gallery.appendChild(el);
     });
-
-    // Trynimas
-    gallery.querySelectorAll('.del').forEach(btn => {
-      btn.onclick = () => {
+    // trynimas (tik jau išsaugotų)
+    gallery.querySelectorAll('.del').forEach(btn=>{
+      btn.onclick = ()=>{
         const i = Number(btn.dataset.i);
-        const list = (claim.masterAttachments || []).slice();
-        if (i < list.length) {
+        const list = (claim.masterAttachments||[]).slice();
+        if (i < list.length){
           if (!confirm('Pašalinti failą iš ataskaitos?')) return;
-          list.splice(i, 1);
+          list.splice(i,1);
           claim.masterAttachments = list;
-          saveClaim();
-          renderGallery();
+          saveClaim(); renderGallery();
         }
       };
     });
   }
 
-  // --- FAILŲ ĮKĖLIMAS ---
-  const MAX_MB = 10;
-  const ACCEPT = /\.(jpe?g|png|webp|mp4|pdf)$/i;
-  let pendingFiles = [];
+  document.getElementById('save-report').addEventListener('click', async ()=>{
+    const camAsFiles=pendingCamImages.map((dataUrl,idx)=>({name:`kamera-${Date.now()}-${idx+1}.jpg`, dataUrl, type:'image'}));
+    const uploaded = pendingFiles; // jau dataUrl
+    const toSave = uploaded.concat(camAsFiles);
+    if(!toSave.length) return alert('Pasirinkite failus arba nufotografuokite');
 
-  document.getElementById('dropzone').onclick = () => {
-    document.getElementById('file-input').click();
-  };
+    claim.masterAttachments=(claim.masterAttachments||[]).concat(toSave);
+    addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`); drawHistory();
+    pendingFiles=[]; list.textContent=''; pendingCamImages=[]; lastCaptured=null;
+    saveClaim(); renderGallery(); toast('Ataskaita išsaugota');
+  });
 
-  document.getElementById('file-input').onchange = async (e) => {
-    const listEl = document.getElementById('selected-files');
-    if (!listEl) {
-      console.error('#selected-files nerastas DOM’e');
-      return;
-    }
+  renderGallery();
 
-    const files = e.target.files;
-    if (!files || !files.length) {
-      listEl.textContent = 'Nepasirinkti failai';
-      return;
-    }
+  // camera - FIXED VERSION
+  const camVideo=document.getElementById('camVideo');
+  const camCanvas=document.getElementById('camCanvas');
+  const camStart=document.getElementById('camStart');
+  const camShot=document.getElementById('camShot');
+  const camStop=document.getElementById('camStop');
+  let camStream=null;
 
-    const notes = [];
-    for (const f of [...files]) {
-      console.log('Apdorojamas failas:', f.name, f.size);
-
+  camStart.addEventListener('click', async ()=>{
+    try{
+      // Pataisytas kameros paleidimas - paprastesnis būdas
+      const constraints = {
+        video: {
+          facingMode: 'environment', // galinė kamera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+      
+      camStream = await navigator.mediaDevices.getUserMedia(constraints);
+      camVideo.srcObject = camStream;
+      
+      // Laukiam kol video bus įkeltas
+      camVideo.onloadedmetadata = () => {
+        camVideo.play();
+        camShot.disabled = false;
+        camStop.disabled = false;
+        camStart.disabled = true;
+      };
+    } catch(e) {
+      console.error('Kameros klaida:', e);
+      // Bandome su paprastesniais nustatymais
       try {
-        if (!ACCEPT.test(f.name)) {
-          notes.push(`❌ ${f.name} (formatas neleidžiamas)`);
-          continue;
-        }
-
-        if (/\.(jpg|jpeg|png|webp)$/i.test(f.name) && f.size > MAX_MB * 1024 * 1024) {
-          try {
-            const dataUrl = await compressImage(f);
-            if (dataUrl.length / 1.37 > MAX_MB * 1024 * 1024) {
-              notes.push(`❌ ${f.name} (per didelis net po mažinimo)`);
-              continue;
-            }
-            pendingFiles.push({
-              name: f.name.replace(/\.(png|jpg|jpeg|webp)$/i, '.jpg'),
-              dataUrl,
-              type: 'image'
-            });
-            notes.push(`✓ ${f.name} (sumažinta)`);
-          } catch (e) {
-            console.error('Klaida mažinant paveikslėlį:', e);
-            notes.push(`❌ ${f.name} (nepavyko sumažinti)`);
-          }
-          continue;
-        }
-
-        if (f.size > MAX_MB * 1024 * 1024) {
-          notes.push(`❌ ${f.name} (> ${MAX_MB}MB)`);
-          continue;
-        }
-
-        const ok = await fileToDataUrl(f);
-        pendingFiles.push(ok);
-        notes.push(`✓ ${f.name}`);
-
-      } catch (innerError) {
-        console.error('Klaida apdorojant failą:', f.name, innerError);
-        notes.push(`❌ ${f.name} (klaida)`);
+        camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        camVideo.srcObject = camStream;
+        camVideo.onloadedmetadata = () => {
+          camVideo.play();
+          camShot.disabled = false;
+          camStop.disabled = false;
+          camStart.disabled = true;
+        };
+      } catch(error) {
+        alert('Nepavyko paleisti kameros. Patikrinkite leidimus arba bandykite kitą naršyklę.');
       }
     }
+  });
 
-    listEl.textContent = notes.join(', ');
-    renderGallery(); // 🔁 Svarbu!
-  };
+  camShot.addEventListener('click', ()=>{
+    if(!camStream || !camVideo.videoWidth) {
+      toast('Pirmiausia paleiskite kamerą');
+      return;
+    }
+    
+    try {
+      const video = camVideo;
+      const canvas = camCanvas;
+      
+      // Nustatome canvas dydį pagal video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Nupiešiame vaizdą ant canvas
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Sukuriame mažesnę kopiją (suspaudimui)
+      const tempCanvas = document.createElement('canvas');
+      const maxWidth = 1200;
+      const ratio = Math.min(maxWidth / canvas.width, 1);
+      tempCanvas.width = canvas.width * ratio;
+      tempCanvas.height = canvas.height * ratio;
+      
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Konvertuojame į dataURL
+      const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.8);
+      
+      // Įrašome į laukiančių nuotraukų sąrašą
+      pendingCamImages.push(dataUrl); 
+      lastCaptured = dataUrl;
+      
+      // Atnaujiname galeriją
+      renderGallery();
+      document.getElementById('annStart').disabled = false;
+      
+      toast('Nuotrauka sėkmingai padaryta!');
+    } catch(error) {
+      console.error('Nuotraukos kūrimo klaida:', error);
+      toast('Klaida kuriant nuotrauką');
+    }
+  });
 
-  // --- ANOTACIJA ANT PASKUTINĖS NUOTRAUKOS ---
+  camStop.addEventListener('click', ()=>{
+    if(camStream){ 
+      camStream.getTracks().forEach(track => track.stop()); 
+      camStream = null; 
+    }
+    camVideo.pause(); 
+    camVideo.srcObject = null;
+    camShot.disabled = true;
+    camStop.disabled = true;
+    camStart.disabled = false;
+  });
+
+  // annotate last captured - FIXED CALIBRATION
   const annC = document.getElementById('annCanvas');
   const annStart = document.getElementById('annStart');
-  const annSave = document.getElementById('annSave');
-  let annCtx = null;
+  const annSave  = document.getElementById('annSave');
+  let annCtx, drawing=false, annImgWidth, annImgHeight, annScaleX, annScaleY;
 
-  annStart.onclick = () => {
-    const attachments = claim.masterAttachments || [];
-    const images = attachments.filter(a => a.type === 'image' && !/parasas/i.test(a.name));
-    if (images.length === 0) {
-      alert('Nėra nuotraukų, kurias būtų galima anotuoti.');
-      return;
-    }
-
-    const lastImage = images[images.length - 1];
+  annStart.onclick = ()=>{
+    if(!lastCaptured) return alert('Nėra ką anotuoti');
     const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      annC.width = img.width;
-      annC.height = img.height;
-      annC.style.display = 'block';
-
+    img.onload = ()=>{
+      // Apskaičiuojame mastelį kad tilptų į ekraną
+      const maxWidth = annC.parentElement.clientWidth - 20;
+      const scale = Math.min(maxWidth / img.width, 1);
+      
+      annImgWidth = img.width;
+      annImgHeight = img.height;
+      annScaleX = scale;
+      annScaleY = scale;
+      
+      annC.width = img.width * scale;
+      annC.height = img.height * scale;
+      annC.style.display='block';
       annCtx = annC.getContext('2d');
-      annCtx.clearRect(0, 0, annC.width, annC.height);
-      annCtx.drawImage(img, 0, 0);
-      annCtx.lineWidth = 6;
-      annCtx.strokeStyle = '#ff3333';
-      annCtx.lineCap = 'round';
-      annCtx.lineJoin = 'round';
-
-      let isDrawing = false;
-
-      annC.onpointerdown = (e) => {
-        isDrawing = true;
-        const rect = annC.getBoundingClientRect();
-        const scaleX = img.width / rect.width;
-        const scaleY = img.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        annCtx.beginPath();
-        annCtx.moveTo(x, y);
+      
+      // Nubraižome nuotrauką su teisingu masteliu
+      annCtx.drawImage(img, 0, 0, annC.width, annC.height);
+      annCtx.lineWidth = 8; 
+      annCtx.strokeStyle = '#ff3333'; 
+      annCtx.lineCap='round';
+      
+      // Kalibruotas brūkšniavimas
+      annC.onpointerdown = (e)=>{
+        drawing=true; 
+        annCtx.beginPath(); 
+        // Konvertuojame ekrano koordinates į nuotraukos koordinates
+        const x = e.offsetX / annScaleX;
+        const y = e.offsetY / annScaleY;
+        annCtx.moveTo(x * annScaleX, y * annScaleY);
       };
-
-      annC.onpointermove = (e) => {
-        if (!isDrawing) return;
-        const rect = annC.getBoundingClientRect();
-        const scaleX = img.width / rect.width;
-        const scaleY = img.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        annCtx.lineTo(x, y);
+      
+      annC.onpointermove = (e)=>{
+        if(!drawing) return; 
+        // Konvertuojame ekrano koordinates į nuotraukos koordinates
+        const x = e.offsetX / annScaleX;
+        const y = e.offsetY / annScaleY;
+        annCtx.lineTo(x * annScaleX, y * annScaleY); 
         annCtx.stroke();
       };
-
-      window.onpointerup = () => { isDrawing = false; };
-      window.onblur = () => { isDrawing = false; };
-
-      annSave.disabled = false;
+      
+      window.onpointerup = ()=> drawing=false;
+      annSave.disabled=false;
     };
-    img.src = lastImage.dataUrl || lastImage.url;
+    img.src = lastCaptured;
   };
-
-  annSave.onclick = () => {
-    if (!annCtx) return;
-    const dataUrl = annC.toDataURL('image/png');
-
-    const list = [...(claim.masterAttachments || [])];
-    const images = list.filter(a => a.type === 'image' && !/parasas/i.test(a.name));
-    const lastImage = images[images.length - 1];
-    const index = list.indexOf(lastImage);
-
-    if (index > -1) {
-      list[index].dataUrl = dataUrl;
-      claim.masterAttachments = list;
-      saveClaim();
+  
+  annSave.onclick = ()=>{
+    // Sukuriame pilno dydžio anotuotą nuotrauką
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width = annImgWidth;
+    fullCanvas.height = annImgHeight;
+    const fullCtx = fullCanvas.getContext('2d');
+    
+    // Nubraižome originalią nuotrauką
+    const img = new Image();
+    img.onload = () => {
+      fullCtx.drawImage(img, 0, 0);
+      
+      // Perkeliame anotacijas į pilną dydį
+      fullCtx.drawImage(annC, 0, 0, annC.width, annC.height, 0, 0, fullCanvas.width, fullCanvas.height);
+      
+      const dataUrl = fullCanvas.toDataURL('image/png');
+      const i = pendingCamImages.lastIndexOf(lastCaptured);
+      if (i>-1) pendingCamImages[i] = dataUrl; 
+      else pendingCamImages.push(dataUrl);
+      
+      lastCaptured = dataUrl;
+      annC.style.display='none'; 
+      annSave.disabled=true;
       renderGallery();
-      addHistory('Anotuota nuotrauka');
       toast('Anotacija išsaugota');
-    }
-
-    annC.style.display = 'none';
-    annSave.disabled = true;
-    annCtx = null;
+    };
+    img.src = lastCaptured;
   };
 
-  // --- IŠSAUGOTI ATASKAITĄ ---
-  document.getElementById('save-report').addEventListener('click', async () => {
-    const toSave = [...pendingFiles];
-
-    if (toSave.length === 0) {
-      return alert('Pasirinkite failus.');
-    }
-
-    claim.masterAttachments = (claim.masterAttachments || []).concat(toSave);
-    addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`);
-    pendingFiles = [];
-    document.getElementById('selected-files').textContent = '';
-    saveClaim();
-    renderGallery();
-    toast('Ataskaita išsaugota');
-  });
-
-  // --- PARAŠAS ---
+  /* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
   const sig = document.getElementById('sig');
-  const sctx = sig.getContext('2d', { willReadFrequently: true });
-  let strokes = [];
-  let current = null;
-  let sigDirty = false;
+  const sctx = sig.getContext('2d', { willReadFrequently:true });
 
-  function resizeSig() {
+  let strokes = [];        // kiekvienas brūkšnys = [points]
+  let current = null;      // aktyvus brūkšnys
+  let sigDirty = false;    // ar ką nors nupiešta
+
+  function resizeSig(){
     const r = sig.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
     sig.width = Math.floor(r.width * dpr);
     sig.height = Math.floor(r.height * dpr);
-    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.setTransform(1,0,0,1,0,0);
     sctx.scale(dpr, dpr);
+    // balta drobė
     sctx.fillStyle = '#fff';
-    sctx.fillRect(0, 0, r.width, r.height);
+    sctx.fillRect(0,0,r.width,r.height);
     redraw();
   }
-
-  function redraw() {
-    sctx.clearRect(0, 0, sig.width, sig.height);
+  function redraw(){
+    const r = sig.getBoundingClientRect();
     sctx.fillStyle = '#fff';
-    sctx.fillRect(0, 0, sig.width, sig.height);
-    sctx.strokeStyle = '#000';
-    sctx.lineWidth = 2;
+    sctx.fillRect(0,0,r.width,r.height);
     sctx.lineCap = 'round';
     sctx.lineJoin = 'round';
-    strokes.forEach(stroke => {
-      sctx.beginPath();
-      stroke.forEach((p, i) => {
-        if (i === 0) sctx.moveTo(p.x, p.y);
-        else sctx.lineTo(p.x, p.y);
-      });
-      sctx.stroke();
-    });
-    if (current) {
-      sctx.beginPath();
-      current.forEach((p, i) => {
-        if (i === 0) sctx.moveTo(p.x, p.y);
-        else sctx.lineTo(p.x, p.y);
-      });
+    strokes.forEach(drawStroke);
+    if (current) drawStroke(current);
+  }
+  function drawStroke(st){
+    if (!st || st.length<2) return;
+    sctx.beginPath();
+    for (let i=1;i<st.length;i++){
+      const p0 = st[i-1], p1 = st[i];
+      // quadratic curve tarp p0 ir p1
+      const mx = (p0.x + p1.x)/2, my = (p0.y + p1.y)/2;
+      sctx.strokeStyle = '#111';
+      sctx.lineWidth = p1.w;
+      sctx.moveTo(p0.x, p0.y);
+      sctx.quadraticCurveTo(p0.x, p0.y, mx, my);
       sctx.stroke();
     }
   }
 
-  sig.addEventListener('pointerdown', e => {
+  function pt(e){
     const rect = sig.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (sig.width / rect.width);
-    const y = (e.clientY - rect.top) * (sig.height / rect.height);
-    current = [{ x, y }];
+    const pressure = typeof e.pressure === 'number' && e.pressure>0 ? e.pressure : 0.5;
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      p: pressure
+    };
+  }
+  function widthFrom(pPrev, pNow){
+    // jei yas stylus slėgis – naudok jį; kitaip daryk „greičio" kompensaciją
+    const base = 2.2;         // bazinis storis
+    const max = 4.0;
+    if (pNow.p) return Math.max(1.6, Math.min(max, base + (pNow.p*2)));
+    if (!pPrev) return base;
+    const dx = pNow.x - pPrev.x, dy = pNow.y - pPrev.y;
+    const speed = Math.min(1, Math.hypot(dx,dy) / 6); // kuo greičiau – tuo ploniau
+    return Math.max(1.6, max - speed*2.2);
+  }
+
+  let lastDraw = 0;
+  function onDown(e){
+    e.preventDefault();
+    sig.setPointerCapture(e.pointerId);
+    const p = pt(e);
+    current = [ { ...p, w: widthFrom(null,p) } ];
     sigDirty = true;
-  });
-
-  sig.addEventListener('pointermove', e => {
+  }
+  function onMove(e){
     if (!current) return;
-    const rect = sig.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (sig.width / rect.width);
-    const y = (e.clientY - rect.top) * (sig.height / rect.height);
-    current.push({ x, y });
+    e.preventDefault();
+    const now = performance.now();
+    // throttle ~60fps
+    if (now - lastDraw < 16) return;
+    lastDraw = now;
+
+    const p = pt(e);
+    const prev = current[current.length-1];
+    // atmesti labai mažus poslinkius (drebulys)
+    if (Math.abs(p.x - prev.x) + Math.abs(p.y - prev.y) < 1.2) return;
+
+    current.push({ ...p, w: widthFrom(prev,p) });
     redraw();
-  });
+  }
+  function onUp(e){
+    if (!current) return;
+    e.preventDefault();
+    strokes.push(current);
+    current = null;
+    redraw();
+  }
 
-  ['pointerup', 'pointercancel'].forEach(ev => {
-    sig.addEventListener(ev, () => {
-      if (current) {
-        strokes.push(current);
-        current = null;
-        redraw();
-      }
-    });
-  });
-
+  sig.addEventListener('pointerdown', onDown);
+  sig.addEventListener('pointermove', onMove);
+  sig.addEventListener('pointerup', onUp);
+  sig.addEventListener('pointercancel', onUp);
   window.addEventListener('resize', resizeSig);
   resizeSig();
 
-  document.getElementById('sigUndo').onclick = () => {
-    if (strokes.length) strokes.pop();
-    redraw();
+  document.getElementById('sigUndo').onclick = ()=>{
+    strokes.pop(); redraw();
   };
-  document.getElementById('sigClear').onclick = () => {
-    strokes = [];
-    current = null;
-    sigDirty = false;
-    redraw();
+  document.getElementById('sigClear').onclick = ()=>{
+    strokes = []; current=null; sigDirty=false; redraw();
   };
-  document.getElementById('sigSave').onclick = () => {
-    if (!sigDirty || (strokes.length === 0 && !current)) {
-      alert('Nupieškite parašą.');
-      return;
-    }
-    const img = sig.toDataURL('image/png');
-    claim.masterAttachments = (claim.masterAttachments || []).concat([
-      { name: `parasas-${Date.now()}.png`, dataUrl: img, type: 'image' }
-    ]);
-    addHistory('Pridėtas kliento parašas');
-    saveClaim();
+  document.getElementById('sigSave').onclick = ()=>{
+    if (!sigDirty || (strokes.length===0 && !current)) { alert('Nupieškite parašą.'); return; }
+    const img = sig.toDataURL('image/png'); // hi-DPI, nes drobė scaled
+    claim.masterAttachments = (claim.masterAttachments||[]).concat([{name:`parasas-${Date.now()}.png`, dataUrl:img, type:'image'}]);
+    addHistory('Pridėtas kliento parašas'); saveClaim();
+    redraw();
     renderGallery();
     toast('Parašas pridėtas');
     updateCompleteButton();
   };
 
-  // --- UŽBAIGIMO LOGIKA ---
+  /* --------- „Darbas atliktas" mygtukas su tikrinimais --------- */
   const completeBtn = document.getElementById('completeBtn');
   const completeReq = document.getElementById('completeReq');
 
-  function hasSignature() {
-    return (claim.masterAttachments || []).some(a =>
-      /paras(as|a)|parašas/i.test(a.name || '') ||
-      /image\/png/.test(a.dataUrl || '')
-    );
+  function hasSignature(){
+    return (claim.masterAttachments||[]).some(a => /paras(as|a)|parašas/i.test(a.name||'') || /data:image\/png/.test(a.dataUrl||''));
+  }
+  function hasAnyEvidence(){
+    // bent viena iliustracija (foto/video/pdf) ataskaitoje
+    return (claim.masterAttachments||[]).some(a => ['image','video','pdf'].includes(a.type));
   }
 
-  function hasAnyEvidence() {
-    return (claim.masterAttachments || []).some(a => ['image','video','pdf'].includes(a.type));
-  }
-
-  function updateCompleteButton() {
+  function updateCompleteButton(){
     const ok = hasSignature() && hasAnyEvidence();
     completeBtn.disabled = !ok;
     completeReq.textContent = ok ? 'Paruošta užbaigti' : 'Reikia: ≥1 nuotraukos ir parašo';
   }
-
   updateCompleteButton();
 
-  completeBtn.addEventListener('click', () => {
-    if (!hasSignature()) return alert('Pridėkite kliento parašą.');
-    if (!hasAnyEvidence()) return alert('Pridėkite bent vieną nuotrauką.');
+  completeBtn.addEventListener('click', ()=>{
+    if (!hasSignature()) { alert('Pridėkite kliento parašą.'); return; }
+    if (!hasAnyEvidence()) { alert('Pridėkite bent vieną nuotrauką ar dokumentą.'); return; }
+
     claim.status = 'Užbaigta';
     addHistory('Darbas pažymėtas kaip atliktas');
     saveClaim();
     toast('✅ Pažymėta: Užbaigta');
+    // atnaujinti galvutės statusą
+    const tag = document.querySelector('.section .pill'); if (tag) tag.textContent = 'Užbaigta';
   });
 
-  // --- GYVIEJI DUOMENYS ---
-  renderGallery();
-  drawHistory();
-}
+  /* barcode / QR */
+  const scanBtn = document.getElementById('scanBtn');
+  const serialInput = document.getElementById('serialInput');
+  const serialOut = document.getElementById('serialOut');
+  let detector = null;
+  try{
+    if ('BarcodeDetector' in window){
+      detector = new BarcodeDetector({formats:['qr_code','code_128','code_39','ean_13','ean_8','upc_e','upc_a']});
+    }
+  }catch(_){}
+  scanBtn.onclick = async ()=>{
+    if (!detector) { alert('Šiame įrenginyje skenavimo API nepalaikoma – įrašykite ranka.'); return; }
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      const track = stream.getVideoTracks()[0];
+      const imgCap = new ImageCapture(track);
+      const shot = await imgCap.grabFrame();
+      track.stop();
+      const bmp = await createImageBitmap(shot);
+      const off = document.createElement('canvas'); off.width=bmp.width; off.height=bmp.height;
+      off.getContext('2d').drawImage(bmp,0,0);
+      const det = await detector.detect(off);
+      if (det && det[0]){
+        serialInput.value = det[0].rawValue || det[0].data || '';
+        serialOut.textContent = 'Nuskaityta: '+serialInput.value;
+      } else {
+        serialOut.textContent = 'Nieko neaptikta. Pabandykite dar kartą.';
+      }
+    }catch(e){ console.error(e); alert('Nepavyko nuskenuoti.'); }
+  };
+  document.getElementById('serialSave').onclick = ()=>{
+    const v = serialInput.value.trim(); if(!v) return;
+    claim.serial = v; addHistory('Užfiksuotas serijos/QR kodas: '+v); drawHistory(); saveClaim();
+    serialOut.textContent = 'Išsaugota: '+v;
+  };
 
-// --- PAGALBINĖS FUNKCIJOS ---
-async function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve({ name: file.name, dataUrl: reader.result, type: 'image' });
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function compressImage(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const MAX_WIDTH = 1600;
-      const ratio = MAX_WIDTH / img.width;
-      canvas.width = MAX_WIDTH;
-      canvas.height = img.height * ratio;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(resolve, 'image/jpeg', 0.9);
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
+  /* helpers inside detail */
+  async function uploadFiles(fileList){ /* nebereikia – darome fileToDataUrl/kompresiją */ }
+  function renderFilesArray(container, list){
+    container.innerHTML='';
+    if(!Array.isArray(list) || !list.length){ container.innerHTML='<div class="meta">Nėra įkeltų failų</div>'; return; }
+    list.forEach(att=>{
+      const src=att.dataUrl||att.url;
+      const el=document.createElement('div'); el.className='file';
+      const title=`<div style="font-size:12px;margin-bottom:6px">${att.name||'failas'}</div>`;
+      if(att.type==='image') el.innerHTML=title+`<img loading="lazy" src="${src}" alt="">`;
+      else if(att.type==='video') el.innerHTML=title+`<video controls preload="metadata"><source src="${src}"></video>`;
+      else if(att.type==='pdf') el.innerHTML=title+`<a href="${src}" target="_blank">📄 PDF</a>`;
+      else el.innerHTML=title+`<a href="${src}" target="_blank">📎 Atsisiųsti</a>`;
+      container.appendChild(el);
+    });
+  }
+  function normalizeUserFiles(files){ if(!Array.isArray(files)) return []; return files.map(item=> typeof item==='string'? ({name:item.split('/').pop()||'failas', url:item, type:/\.(jpg|jpeg|png|webp|gif)$/i.test(item)?'image':/\.(mp4|webm|mov)$/i.test(item)?'video':/\.(pdf)$/i.test(item)?'pdf':'file'}) : item ); }
+  function normalizeQualityFiles(arr){ if(!Array.isArray(arr)) return []; return arr.map(att=>{ if(att.dataUrl && !att.url) att.url=att.dataUrl; if(!att.type){ const u=att.url||''; att.type=/\.(jpg|jpeg|png|webp|gif)$/i.test(u)?'image':/\.(mp4|webm|mov)$/i.test(u)?'video':/\.(pdf)$/i.test(u)?'pdf':'file'; } return att; }); }
+  function addHistory(action){ claim.history = claim.history || []; claim.history.push({ user:'Meistras', time:new Date().toISOString(), action }); saveClaim(); }
+  function saveClaim(){ const all = getClaims(); const i = byId(all, claim.id); if (i>-1){ all[i]=claim; setClaims(all); } }
 }
 
 /* share helper */
 function copyLink(id){
   const url = location.origin + location.pathname + '?id=' + id;
-  if (navigator.share) { 
-    navigator.share({title:'Užduotis #'+id, url}).catch(()=>{}); 
-    return; 
-  }
+  if (navigator.share){ navigator.share({title:'Užduotis #'+id, url}).catch(()=>{}); return; }
   navigator.clipboard?.writeText(url);
   toast('Nuoroda nukopijuota');
 }
@@ -693,13 +1038,13 @@ document.getElementById('logoutBtn').addEventListener('click', ()=>{
 /* tiny toast */
 function toast(msg){
   const t=document.createElement('div');
-  t.textContent = msg;
-  t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:10px;z-index:9999;';
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+  t.textContent=msg;
+  Object.assign(t.style,{
+    position:'fixed',left:'50%',bottom:'18px',transform:'translateX(-50%)',
+    background:'#111',color:'#fff',padding:'10px 14px',borderRadius:'10px',fontSize:'13px',zIndex:9999
+  });
+  document.body.appendChild(t); setTimeout(()=>{ t.remove(); }, 1800);
 }
-
 </script>
 </body>
 </html>
-
