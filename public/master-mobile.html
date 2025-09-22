@@ -290,124 +290,104 @@ function renderDetail(id){
   let claim = claims.find(c=>c.id===id);
   if(!claim){ app.innerHTML='<div class="card">Pretenzija nerasta.</div>'; return; }
 
-  app.innerHTML = `
-    <div class="section" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-      <div>
-        <h3>Informacija</h3>
-        <div class="meta"><span class="pill">#${claim.id}</span> <span class="pill">${claim.status||'Nauja'}</span></div>
-        <div class="line"><b>Data:</b> ${fmt(claim.date)}</div>
-        <div class="line"><b>Produktas:</b> ${claim.product||''}</div>
-        <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
-        <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
-        <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
+ app.innerHTML = `
+  <div class="section">
+    <h3>Informacija</h3>
+    <div class="meta"><span class="pill">#${claim.id}</span> <span class="pill">${claim.status||'Nauja'}</span></div>
+    <div class="line"><b>Data:</b> ${fmt(claim.date)}</div>
+    <div class="line"><b>Produktas:</b> ${claim.product||''}</div>
+    <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
+    <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
+    <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
 
-        <div class="stat-box" style="margin-top:8px">
-          <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
-          <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
-          <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
-          <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
-          <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
-        </div>
-
-        <div class="stat-box">
-          <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
-          <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
-          <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
-          <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
-        </div>
-      </div>
-      <div class="section" style="min-width:240px">
-        <h3>Istorija</h3>
-        <div id="historyBox" class="meta"></div>
-      </div>
+    <div class="stat-box" style="margin-top:8px">
+      <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
+      <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
+      <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
+      <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
+      <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
     </div>
 
-    <div class="section">
-      <h3>Kliento failai</h3>
-      <div id="user-files" class="grid2"></div>
+    <div class="stat-box">
+      <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
+      <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
+      <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
+      <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
     </div>
-
-    <div class="section">
-      <h3>Kokybės dokumentai</h3>
-      <div id="quality-attachments" class="grid2"></div>
-    </div>
-
-    <div class="section">
-      <h3>Kokybės rekomendacijos</h3>
-      <div id="quality-note" class="meta"></div>
-    </div>
-
-    <div class="section">
-      <h3>Dalių sąrašas (checklist)</h3>
-      <div id="parts"></div>
-      <div style="display:flex;gap:8px; margin-top:8px">
-        <input id="partInput" placeholder="Nauja dalis…" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
-        <button class="btn btn-ghost" id="addPart">Pridėti</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>Foto ataskaita</h3>
-      <div id="dropzone">
-        Nutempkite failus arba spauskite pasirinkti
-        <br><small class="meta">JPG, PNG, WEBP, MP4, PDF (iki ~10 MB; nuotraukos automatiškai sumažinamos)</small>
-        <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf" capture="environment">
-      </div>
-      <div id="selected-files" class="meta" style="margin-top:8px"></div>
-
-      <div class="cam-wrap">
-        <div class="cam-row" style="margin-bottom:8px">
-          <button type="button" id="camStart" class="btn btn-accent">📷 Kamera</button>
-          <button type="button" id="camShot"  class="btn btn-ghost" disabled>📸 Nufotografuoti</button>
-          <button type="button" id="camStop"   class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
-        </div>
-        <video id="camVideo" class="cam-video" playsinline muted></video>
-        <canvas id="camCanvas" style="display:none"></canvas>
-
-        <div class="annotate-bar">
-          <button class="btn btn-ghost" id="annStart" disabled>✏️ Anotuoti paskutinę</button>
-          <button class="btn btn-ghost" id="annSave"  disabled>💾 Išsaugoti anotaciją</button>
-        </div>
-        <canvas id="annCanvas" class="sig" style="display:none;height:220px"></canvas>
-      </div>
-
-      <div style="margin-top:12px;text-align:right">
-        <button id="save-report" class="btn btn-dark">Išsaugoti ataskaitą</button>
-      </div>
-
-      <hr style="margin:14px 0">
-      <h4 style="margin-bottom:8px">Jau įkelta</h4>
-      <div id="report-gallery" class="grid2"></div>
-    </div>
-
-<div class="section">
-  <h3>Kliento parašas</h3>
-  <canvas id="sig" class="sig"></canvas>
-  <div style="display:flex;gap:8px;margin-top:8px">
-    <button class="btn btn-ghost" id="sigUndo">Atšaukti brūkšnį</button>
-    <button class="btn btn-ghost" id="sigClear">Išvalyti</button>
-    <button class="btn btn-ok" id="sigSave">Pridėti prie ataskaitos</button>
   </div>
-<div class="section">
-  <h3>Darbo užbaigimas</h3>
-  <div class="stat-box">
-    <span class="chip" id="completeReq">Reikia: ≥1 nuotraukos ir parašo</span>
-    <button class="btn btn-ok" id="completeBtn" disabled>✅ Pažymėti kaip atliktą</button>
+
+  <div class="section">
+    <h3>Kliento failai</h3>
+    <div id="user-files" class="grid2"></div>
   </div>
+
+  <div class="section">
+    <h3>Kokybės dokumentai</h3>
+    <div id="quality-attachments" class="grid2"></div>
+  </div>
+
+  <div class="section">
+    <h3>Kokybės rekomendacijos</h3>
+    <div id="quality-note" class="meta"></div>
+  </div>
+
+  <div class="section">
+    <h3>Dalių sąrašas (checklist)</h3>
+    <div id="parts"></div>
+    <div style="display:flex;gap:8px; margin-top:8px">
+      <input id="partInput" placeholder="Nauja dalis…" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
+      <button class="btn btn-ghost" id="addPart">Pridėti</button>
+    </div>
+  </div>
+
+  <div class="section">
+  <h3>Foto ataskaita</h3>
+  <div id="dropzone">
+    Nutempkite failus arba spauskite pasirinkti
+    <br><small class="meta">JPG, PNG, WEBP, MP4, PDF (iki ~10 MB; nuotraukos automatiškai sumažinamos)</small>
+    <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf">
+  </div>
+  <div id="selected-files" class="meta" style="margin-top:8px"></div>
+
+  <!-- Anotavimo juosta -->
+  <div class="annotate-bar">
+    <button class="btn btn-ghost" id="annStart">✏️ Anotuoti paskutinę</button>
+    <button class="btn btn-ghost" id="annSave" disabled>💾 Išsaugoti anotaciją</button>
+  </div>
+  <canvas id="annCanvas" class="sig" style="display:none; max-height: 80vh;"></canvas>
+
+<hr style="margin:14px 0">
+<h4 style="margin-bottom:8px">Jau įkelta</h4>
+<div id="report-gallery" class="grid2"></div>
+
+<div style="margin-top:12px;text-align:right">
+  <button id="save-report" class="btn btn-dark">Išsaugoti ataskaitą</button>
+</div>
 </div>
 
-
-</div>
-    <div class="section">
-      <h3>Serijos/QR skenavimas</h3>
-      <div class="stat-box">
-        <button class="btn btn-ghost" id="scanBtn">📷 Skenuoti</button>
-        <input id="serialInput" placeholder="Arba įrašykite kodą ranka" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
-        <button class="btn btn-ghost" id="serialSave">Išsaugoti</button>
-      </div>
-      <div id="serialOut" class="meta" style="margin-top:6px"></div>
+  <div class="section">
+    <h3>Kliento parašas</h3>
+    <canvas id="sig" class="sig"></canvas>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-ghost" id="sigUndo">Atšaukti brūkšnį</button>
+      <button class="btn btn-ghost" id="sigClear">Išvalyti</button>
+      <button class="btn btn-ok" id="sigSave">Pridėti prie ataskaitos</button>
     </div>
-  `;
+  </div>
+
+  <div class="section">
+    <h3>Darbo užbaigimas</h3>
+    <div class="stat-box">
+      <span class="chip" id="completeReq">Reikia: ≥1 nuotraukos ir parašo</span>
+      <button class="btn btn-ok" id="completeBtn" disabled>✅ Pažymėti kaip atliktą</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Istorija</h3>
+    <div id="historyBox" class="meta"></div>
+  </div>
+`;
 
   drawOffline();
 
@@ -607,87 +587,141 @@ function renderDetail(id){
     });
   }
 
-  document.getElementById('save-report').addEventListener('click', async ()=>{
-    const camAsFiles=pendingCamImages.map((dataUrl,idx)=>({name:`kamera-${Date.now()}-${idx+1}.jpg`, dataUrl, type:'image'}));
-    const uploaded = pendingFiles; // jau dataUrl
-    const toSave = uploaded.concat(camAsFiles);
-    if(!toSave.length) return alert('Pasirinkite failus arba nufotografuokite');
+document.getElementById('save-report').addEventListener('click', async ()=>{
+  // 1. Išsaugoti anotaciją, jei ji yra aktyvi
+  if (annC.style.display === 'block') {
+    annSave.click(); // Automatiškai spustelėja „Išsaugoti anotaciją“
+    await new Promise(resolve => setTimeout(resolve, 100)); // laukia, kol išsaugos
+  }
 
-    claim.masterAttachments=(claim.masterAttachments||[]).concat(toSave);
-    addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`); drawHistory();
-    pendingFiles=[]; list.textContent=''; pendingCamImages=[]; lastCaptured=null;
-    saveClaim(); renderGallery(); toast('Ataskaita išsaugota');
-  });
+  // 2. Tada išsaugoti viską kaip anksčiau
+  const camAsFiles = pendingCamImages.map((dataUrl, idx) => ({
+    name: `kamera-${Date.now()}-${idx+1}.jpg`,
+    dataUrl,
+    type: 'image'
+  }));
+  const uploaded = pendingFiles;
+  const toSave = uploaded.concat(camAsFiles);
+
+  if (!toSave.length) {
+    return alert('Pasirinkite failus arba nufotografuokite');
+  }
+
+  claim.masterAttachments = (claim.masterAttachments || []).concat(toSave);
+  addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`);
+  drawHistory();
+
+  pendingFiles = [];
+  list.textContent = '';
+  pendingCamImages = [];
+  lastCaptured = null;
+
+  saveClaim();
+  renderGallery();
+  toast('Ataskaita išsaugota');
+});
 
   renderGallery();
 
-  // camera
-  const camVideo=document.getElementById('camVideo');
-  const camCanvas=document.getElementById('camCanvas');
-  const camStart=document.getElementById('camStart');
-  const camShot=document.getElementById('camShot');
-  const camStop=document.getElementById('camStop');
-  let camStream=null;
 
-  camStart.addEventListener('click', async ()=>{
-    try{
-      camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
-      camVideo.srcObject=camStream; camVideo.play();
-      camShot.disabled=false; camStop.disabled=false; camStart.disabled=true;
-    }catch(e){ alert('Nepavyko paleisti kameros. Patikrinkite leidimus.'); console.error(e); }
-  });
-  camShot.addEventListener('click', ()=>{
-    if(!camStream) return;
-    const track=camStream.getVideoTracks()[0]; const s=track.getSettings();
-    const w=s.width||camVideo.videoWidth||1280, h=s.height||camVideo.videoHeight||720;
-    camCanvas.width=w; camCanvas.height=h;
-    camCanvas.getContext('2d').drawImage(camVideo,0,0,w,h);
-    // suspausti iki ~1600px pločio
-    const ratio = Math.min(1600/w, 1600/h, 1);
-    const dw = Math.round(w*ratio), dh = Math.round(h*ratio);
-    const tmp = document.createElement('canvas'); tmp.width=dw; tmp.height=dh;
-    const tctx = tmp.getContext('2d'); tctx.drawImage(camCanvas,0,0,dw,dh);
-    const dataUrl=tmp.toDataURL('image/jpeg',0.9);
-    pendingCamImages.push(dataUrl); lastCaptured=dataUrl;
-    renderGallery();
-    document.getElementById('annStart').disabled=false;
-  });
-  camStop.addEventListener('click', ()=>{
-    if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-    camVideo.pause(); camVideo.srcObject=null;
-    camShot.disabled=true; camStop.disabled=true; camStart.disabled=false;
-  });
 
-  // annotate last captured
-  const annC = document.getElementById('annCanvas');
-  const annStart = document.getElementById('annStart');
-  const annSave  = document.getElementById('annSave');
-  let annCtx, drawing=false;
+// ANNOTACIJA: anotuoti paskutinę įkeltą nuotrauką iš masterAttachments
+const annC = document.getElementById('annCanvas');
+const annStart = document.getElementById('annStart');
+const annSave = document.getElementById('annSave');
+let annCtx = null;
 
-  annStart.onclick = ()=>{
-    if(!lastCaptured) return alert('Nėra ką anotuoti');
+// Pirmiausia įsitikiname, kad annStart egzistuoja (nors jį paliekame UI)
+if (annStart && annC) {
+  annStart.disabled = false; // leidžiam spausti visada, jei yra nuotraukų
+
+  annStart.onclick = () => {
+    const attachments = claim.masterAttachments || [];
+    const images = attachments.filter(a => a.type === 'image' && !/parasas/i.test(a.name));
+    
+    if (images.length === 0) {
+      alert('Nėra nuotraukų, kurias būtų galima anotuoti.');
+      return;
+    }
+
+    const lastImage = images[images.length - 1];
     const img = new Image();
-    img.onload = ()=>{
-      annC.width = img.width; annC.height = img.height;
-      annC.style.display='block';
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      // Nustatome drobės dydį pagal originalų paveikslėlį
+      annC.width = img.width;
+      annC.height = img.height;
+      annC.style.display = 'block';
+      annC.style.maxWidth = '100%';
+      annC.style.height = 'auto';
+
       annCtx = annC.getContext('2d');
-      annCtx.drawImage(img,0,0);
-      annCtx.lineWidth = 8; annCtx.strokeStyle = '#ff3333'; annCtx.lineCap='round';
-      annC.onpointerdown = (e)=>{ drawing=true; annCtx.beginPath(); annCtx.moveTo(e.offsetX,e.offsetY); };
-      annC.onpointermove = (e)=>{ if(!drawing)return; annCtx.lineTo(e.offsetX,e.offsetY); annCtx.stroke(); };
-      window.onpointerup = ()=> drawing=false;
-      annSave.disabled=false;
+      annCtx.clearRect(0, 0, annC.width, annC.height);
+      annCtx.drawImage(img, 0, 0);
+
+      // Piešimo nustatymai
+      annCtx.lineWidth = 6;
+      annCtx.strokeStyle = '#ff3333';
+      annCtx.lineCap = 'round';
+      annCtx.lineJoin = 'round';
+
+      let isDrawing = false;
+
+annC.onpointerdown = (e) => {
+  isDrawing = true;
+  const rect = annC.getBoundingClientRect();
+  // Naudojam CSS matmenis (rect), o ne canvas matmenis (width/height)
+  const scaleX = img.width / rect.width;
+  const scaleY = img.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  annCtx.beginPath();
+  annCtx.moveTo(x, y);
+};
+
+annC.onpointermove = (e) => {
+  if (!isDrawing) return;
+  const rect = annC.getBoundingClientRect();
+const scaleX = img.width / rect.width;
+const scaleY = img.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  annCtx.lineTo(x, y);
+  annCtx.stroke();
+};
+
+      window.onpointerup = () => { isDrawing = false; };
+      window.onblur = () => { isDrawing = false; };
+
+      annSave.disabled = false;
     };
-    img.src = lastCaptured;
+    img.src = lastImage.dataUrl || lastImage.url;
   };
-  annSave.onclick = ()=>{
+
+  annSave.onclick = () => {
+    if (!annCtx) return;
+
     const dataUrl = annC.toDataURL('image/png');
-    const i = pendingCamImages.lastIndexOf(lastCaptured);
-    if (i>-1) pendingCamImages[i] = dataUrl; else pendingCamImages.push(dataUrl);
-    lastCaptured = dataUrl;
-    annC.style.display='none'; annSave.disabled=true;
-    renderGallery();
+
+    // Rasti paskutinę nuotrauką ir pakeisti
+    const list = [...(claim.masterAttachments || [])];
+    const images = list.filter(a => a.type === 'image' && !/parasas/i.test(a.name));
+    const lastImage = images[images.length - 1];
+    const index = list.indexOf(lastImage);
+
+    if (index > -1) {
+      list[index].dataUrl = dataUrl;
+      claim.masterAttachments = list;
+      saveClaim();
+      renderGallery();
+      toast('Anotacija išsaugota');
+    }
+
+    annC.style.display = 'none';
+    annSave.disabled = true;
+    annCtx = null;
   };
+}
 
 /* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
 const sig = document.getElementById('sig');
@@ -926,3 +960,4 @@ function toast(msg){
 </script>
 </body>
 </html>
+
