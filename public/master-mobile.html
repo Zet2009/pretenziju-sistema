@@ -68,6 +68,27 @@
   .checklist-item{display:flex;align-items:center;gap:8px;margin:6px 0}
   .checklist-item input[type="text"]{flex:1;padding:8px;border:1px solid var(--line);border-radius:8px}
   canvas.sig{width:100%;height:140px;border:1px dashed var(--line);border-radius:10px;background:#fff;touch-action:none}
+  
+  /* Nauji stiliai parašo aktyvavimui */
+  .sig-container { position: relative; }
+  .sig-overlay { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background: rgba(255,255,255,0.9); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 10px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sig-disabled { 
+    pointer-events: none; 
+    opacity: 0.7; 
+  }
 
   .offline{position:sticky;top:0;z-index:20;margin:-12px -12px 12px -12px;padding:8px 12px;background:#fff3cd;border-bottom:1px solid #facc15;font-size:13px}
 
@@ -377,11 +398,17 @@ function renderDetail(id){
 
     <div class="section">
       <h3>Kliento parašas</h3>
-      <canvas id="sig" class="sig"></canvas>
+      <div class="sig-container">
+        <canvas id="sig" class="sig sig-disabled"></canvas>
+        <div id="sigOverlay" class="sig-overlay">
+          <button class="btn btn-accent" id="sigActivate">Aktyvuoti parašo lauką</button>
+          <div class="meta">Spustelkite čia, kad pradėtumėte rašyti parašą</div>
+        </div>
+      </div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-ghost" id="sigUndo">Atšaukti brūkšnį</button>
-        <button class="btn btn-ghost" id="sigClear">Išvalyti</button>
-        <button class="btn btn-ok" id="sigSave">Pridėti prie ataskaitos</button>
+        <button class="btn btn-ghost" id="sigUndo" disabled>Atšaukti brūkšnį</button>
+        <button class="btn btn-ghost" id="sigClear" disabled>Išvalyti</button>
+        <button class="btn btn-ok" id="sigSave" disabled>Pridėti prie ataskaitos</button>
       </div>
     </div>
     
@@ -814,11 +841,14 @@ function renderDetail(id){
 
   /* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
   const sig = document.getElementById('sig');
+  const sigOverlay = document.getElementById('sigOverlay');
+  const sigActivate = document.getElementById('sigActivate');
   const sctx = sig.getContext('2d', { willReadFrequently:true });
 
   let strokes = [];        // kiekvienas brūkšnys = [points]
   let current = null;      // aktyvus brūkšnys
   let sigDirty = false;    // ar ką nors nupiešta
+  let sigActive = false;   // ar parašo laukas aktyvus
 
   function resizeSig(){
     const r = sig.getBoundingClientRect();
@@ -866,7 +896,7 @@ function renderDetail(id){
     };
   }
   function widthFrom(pPrev, pNow){
-    // jei yas stylus slėgis – naudok jį; kitaip daryk „greičio" kompensaciją
+    // jei yra stylus slėgis – naudok jį; kitaip daryk „greičio" kompensaciją
     const base = 2.2;         // bazinis storis
     const max = 4.0;
     if (pNow.p) return Math.max(1.6, Math.min(max, base + (pNow.p*2)));
@@ -878,6 +908,7 @@ function renderDetail(id){
 
   let lastDraw = 0;
   function onDown(e){
+    if (!sigActive) return;
     e.preventDefault();
     sig.setPointerCapture(e.pointerId);
     const p = pt(e);
@@ -885,7 +916,7 @@ function renderDetail(id){
     sigDirty = true;
   }
   function onMove(e){
-    if (!current) return;
+    if (!sigActive || !current) return;
     e.preventDefault();
     const now = performance.now();
     // throttle ~60fps
@@ -901,12 +932,22 @@ function renderDetail(id){
     redraw();
   }
   function onUp(e){
-    if (!current) return;
+    if (!sigActive || !current) return;
     e.preventDefault();
     strokes.push(current);
     current = null;
     redraw();
   }
+
+  // Aktyvavimo mygtukas
+  sigActivate.addEventListener('click', () => {
+    sigActive = true;
+    sig.classList.remove('sig-disabled');
+    sigOverlay.style.display = 'none';
+    document.getElementById('sigUndo').disabled = false;
+    document.getElementById('sigClear').disabled = false;
+    document.getElementById('sigSave').disabled = false;
+  });
 
   sig.addEventListener('pointerdown', onDown);
   sig.addEventListener('pointermove', onMove);
@@ -916,20 +957,31 @@ function renderDetail(id){
   resizeSig();
 
   document.getElementById('sigUndo').onclick = ()=>{
+    if (!sigActive) return;
     strokes.pop(); redraw();
   };
   document.getElementById('sigClear').onclick = ()=>{
+    if (!sigActive) return;
     strokes = []; current=null; sigDirty=false; redraw();
   };
   document.getElementById('sigSave').onclick = ()=>{
+    if (!sigActive) return;
     if (!sigDirty || (strokes.length===0 && !current)) { alert('Nupieškite parašą.'); return; }
-    const img = sig.toDataURL('image/png'); // hi-DPI, nes drobė scaled
+    const img = sig.toDataURL('image/png');
     claim.masterAttachments = (claim.masterAttachments||[]).concat([{name:`parasas-${Date.now()}.png`, dataUrl:img, type:'image'}]);
     addHistory('Pridėtas kliento parašas'); saveClaim();
     redraw();
     renderGallery();
     toast('Parašas pridėtas');
     updateCompleteButton();
+
+    // Deaktyvuojame parašo lauką po išsaugojimo
+    sigActive = false;
+    sig.classList.add('sig-disabled');
+    sigOverlay.style.display = 'flex';
+    document.getElementById('sigUndo').disabled = true;
+    document.getElementById('sigClear').disabled = true;
+    document.getElementById('sigSave').disabled = true;
   };
 
   /* --------- „Darbas atliktas" mygtukas su tikrinimais --------- */
