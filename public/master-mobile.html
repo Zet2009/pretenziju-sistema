@@ -69,7 +69,6 @@
   .checklist-item input[type="text"]{flex:1;padding:8px;border:1px solid var(--line);border-radius:8px}
   canvas.sig{width:100%;height:140px;border:1px dashed var(--line);border-radius:10px;background:#fff;touch-action:none}
 
-
   .offline{position:sticky;top:0;z-index:20;margin:-12px -12px 12px -12px;padding:8px 12px;background:#fff3cd;border-bottom:1px solid #facc15;font-size:13px}
 
   /* spausdinimas: tik detalės ataskaitai */
@@ -115,7 +114,7 @@ function drawOffline(){
   if (!navigator.onLine){
     const bar = document.createElement('div');
     bar.className = 'offline';
-    bar.textContent = 'Offline režimas: pakeitimai bus saugomi įrenginyje.';
+    bar.textContent = 'Offline režimas: pakeitimai bus saugoti įrenginyje.';
     app.prepend(bar);
   }
 }
@@ -290,104 +289,126 @@ function renderDetail(id){
   let claim = claims.find(c=>c.id===id);
   if(!claim){ app.innerHTML='<div class="card">Pretenzija nerasta.</div>'; return; }
 
- app.innerHTML = `
-  <div class="section">
-    <h3>Informacija</h3>
-    <div class="meta"><span class="pill">#${claim.id}</span> <span class="pill">${claim.status||'Nauja'}</span></div>
-    <div class="line"><b>Data:</b> ${fmt(claim.date)}</div>
-    <div class="line"><b>Produktas:</b> ${claim.product||''}</div>
-    <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
-    <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
-    <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
+  app.innerHTML = `
+    <div class="section" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="flex:1">
+        <h3>Informacija</h3>
+        <div class="meta"><span class="pill">#${claim.id}</span> <span class="pill">${claim.status||'Nauja'}</span></div>
+        <div class="line"><b>Data:</b> ${fmt(claim.date)}</div>
+        <div class="line"><b>Produktas:</b> ${claim.product||''}</div>
+        <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
+        <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
+        <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
 
-    <div class="stat-box" style="margin-top:8px">
-      <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
-      <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
-      <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
-      <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
-      <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
+        <div class="stat-box" style="margin-top:8px">
+          <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
+          <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
+          <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
+          <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
+          <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
+        </div>
+
+        <div class="stat-box">
+          <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
+          <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
+          <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
+          <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
+        </div>
+      </div>
     </div>
 
-    <div class="stat-box">
-      <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
-      <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
-      <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
-      <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
+    <div class="section">
+      <h3>Kliento failai</h3>
+      <div id="user-files" class="grid2"></div>
     </div>
-  </div>
 
-  <div class="section">
-    <h3>Kliento failai</h3>
-    <div id="user-files" class="grid2"></div>
-  </div>
-
-  <div class="section">
-    <h3>Kokybės dokumentai</h3>
-    <div id="quality-attachments" class="grid2"></div>
-  </div>
-
-  <div class="section">
-    <h3>Kokybės rekomendacijos</h3>
-    <div id="quality-note" class="meta"></div>
-  </div>
-
-  <div class="section">
-    <h3>Dalių sąrašas (checklist)</h3>
-    <div id="parts"></div>
-    <div style="display:flex;gap:8px; margin-top:8px">
-      <input id="partInput" placeholder="Nauja dalis…" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
-      <button class="btn btn-ghost" id="addPart">Pridėti</button>
+    <div class="section">
+      <h3>Kokybės dokumentai</h3>
+      <div id="quality-attachments" class="grid2"></div>
     </div>
-  </div>
 
-  <div class="section">
-  <h3>Foto ataskaita</h3>
-  <div id="dropzone">
-    Nutempkite failus arba spauskite pasirinkti
-    <br><small class="meta">JPG, PNG, WEBP, MP4, PDF (iki ~10 MB; nuotraukos automatiškai sumažinamos)</small>
-    <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf">
-  </div>
-  <div id="selected-files" class="meta" style="margin-top:8px"></div>
-
-  <!-- Anotavimo juosta -->
-  <div class="annotate-bar">
-    <button class="btn btn-ghost" id="annStart">✏️ Anotuoti paskutinę</button>
-    <button class="btn btn-ghost" id="annSave" disabled>💾 Išsaugoti anotaciją</button>
-  </div>
-  <canvas id="annCanvas" class="sig" style="display:none; max-height: 80vh;"></canvas>
-
-<hr style="margin:14px 0">
-<h4 style="margin-bottom:8px">Jau įkelta</h4>
-<div id="report-gallery" class="grid2"></div>
-
-<div style="margin-top:12px;text-align:right">
-  <button id="save-report" class="btn btn-dark">Išsaugoti ataskaitą</button>
-</div>
-</div>
-
-  <div class="section">
-    <h3>Kliento parašas</h3>
-    <canvas id="sig" class="sig"></canvas>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-ghost" id="sigUndo">Atšaukti brūkšnį</button>
-      <button class="btn btn-ghost" id="sigClear">Išvalyti</button>
-      <button class="btn btn-ok" id="sigSave">Pridėti prie ataskaitos</button>
+    <div class="section">
+      <h3>Kokybės rekomendacijos</h3>
+      <div id="quality-note" class="meta"></div>
     </div>
-  </div>
 
-  <div class="section">
-    <h3>Darbo užbaigimas</h3>
-    <div class="stat-box">
-      <span class="chip" id="completeReq">Reikia: ≥1 nuotraukos ir parašo</span>
-      <button class="btn btn-ok" id="completeBtn" disabled>✅ Pažymėti kaip atliktą</button>
+    <div class="section">
+      <h3>Dalių sąrašas (checklist)</h3>
+      <div id="parts"></div>
+      <div style="display:flex;gap:8px; margin-top:8px">
+        <input id="partInput" placeholder="Nauja dalis…" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
+        <button class="btn btn-ghost" id="addPart">Pridėti</button>
+      </div>
     </div>
-  </div>
 
-  <div class="section">
-    <h3>Istorija</h3>
-    <div id="historyBox" class="meta"></div>
-  </div>
-`;
+    <div class="section">
+      <h3>Foto ataskaita</h3>
+      <div id="dropzone">
+        Nutempkite failus arba spauskite pasirinkti
+        <br><small class="meta">JPG, PNG, WEBP, MP4, PDF (iki ~10 MB; nuotraukos automatiškai sumažinamos)</small>
+        <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf" capture="environment">
+      </div>
+      <div id="selected-files" class="meta" style="margin-top:8px"></div>
+
+      <div class="cam-wrap">
+        <div class="cam-row" style="margin-bottom:8px">
+          <button type="button" id="camStart" class="btn btn-accent">📷 Kamera</button>
+          <button type="button" id="camShot"  class="btn btn-ghost" disabled>📸 Nufotografuoti</button>
+          <button type="button" id="camStop"   class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
+        </div>
+        <video id="camVideo" class="cam-video" playsinline muted></video>
+        <canvas id="camCanvas" style="display:none"></canvas>
+
+        <div class="annotate-bar">
+          <button class="btn btn-ghost" id="annStart" disabled>✏️ Anotuoti paskutinę</button>
+          <button class="btn btn-ghost" id="annSave"  disabled>💾 Išsaugoti anotaciją</button>
+        </div>
+        <canvas id="annCanvas" class="sig" style="display:none;height:220px"></canvas>
+      </div>
+
+      <div style="margin-top:12px;text-align:right">
+        <button id="save-report" class="btn btn-dark">Išsaugoti ataskaitą</button>
+      </div>
+
+      <hr style="margin:14px 0">
+      <h4 style="margin-bottom:8px">Jau įkelta</h4>
+      <div id="report-gallery" class="grid2"></div>
+    </div>
+
+    <div class="section">
+      <h3>Kliento parašas</h3>
+      <canvas id="sig" class="sig"></canvas>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-ghost" id="sigUndo">Atšaukti brūkšnį</button>
+        <button class="btn btn-ghost" id="sigClear">Išvalyti</button>
+        <button class="btn btn-ok" id="sigSave">Pridėti prie ataskaitos</button>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3>Darbo užbaigimas</h3>
+      <div class="stat-box">
+        <span class="chip" id="completeReq">Reikia: ≥1 nuotraukos ir parašo</span>
+        <button class="btn btn-ok" id="completeBtn" disabled>✅ Pažymėti kaip atliktą</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Serijos/QR skenavimas</h3>
+      <div class="stat-box">
+        <button class="btn btn-ghost" id="scanBtn">📷 Skenuoti</button>
+        <input id="serialInput" placeholder="Arba įrašykite kodą ranka" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
+        <button class="btn btn-ghost" id="serialSave">Išsaugoti</button>
+      </div>
+      <div id="serialOut" class="meta" style="margin-top:6px"></div>
+    </div>
+
+    <!-- ISTORIJA DABAR PASKUTINĖ -->
+    <div class="section">
+      <h3>Istorija</h3>
+      <div id="historyBox" class="meta"></div>
+    </div>
+  `;
 
   drawOffline();
 
@@ -587,293 +608,290 @@ function renderDetail(id){
     });
   }
 
-document.getElementById('save-report').addEventListener('click', async ()=>{
-  // 1. Išsaugoti anotaciją, jei ji yra aktyvi
-  if (annC.style.display === 'block') {
-    annSave.click(); // Automatiškai spustelėja „Išsaugoti anotaciją“
-    await new Promise(resolve => setTimeout(resolve, 100)); // laukia, kol išsaugos
-  }
+  document.getElementById('save-report').addEventListener('click', async ()=>{
+    const camAsFiles=pendingCamImages.map((dataUrl,idx)=>({name:`kamera-${Date.now()}-${idx+1}.jpg`, dataUrl, type:'image'}));
+    const uploaded = pendingFiles; // jau dataUrl
+    const toSave = uploaded.concat(camAsFiles);
+    if(!toSave.length) return alert('Pasirinkite failus arba nufotografuokite');
 
-  // 2. Tada išsaugoti viską kaip anksčiau
-  const camAsFiles = pendingCamImages.map((dataUrl, idx) => ({
-    name: `kamera-${Date.now()}-${idx+1}.jpg`,
-    dataUrl,
-    type: 'image'
-  }));
-  const uploaded = pendingFiles;
-  const toSave = uploaded.concat(camAsFiles);
-
-  if (!toSave.length) {
-    return alert('Pasirinkite failus arba nufotografuokite');
-  }
-
-  claim.masterAttachments = (claim.masterAttachments || []).concat(toSave);
-  addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`);
-  drawHistory();
-
-  pendingFiles = [];
-  list.textContent = '';
-  pendingCamImages = [];
-  lastCaptured = null;
-
-  saveClaim();
-  renderGallery();
-  toast('Ataskaita išsaugota');
-});
+    claim.masterAttachments=(claim.masterAttachments||[]).concat(toSave);
+    addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`); drawHistory();
+    pendingFiles=[]; list.textContent=''; pendingCamImages=[]; lastCaptured=null;
+    saveClaim(); renderGallery(); toast('Ataskaita išsaugota');
+  });
 
   renderGallery();
 
+  // camera
+  const camVideo=document.getElementById('camVideo');
+  const camCanvas=document.getElementById('camCanvas');
+  const camStart=document.getElementById('camStart');
+  const camShot=document.getElementById('camShot');
+  const camStop=document.getElementById('camStop');
+  let camStream=null;
 
+  camStart.addEventListener('click', async ()=>{
+    try{
+      camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      camVideo.srcObject=camStream; camVideo.play();
+      camShot.disabled=false; camStop.disabled=false; camStart.disabled=true;
+    }catch(e){ alert('Nepavyko paleisti kameros. Patikrinkite leidimus.'); console.error(e); }
+  });
+  camShot.addEventListener('click', ()=>{
+    if(!camStream) return;
+    const track=camStream.getVideoTracks()[0]; const s=track.getSettings();
+    const w=s.width||camVideo.videoWidth||1280, h=s.height||camVideo.videoHeight||720;
+    camCanvas.width=w; camCanvas.height=h;
+    camCanvas.getContext('2d').drawImage(camVideo,0,0,w,h);
+    // suspausti iki ~1600px pločio
+    const ratio = Math.min(1600/w, 1600/h, 1);
+    const dw = Math.round(w*ratio), dh = Math.round(h*ratio);
+    const tmp = document.createElement('canvas'); tmp.width=dw; tmp.height=dh;
+    const tctx = tmp.getContext('2d'); tctx.drawImage(camCanvas,0,0,dw,dh);
+    const dataUrl=tmp.toDataURL('image/jpeg',0.9);
+    pendingCamImages.push(dataUrl); lastCaptured=dataUrl;
+    renderGallery();
+    document.getElementById('annStart').disabled=false;
+  });
+  camStop.addEventListener('click', ()=>{
+    if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+    camVideo.pause(); camVideo.srcObject=null;
+    camShot.disabled=true; camStop.disabled=true; camStart.disabled=false;
+  });
 
-// ANNOTACIJA: anotuoti paskutinę įkeltą nuotrauką iš masterAttachments
-const annC = document.getElementById('annCanvas');
-const annStart = document.getElementById('annStart');
-const annSave = document.getElementById('annSave');
-let annCtx = null;
+  // annotate last captured - FIXED CALIBRATION
+  const annC = document.getElementById('annCanvas');
+  const annStart = document.getElementById('annStart');
+  const annSave  = document.getElementById('annSave');
+  let annCtx, drawing=false, annImgWidth, annImgHeight, annScaleX, annScaleY;
 
-// Pirmiausia įsitikiname, kad annStart egzistuoja (nors jį paliekame UI)
-if (annStart && annC) {
-  annStart.disabled = false; // leidžiam spausti visada, jei yra nuotraukų
-
-  annStart.onclick = () => {
-    const attachments = claim.masterAttachments || [];
-    const images = attachments.filter(a => a.type === 'image' && !/parasas/i.test(a.name));
-    
-    if (images.length === 0) {
-      alert('Nėra nuotraukų, kurias būtų galima anotuoti.');
-      return;
-    }
-
-    const lastImage = images[images.length - 1];
+  annStart.onclick = ()=>{
+    if(!lastCaptured) return alert('Nėra ką anotuoti');
     const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      // Nustatome drobės dydį pagal originalų paveikslėlį
-      annC.width = img.width;
-      annC.height = img.height;
-      annC.style.display = 'block';
-      annC.style.maxWidth = '100%';
-      annC.style.height = 'auto';
-
+    img.onload = ()=>{
+      // Apskaičiuojame mastelį kad tilptų į ekraną
+      const maxWidth = annC.parentElement.clientWidth - 20;
+      const scale = Math.min(maxWidth / img.width, 1);
+      
+      annImgWidth = img.width;
+      annImgHeight = img.height;
+      annScaleX = scale;
+      annScaleY = scale;
+      
+      annC.width = img.width * scale;
+      annC.height = img.height * scale;
+      annC.style.display='block';
       annCtx = annC.getContext('2d');
-      annCtx.clearRect(0, 0, annC.width, annC.height);
-      annCtx.drawImage(img, 0, 0);
-
-      // Piešimo nustatymai
-      annCtx.lineWidth = 6;
-      annCtx.strokeStyle = '#ff3333';
-      annCtx.lineCap = 'round';
-      annCtx.lineJoin = 'round';
-
-      let isDrawing = false;
-
-annC.onpointerdown = (e) => {
-  isDrawing = true;
-  const rect = annC.getBoundingClientRect();
-  // Naudojam CSS matmenis (rect), o ne canvas matmenis (width/height)
-  const scaleX = img.width / rect.width;
-  const scaleY = img.height / rect.height;
-  const x = (e.clientX - rect.left) * scaleX;
-  const y = (e.clientY - rect.top) * scaleY;
-  annCtx.beginPath();
-  annCtx.moveTo(x, y);
-};
-
-annC.onpointermove = (e) => {
-  if (!isDrawing) return;
-  const rect = annC.getBoundingClientRect();
-const scaleX = img.width / rect.width;
-const scaleY = img.height / rect.height;
-  const x = (e.clientX - rect.left) * scaleX;
-  const y = (e.clientY - rect.top) * scaleY;
-  annCtx.lineTo(x, y);
-  annCtx.stroke();
-};
-
-      window.onpointerup = () => { isDrawing = false; };
-      window.onblur = () => { isDrawing = false; };
-
-      annSave.disabled = false;
+      
+      // Nubraižome nuotrauką su teisingu masteliu
+      annCtx.drawImage(img, 0, 0, annC.width, annC.height);
+      annCtx.lineWidth = 8; 
+      annCtx.strokeStyle = '#ff3333'; 
+      annCtx.lineCap='round';
+      
+      // Kalibruotas brūkšniavimas
+      annC.onpointerdown = (e)=>{
+        drawing=true; 
+        annCtx.beginPath(); 
+        // Konvertuojame ekrano koordinates į nuotraukos koordinates
+        const x = e.offsetX / annScaleX;
+        const y = e.offsetY / annScaleY;
+        annCtx.moveTo(x * annScaleX, y * annScaleY);
+      };
+      
+      annC.onpointermove = (e)=>{
+        if(!drawing) return; 
+        // Konvertuojame ekrano koordinates į nuotraukos koordinates
+        const x = e.offsetX / annScaleX;
+        const y = e.offsetY / annScaleY;
+        annCtx.lineTo(x * annScaleX, y * annScaleY); 
+        annCtx.stroke();
+      };
+      
+      window.onpointerup = ()=> drawing=false;
+      annSave.disabled=false;
     };
-    img.src = lastImage.dataUrl || lastImage.url;
+    img.src = lastCaptured;
   };
-
-  annSave.onclick = () => {
-    if (!annCtx) return;
-
-    const dataUrl = annC.toDataURL('image/png');
-
-    // Rasti paskutinę nuotrauką ir pakeisti
-    const list = [...(claim.masterAttachments || [])];
-    const images = list.filter(a => a.type === 'image' && !/parasas/i.test(a.name));
-    const lastImage = images[images.length - 1];
-    const index = list.indexOf(lastImage);
-
-    if (index > -1) {
-      list[index].dataUrl = dataUrl;
-      claim.masterAttachments = list;
-      saveClaim();
+  
+  annSave.onclick = ()=>{
+    // Sukuriame pilno dydžio anotuotą nuotrauką
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width = annImgWidth;
+    fullCanvas.height = annImgHeight;
+    const fullCtx = fullCanvas.getContext('2d');
+    
+    // Nubraižome originalią nuotrauką
+    const img = new Image();
+    img.onload = () => {
+      fullCtx.drawImage(img, 0, 0);
+      
+      // Perkeliame anotacijas į pilną dydį
+      fullCtx.drawImage(annC, 0, 0, annC.width, annC.height, 0, 0, fullCanvas.width, fullCanvas.height);
+      
+      const dataUrl = fullCanvas.toDataURL('image/png');
+      const i = pendingCamImages.lastIndexOf(lastCaptured);
+      if (i>-1) pendingCamImages[i] = dataUrl; 
+      else pendingCamImages.push(dataUrl);
+      
+      lastCaptured = dataUrl;
+      annC.style.display='none'; 
+      annSave.disabled=true;
       renderGallery();
-      toast('Anotacija išsaugota');
-    }
-
-    annC.style.display = 'none';
-    annSave.disabled = true;
-    annCtx = null;
+    };
+    img.src = lastCaptured;
   };
-}
 
-/* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
-const sig = document.getElementById('sig');
-const sctx = sig.getContext('2d', { willReadFrequently:true });
+  /* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
+  const sig = document.getElementById('sig');
+  const sctx = sig.getContext('2d', { willReadFrequently:true });
 
-let strokes = [];        // kiekvienas brūkšnys = [points]
-let current = null;      // aktyvus brūkšnys
-let sigDirty = false;    // ar ką nors nupiešta
+  let strokes = [];        // kiekvienas brūkšnys = [points]
+  let current = null;      // aktyvus brūkšnys
+  let sigDirty = false;    // ar ką nors nupiešta
 
-function resizeSig(){
-  const r = sig.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio||1, 2);
-  sig.width = Math.floor(r.width * dpr);
-  sig.height = Math.floor(r.height * dpr);
-  sctx.setTransform(1,0,0,1,0,0);
-  sctx.scale(dpr, dpr);
-  // balta drobė
-  sctx.fillStyle = '#fff';
-  sctx.fillRect(0,0,r.width,r.height);
-  redraw();
-}
-function redraw(){
-  const r = sig.getBoundingClientRect();
-  sctx.fillStyle = '#fff';
-  sctx.fillRect(0,0,r.width,r.height);
-  sctx.lineCap = 'round';
-  sctx.lineJoin = 'round';
-  strokes.forEach(drawStroke);
-  if (current) drawStroke(current);
-}
-function drawStroke(st){
-  if (!st || st.length<2) return;
-  sctx.beginPath();
-  for (let i=1;i<st.length;i++){
-    const p0 = st[i-1], p1 = st[i];
-    // quadratic curve tarp p0 ir p1
-    const mx = (p0.x + p1.x)/2, my = (p0.y + p1.y)/2;
-    sctx.strokeStyle = '#111';
-    sctx.lineWidth = p1.w;
-    sctx.moveTo(p0.x, p0.y);
-    sctx.quadraticCurveTo(p0.x, p0.y, mx, my);
-    sctx.stroke();
+  function resizeSig(){
+    const r = sig.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    sig.width = Math.floor(r.width * dpr);
+    sig.height = Math.floor(r.height * dpr);
+    sctx.setTransform(1,0,0,1,0,0);
+    sctx.scale(dpr, dpr);
+    // balta drobė
+    sctx.fillStyle = '#fff';
+    sctx.fillRect(0,0,r.width,r.height);
+    redraw();
   }
-}
+  function redraw(){
+    const r = sig.getBoundingClientRect();
+    sctx.fillStyle = '#fff';
+    sctx.fillRect(0,0,r.width,r.height);
+    sctx.lineCap = 'round';
+    sctx.lineJoin = 'round';
+    strokes.forEach(drawStroke);
+    if (current) drawStroke(current);
+  }
+  function drawStroke(st){
+    if (!st || st.length<2) return;
+    sctx.beginPath();
+    for (let i=1;i<st.length;i++){
+      const p0 = st[i-1], p1 = st[i];
+      // quadratic curve tarp p0 ir p1
+      const mx = (p0.x + p1.x)/2, my = (p0.y + p1.y)/2;
+      sctx.strokeStyle = '#111';
+      sctx.lineWidth = p1.w;
+      sctx.moveTo(p0.x, p0.y);
+      sctx.quadraticCurveTo(p0.x, p0.y, mx, my);
+      sctx.stroke();
+    }
+  }
 
-function pt(e){
-  const rect = sig.getBoundingClientRect();
-  const pressure = typeof e.pressure === 'number' && e.pressure>0 ? e.pressure : 0.5;
-  return {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top,
-    p: pressure
+  function pt(e){
+    const rect = sig.getBoundingClientRect();
+    const pressure = typeof e.pressure === 'number' && e.pressure>0 ? e.pressure : 0.5;
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      p: pressure
+    };
+  }
+  function widthFrom(pPrev, pNow){
+    // jei yra stylus slėgis – naudok jį; kitaip daryk „greičio" kompensaciją
+    const base = 2.2;         // bazinis storis
+    const max = 4.0;
+    if (pNow.p) return Math.max(1.6, Math.min(max, base + (pNow.p*2)));
+    if (!pPrev) return base;
+    const dx = pNow.x - pPrev.x, dy = pNow.y - pPrev.y;
+    const speed = Math.min(1, Math.hypot(dx,dy) / 6); // kuo greičiau – tuo ploniau
+    return Math.max(1.6, max - speed*2.2);
+  }
+
+  let lastDraw = 0;
+  function onDown(e){
+    e.preventDefault();
+    sig.setPointerCapture(e.pointerId);
+    const p = pt(e);
+    current = [ { ...p, w: widthFrom(null,p) } ];
+    sigDirty = true;
+  }
+  function onMove(e){
+    if (!current) return;
+    e.preventDefault();
+    const now = performance.now();
+    // throttle ~60fps
+    if (now - lastDraw < 16) return;
+    lastDraw = now;
+
+    const p = pt(e);
+    const prev = current[current.length-1];
+    // atmesti labai mažus poslinkius (drebulys)
+    if (Math.abs(p.x - prev.x) + Math.abs(p.y - prev.y) < 1.2) return;
+
+    current.push({ ...p, w: widthFrom(prev,p) });
+    redraw();
+  }
+  function onUp(e){
+    if (!current) return;
+    e.preventDefault();
+    strokes.push(current);
+    current = null;
+    redraw();
+  }
+
+  sig.addEventListener('pointerdown', onDown);
+  sig.addEventListener('pointermove', onMove);
+  sig.addEventListener('pointerup', onUp);
+  sig.addEventListener('pointercancel', onUp);
+  window.addEventListener('resize', resizeSig);
+  resizeSig();
+
+  document.getElementById('sigUndo').onclick = ()=>{
+    strokes.pop(); redraw();
   };
-}
-function widthFrom(pPrev, pNow){
-  // jei yra stylus slėgis – naudok jį; kitaip daryk „greičio“ kompensaciją
-  const base = 2.2;         // bazinis storis
-  const max = 4.0;
-  if (pNow.p) return Math.max(1.6, Math.min(max, base + (pNow.p*2)));
-  if (!pPrev) return base;
-  const dx = pNow.x - pPrev.x, dy = pNow.y - pPrev.y;
-  const speed = Math.min(1, Math.hypot(dx,dy) / 6); // kuo greičiau – tuo ploniau
-  return Math.max(1.6, max - speed*2.2);
-}
+  document.getElementById('sigClear').onclick = ()=>{
+    strokes = []; current=null; sigDirty=false; redraw();
+  };
+  document.getElementById('sigSave').onclick = ()=>{
+    if (!sigDirty || (strokes.length===0 && !current)) { alert('Nupieškite parašą.'); return; }
+    const img = sig.toDataURL('image/png'); // hi-DPI, nes drobė scaled
+    claim.masterAttachments = (claim.masterAttachments||[]).concat([{name:`parasas-${Date.now()}.png`, dataUrl:img, type:'image'}]);
+    addHistory('Pridėtas kliento parašas'); saveClaim();
+    redraw();
+    renderGallery();
+    toast('Parašas pridėtas');
+    updateCompleteButton();
+  };
 
-let lastDraw = 0;
-function onDown(e){
-  e.preventDefault();
-  sig.setPointerCapture(e.pointerId);
-  const p = pt(e);
-  current = [ { ...p, w: widthFrom(null,p) } ];
-  sigDirty = true;
-}
-function onMove(e){
-  if (!current) return;
-  e.preventDefault();
-  const now = performance.now();
-  // throttle ~60fps
-  if (now - lastDraw < 16) return;
-  lastDraw = now;
+  /* --------- „Darbas atliktas" mygtukas su tikrinimais --------- */
+  const completeBtn = document.getElementById('completeBtn');
+  const completeReq = document.getElementById('completeReq');
 
-  const p = pt(e);
-  const prev = current[current.length-1];
-  // atmesti labai mažus poslinkius (drebulys)
-  if (Math.abs(p.x - prev.x) + Math.abs(p.y - prev.y) < 1.2) return;
+  function hasSignature(){
+    return (claim.masterAttachments||[]).some(a => /paras(as|a)|parašas/i.test(a.name||'') || /data:image\/png/.test(a.dataUrl||''));
+  }
+  function hasAnyEvidence(){
+    // bent viena iliustracija (foto/video/pdf) ataskaitoje
+    return (claim.masterAttachments||[]).some(a => ['image','video','pdf'].includes(a.type));
+  }
 
-  current.push({ ...p, w: widthFrom(prev,p) });
-  redraw();
-}
-function onUp(e){
-  if (!current) return;
-  e.preventDefault();
-  strokes.push(current);
-  current = null;
-  redraw();
-}
-
-sig.addEventListener('pointerdown', onDown);
-sig.addEventListener('pointermove', onMove);
-sig.addEventListener('pointerup', onUp);
-sig.addEventListener('pointercancel', onUp);
-window.addEventListener('resize', resizeSig);
-resizeSig();
-
-document.getElementById('sigUndo').onclick = ()=>{
-  strokes.pop(); redraw();
-};
-document.getElementById('sigClear').onclick = ()=>{
-  strokes = []; current=null; sigDirty=false; redraw();
-};
-document.getElementById('sigSave').onclick = ()=>{
-  if (!sigDirty || (strokes.length===0 && !current)) { alert('Nupieškite parašą.'); return; }
-  const img = sig.toDataURL('image/png'); // hi-DPI, nes drobė scaled
-  claim.masterAttachments = (claim.masterAttachments||[]).concat([{name:`parasas-${Date.now()}.png`, dataUrl:img, type:'image'}]);
-  addHistory('Pridėtas kliento parašas'); saveClaim();
-  redraw();
-  renderGallery();
-  toast('Parašas pridėtas');
+  function updateCompleteButton(){
+    const ok = hasSignature() && hasAnyEvidence();
+    completeBtn.disabled = !ok;
+    completeReq.textContent = ok ? 'Paruošta užbaigti' : 'Reikia: ≥1 nuotraukos ir parašo';
+  }
   updateCompleteButton();
-};
 
-/* --------- „Darbas atliktas“ mygtukas su tikrinimais --------- */
-const completeBtn = document.getElementById('completeBtn');
-const completeReq = document.getElementById('completeReq');
+  completeBtn.addEventListener('click', ()=>{
+    if (!hasSignature()) { alert('Pridėkite kliento parašą.'); return; }
+    if (!hasAnyEvidence()) { alert('Pridėkite bent vieną nuotrauką ar dokumentą.'); return; }
 
-function hasSignature(){
-  return (claim.masterAttachments||[]).some(a => /paras(as|a)|parašas/i.test(a.name||'') || /data:image\/png/.test(a.dataUrl||''));
-}
-function hasAnyEvidence(){
-  // bent viena iliustracija (foto/video/pdf) ataskaitoje
-  return (claim.masterAttachments||[]).some(a => ['image','video','pdf'].includes(a.type));
-}
-
-function updateCompleteButton(){
-  const ok = hasSignature() && hasAnyEvidence();
-  completeBtn.disabled = !ok;
-  completeReq.textContent = ok ? 'Paruošta užbaigti' : 'Reikia: ≥1 nuotraukos ir parašo';
-}
-updateCompleteButton();
-
-completeBtn.addEventListener('click', ()=>{
-  if (!hasSignature()) { alert('Pridėkite kliento parašą.'); return; }
-  if (!hasAnyEvidence()) { alert('Pridėkite bent vieną nuotrauką ar dokumentą.'); return; }
-
-  claim.status = 'Užbaigta';
-  addHistory('Darbas pažymėtas kaip atliktas');
-  saveClaim();
-  toast('✅ Pažymėta: Užbaigta');
-  // atnaujinti galvutės statusą
-  const tag = document.querySelector('.section .pill'); if (tag) tag.textContent = 'Užbaigta';
-});
-
+    claim.status = 'Užbaigta';
+    addHistory('Darbas pažymėtas kaip atliktas');
+    saveClaim();
+    toast('✅ Pažymėta: Užbaigta');
+    // atnaujinti galvutės statusą
+    const tag = document.querySelector('.section .pill'); if (tag) tag.textContent = 'Užbaigta';
+  });
 
   /* barcode / QR */
   const scanBtn = document.getElementById('scanBtn');
