@@ -663,68 +663,72 @@ function renderDetail(id){
     camStart.disabled = false;
     toast('Kamera išjungta');
   });
-  // annotate
-  const annC = document.getElementById('annCanvas');
-  const annStart = document.getElementById('annStart');
-  const annSave  = document.getElementById('annSave');
-  let annCtx, annImgWidth, annImgHeight, annScaleX, annScaleY;
-  annStart.onclick = ()=>{
-    if(!lastCaptured) return alert('Nėra ką anotuoti');
-    const img = new Image();
-    img.onload = ()=>{
-      const maxWidth = annC.parentElement.clientWidth - 20;
-      const scale = Math.min(maxWidth / img.width, 1);
-      annImgWidth = img.width;
-      annImgHeight = img.height;
-      annScaleX = scale;
-      annScaleY = scale;
-      annC.width = img.width * scale;
-      annC.height = img.height * scale;
-      annC.style.display='block';
-      annCtx = annC.getContext('2d');
-      annCtx.drawImage(img, 0, 0, annC.width, annC.height);
-      annCtx.lineWidth = 8; 
-      annCtx.strokeStyle = '#ff3333'; 
-      annCtx.lineCap='round';
-      let drawing = false;
-      annC.onpointerdown = (e)=>{
-        drawing=true; 
-        annCtx.beginPath(); 
-        annCtx.moveTo(e.offsetX, e.offsetY);
-      };
-      annC.onpointermove = (e)=>{
-        if(!drawing) return; 
-        annCtx.lineTo(e.offsetX, e.offsetY); 
-        annCtx.stroke();
-      };
-      window.onpointerup = ()=> drawing=false;
-      annSave.disabled=false;
+  // annotate last captured - FIXED CALIBRATION
+const annC = document.getElementById('annCanvas');
+const annStart = document.getElementById('annStart');
+const annSave  = document.getElementById('annSave');
+let annCtx, drawing = false, originalImage = null;
+
+annStart.onclick = () => {
+  if (!lastCaptured) return alert('Nėra ką anotuoti');
+  const img = new Image();
+  img.onload = () => {
+    const maxWidth = annC.parentElement.clientWidth - 20;
+    const scale = Math.min(maxWidth / img.width, 1);
+    annC.width = img.width * scale;
+    annC.height = img.height * scale;
+    annC.style.display = 'block';
+    annCtx = annC.getContext('2d');
+    annCtx.drawImage(img, 0, 0, annC.width, annC.height);
+    annCtx.lineWidth = 8;
+    annCtx.strokeStyle = '#ff3333';
+    annCtx.lineCap = 'round';
+    originalImage = img; // išsaugome originalą išsaugojimui
+    drawing = false;
+
+    annC.onpointerdown = (e) => {
+      drawing = true;
+      annCtx.beginPath();
+      annCtx.moveTo(e.offsetX, e.offsetY);
     };
-    img.src = lastCaptured;
-  };
-  annSave.onclick = ()=>{
-    const fullCanvas = document.createElement('canvas');
-    fullCanvas.width = annImgWidth;
-    fullCanvas.height = annImgHeight;
-    const fullCtx = fullCanvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-      fullCtx.drawImage(img, 0, 0);
-      fullCtx.drawImage(annC, 0, 0, annC.width, annC.height, 0, 0, fullCanvas.width, fullCanvas.height);
-      const dataUrl = fullCanvas.toDataURL('image/png');
-      const lastIdx = claim.masterAttachments.length - 1;
-      if (claim.masterAttachments[lastIdx].dataUrl === lastCaptured) {
-        claim.masterAttachments[lastIdx].dataUrl = dataUrl;
-      }
-      lastCaptured = dataUrl;
-      annC.style.display='none'; 
-      annSave.disabled=true;
-      saveClaim();
-      renderGallery();
-      toast('Anotacija išsaugota');
+    annC.onpointermove = (e) => {
+      if (!drawing) return;
+      annCtx.lineTo(e.offsetX, e.offsetY);
+      annCtx.stroke();
     };
-    img.src = lastCaptured;
+    window.onpointerup = () => drawing = false;
+    annSave.disabled = false;
   };
+  img.src = lastCaptured;
+};
+
+annSave.onclick = () => {
+  if (!originalImage) return;
+  const fullCanvas = document.createElement('canvas');
+  fullCanvas.width = originalImage.width;
+  fullCanvas.height = originalImage.height;
+  const fullCtx = fullCanvas.getContext('2d');
+  fullCtx.drawImage(originalImage, 0, 0);
+
+  // Nubrėžiame anotacijas ant originalo, išlaikant proporcijas
+  const scaleX = originalImage.width / annC.width;
+  const scaleY = originalImage.height / annC.height;
+  fullCtx.scale(scaleX, scaleY);
+  fullCtx.drawImage(annC, 0, 0);
+  fullCtx.setTransform(1, 0, 0, 1, 0, 0); // reset
+
+  const dataUrl = fullCanvas.toDataURL('image/png');
+  const lastIdx = claim.masterAttachments.length - 1;
+  if (claim.masterAttachments[lastIdx].dataUrl === lastCaptured) {
+    claim.masterAttachments[lastIdx].dataUrl = dataUrl;
+  }
+  lastCaptured = dataUrl;
+  annC.style.display = 'none';
+  annSave.disabled = true;
+  saveClaim();
+  renderGallery();
+  toast('Anotacija išsaugota');
+};
   /* --------- Signature (PATAISYTA KALIBRAVIMUI) --------- */
   const sig = document.getElementById('sig');
   const sigOverlay = document.getElementById('sigOverlay');
@@ -768,16 +772,16 @@ function renderDetail(id){
     }
   }
   // ✅ PATAISYTA: atsižvelgiama į dpr
-  function pt(e){
-    const rect = sig.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio||1, 2);
-    const pressure = typeof e.pressure === 'number' && e.pressure>0 ? e.pressure : 0.5;
-    return {
-      x: (e.clientX - rect.left) * dpr,
-      y: (e.clientY - rect.top) * dpr,
-      p: pressure
-    };
-  }
+function pt(e){
+  const rect = sig.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pressure = typeof e.pressure === 'number' && e.pressure > 0 ? e.pressure : 0.5;
+  return {
+    x: (e.clientX - rect.left) * dpr,
+    y: (e.clientY - rect.top) * dpr,
+    p: pressure
+  };
+}
   function widthFrom(pPrev, pNow){
     const base = 2.2;
     const max = 4.0;
