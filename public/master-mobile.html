@@ -1,3 +1,4 @@
+<DOCUMENT filename="master-mobile2.html.txt">
 <!DOCTYPE html>
 <html lang="lt">
 <head>
@@ -588,6 +589,7 @@ function renderDetail(id){
       notes.push(`✓ ${f.name}`);
     }
     list.textContent = notes.join(', ');
+    renderGallery(); // Atnaujinti galeriją po failų įkėlimo
   }
 
   async function fileToDataUrl(file){
@@ -606,6 +608,7 @@ function renderDetail(id){
     gallery.innerHTML='';
     const arr=(claim.masterAttachments||[]).slice();
     pendingCamImages.forEach((dataUrl,i)=>arr.push({name:`kamera-${i+1}.jpg`, dataUrl, type:'image', _pending:true}));
+    pendingFiles.forEach((f,i)=>arr.push({name:f.name, dataUrl:f.dataUrl, type:f.type, _pending:true}));
     if(!arr.length){ gallery.innerHTML='<div class="meta">Nėra pateiktų įrašų</div>'; return; }
     arr.forEach((att,idx)=>{
       const src=att.dataUrl||att.url;
@@ -1108,3 +1111,4 @@ function toast(msg){
 </script>
 </body>
 </html>
+</DOCUMENT>
