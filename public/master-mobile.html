@@ -388,10 +388,6 @@ function renderDetail(id){
         <canvas id="annCanvas" class="sig" style="display:none;height:220px"></canvas>
       </div>
 
-      <div style="margin-top:12px;text-align:right">
-        <button id="save-report" class="btn btn-dark">Išsaugoti ataskaitą</button>
-      </div>
-
       <hr style="margin:14px 0">
       <h4 style="margin-bottom:8px">Jau įkelta</h4>
       <div id="report-gallery" class="grid2"></div>
@@ -542,7 +538,7 @@ function renderDetail(id){
   dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.background='transparent'; handleFiles(e.dataTransfer.files); });
   input.addEventListener('change', ()=> handleFiles(input.files));
 
-  let pendingFiles=[]; let pendingCamImages=[]; let lastCaptured=null;
+  let lastCaptured=null;
 
   async function compressImage(file, maxW=1600, maxH=1600, quality=0.85){
     const img = new Image();
@@ -564,9 +560,11 @@ function renderDetail(id){
   }
 
   async function handleFiles(files){
-    pendingFiles=[]; const notes=[];
+    const notes=[];
+    let added = 0;
     for (const f of [...files]){
       if(!ACCEPT.test(f.name)) { notes.push(`❌ ${f.name} (formatas neleidžiamas)`); continue; }
+      let toAdd;
       if(/\.(jpg|jpeg|png|webp)$/i.test(f.name) && f.size > MAX_MB*1024*1024){
         // pabandom sumažinti
         try{
@@ -575,21 +573,26 @@ function renderDetail(id){
           if (dataUrl.length/1.37 > MAX_MB*1024*1024) { // apytikslis b64->bytes
             notes.push(`❌ ${f.name} (per didelis net po mažinimo)`); continue;
           }
-          pendingFiles.push({name:f.name.replace(/\.(png|jpg|jpeg|webp)$/i,'.jpg'), dataUrl, type:'image'});
+          toAdd = {name:f.name.replace(/\.(png|jpg|jpeg|webp)$/i,'.jpg'), dataUrl, type:'image'};
           notes.push(`✓ ${f.name} (sumažinta)`);
         }catch(e){
           notes.push(`❌ ${f.name} (nepavyko sumažinti)`); 
+          continue;
         }
-        continue;
+      } else if (f.size>MAX_MB*1024*1024){ notes.push(`❌ ${f.name} (> ${MAX_MB}MB)`); continue; } else {
+        // ne vaizdas arba mažas vaizdas – paverčiam į dataUrl
+        toAdd = await fileToDataUrl(f);
+        notes.push(`✓ ${f.name}`);
       }
-      if (f.size>MAX_MB*1024*1024){ notes.push(`❌ ${f.name} (> ${MAX_MB}MB)`); continue; }
-      // ne vaizdas arba mažas vaizdas – paverčiam į dataUrl
-      const ok = await fileToDataUrl(f);
-      pendingFiles.push(ok);
-      notes.push(`✓ ${f.name}`);
+      claim.masterAttachments=(claim.masterAttachments||[]).concat([toAdd]);
+      added++;
+    }
+    if (added > 0) {
+      addHistory(`Pateikta foto ataskaita (${added} fail.)`); drawHistory();
+      saveClaim(); 
     }
     list.textContent = notes.join(', ');
-    renderGallery(); // Atnaujinti galeriją po failų įkėlimo
+    renderGallery();
   }
 
   async function fileToDataUrl(file){
@@ -607,15 +610,13 @@ function renderDetail(id){
   function renderGallery(){
     gallery.innerHTML='';
     const arr=(claim.masterAttachments||[]).slice();
-    pendingCamImages.forEach((dataUrl,i)=>arr.push({name:`kamera-${i+1}.jpg`, dataUrl, type:'image', _pending:true}));
-    pendingFiles.forEach((f,i)=>arr.push({name:f.name, dataUrl:f.dataUrl, type:f.type, _pending:true}));
     if(!arr.length){ gallery.innerHTML='<div class="meta">Nėra pateiktų įrašų</div>'; return; }
     arr.forEach((att,idx)=>{
       const src=att.dataUrl||att.url;
       const el=document.createElement('div'); el.className='file';
       el.innerHTML = `
-        <button class="del" data-i="${idx}" ${att._pending?'disabled title="Bus pridėta išsaugojus"':''}>🗑</button>
-        <div style="font-size:12px;margin-bottom:6px">${att.name||'failas'} ${att._pending?'<span class="pill warn">pending</span>':''}</div>
+        <button class="del" data-i="${idx}">🗑</button>
+        <div style="font-size:12px;margin-bottom:6px">${att.name||'failas'}</div>
       `;
       if(att.type==='image') el.innerHTML+=`<img loading="lazy" src="${src}" style="max-width:100%;height:auto;border-radius:6px">`;
       else if(att.type==='video') el.innerHTML+=`<video controls preload="metadata" style="max-width:100%"><source src="${src}"></video>`;
@@ -623,32 +624,16 @@ function renderDetail(id){
       else el.innerHTML+=`<a href="${src}" target="_blank">📎 Failas</a>`;
       gallery.appendChild(el);
     });
-    // trynimas (tik jau išsaugotų)
+    // trynimas
     gallery.querySelectorAll('.del').forEach(btn=>{
       btn.onclick = ()=>{
         const i = Number(btn.dataset.i);
-        const list = (claim.masterAttachments||[]).slice();
-        if (i < list.length){
-          if (!confirm('Pašalinti failą iš ataskaitos?')) return;
-          list.splice(i,1);
-          claim.masterAttachments = list;
-          saveClaim(); renderGallery();
-        }
+        if (!confirm('Pašalinti failą iš ataskaitos?')) return;
+        claim.masterAttachments.splice(i,1);
+        saveClaim(); renderGallery();
       };
     });
   }
-
-  document.getElementById('save-report').addEventListener('click', async ()=>{
-    const camAsFiles=pendingCamImages.map((dataUrl,idx)=>({name:`kamera-${Date.now()}-${idx+1}.jpg`, dataUrl, type:'image'}));
-    const uploaded = pendingFiles; // jau dataUrl
-    const toSave = uploaded.concat(camAsFiles);
-    if(!toSave.length) return alert('Pasirinkite failus arba nufotografuokite');
-
-    claim.masterAttachments=(claim.masterAttachments||[]).concat(toSave);
-    addHistory(`Pateikta foto ataskaita (${toSave.length} fail.)`); drawHistory();
-    pendingFiles=[]; list.textContent=''; pendingCamImages=[]; lastCaptured=null;
-    saveClaim(); renderGallery(); toast('Ataskaita išsaugota');
-  });
 
   renderGallery();
 
@@ -735,15 +720,14 @@ function renderDetail(id){
       // Konvertuojame į dataURL
       const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
       
-      // Įrašome į laukiančių nuotraukų sąrašą
-      pendingCamImages.push(dataUrl);
+      // Pridėti iš karto
+      claim.masterAttachments=(claim.masterAttachments||[]).concat([{name:`kamera-${Date.now()}.jpg`, dataUrl, type:'image'}]);
+      addHistory(`Pateikta foto ataskaita (1 fail.)`); drawHistory();
       lastCaptured = dataUrl;
-      
-      // Atnaujiname galeriją
-      renderGallery();
+      saveClaim(); renderGallery();
       document.getElementById('annStart').disabled = false;
       
-      toast('Nuotrauka sėkmingai padaryta! Įkelta: ' + pendingCamImages.length);
+      toast('Nuotrauka sėkmingai padaryta ir išsaugota!');
       
     }catch(error){
       console.error('Nuotraukos kūrimo klaida:', error);
@@ -837,13 +821,16 @@ function renderDetail(id){
       fullCtx.drawImage(annC, 0, 0, annC.width, annC.height, 0, 0, fullCanvas.width, fullCanvas.height);
       
       const dataUrl = fullCanvas.toDataURL('image/png');
-      const i = pendingCamImages.lastIndexOf(lastCaptured);
-      if (i>-1) pendingCamImages[i] = dataUrl; 
-      else pendingCamImages.push(dataUrl);
       
+      // Atnaujinti paskutinį pridėtą
+      const lastIdx = claim.masterAttachments.length - 1;
+      if (claim.masterAttachments[lastIdx].dataUrl === lastCaptured) {
+        claim.masterAttachments[lastIdx].dataUrl = dataUrl;
+      }
       lastCaptured = dataUrl;
       annC.style.display='none'; 
       annSave.disabled=true;
+      saveClaim();
       renderGallery();
       toast('Anotacija išsaugota');
     };
