@@ -27,14 +27,12 @@
   .btn-ok{background:var(--ok);color:#fff}
   .btn-warn{background:#fff5e6;border:1px solid #ffd69b}
   main{padding:12px}
-
   .search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
   .search input{border:none;outline:none;flex:1;font-size:14px}
   .tabs{display:flex;gap:8px;overflow:auto;padding:10px 0}
   .tab{border:2px solid #0001;background:#fff;border-radius:999px;padding:8px 12px;font-weight:600;white-space:nowrap}
   .tab.active{border-color:#111;color:#111}
   .cnt{margin-left:6px;font-weight:700}
-
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
   .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;background:#f3f4f6}
@@ -48,7 +46,6 @@
   .tiny-actions .btn{padding:6px 10px;border-radius:10px;font-size:13px}
   .cta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
   .cta .btn{padding:12px 10px;border-radius:12px}
-
   .section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
   .section h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
   .section h3::before{content:"";width:6px;height:6px;background:#111;border-radius:50%}
@@ -64,7 +61,8 @@
   justify-content: center;
   padding: 4px;
   text-align: center;
-  height: 100px; /* fiksuotas aukštis */
+  height: 100px;
+  cursor: pointer;
 }
 .file img,
 .file video,
@@ -76,12 +74,6 @@
   border-radius: 6px;
   display: block;
 }
-.file img,
-.file video {
-  max-width: 100%;
-  height: auto;
-  border-radius: 6px;
-}
 .file a[href$=".pdf"]::before,
 .file a[href]:not([href*="."])::before {
   content: "📄";
@@ -90,7 +82,6 @@
 .file a[href]:not([href$=".pdf"]):not([href*="."])::before {
   content: "📎";
 }
-
 .file div[style*="font-size:12px"] {
   font-size: 10px !important;
   white-space: nowrap;
@@ -99,7 +90,6 @@
   width: 100%;
   margin-top: 4px;
 }
-
 /* Kvadratinis rodymas tik foto ataskaitos galerijai */
 #report-gallery .file {
   display: flex;
@@ -134,21 +124,17 @@
   width: 100%;
   margin-top: 4px;
 }
-
   .file .del{position:absolute;top:6px;right:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
-
   #dropzone{border:2px dashed #cbd5e1;border-radius:12px;padding:16px;text-align:center;cursor:pointer}
   .cam-wrap{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fafafa;margin-top:10px}
   .cam-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .cam-video{width:100%;border-radius:10px;background:#000;max-height:280px}
   .annotate-bar{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
-
   .stat-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .chip{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#f8fafc;font-size:13px}
   .checklist-item{display:flex;align-items:center;gap:8px;margin:6px 0}
   .checklist-item input[type="text"]{flex:1;padding:8px;border:1px solid var(--line);border-radius:8px}
   canvas.sig{width:100%;height:140px;border:1px dashed var(--line);border-radius:10px;background:#fff;touch-action:none}
-  
   /* Nauji stiliai parašo aktyvavimui */
   .sig-container { position: relative; }
   .sig-overlay { 
@@ -169,8 +155,54 @@
     pointer-events:none; 
     opacity:0.7; 
   }
-
   .offline{position:sticky;top:0;z-index:20;margin:-12px -12px 12px -12px;padding:8px 12px;background:#fff3cd;border-bottom:1px solid #facc15;font-size:13px}
+
+  /* Modal stilius */
+  #fileModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 9999;
+    overflow: auto;
+    padding: 20px 10px;
+    box-sizing: border-box;
+  }
+  #fileModal > div {
+    max-width: 900px;
+    margin: auto;
+    text-align: center;
+    color: #fff;
+  }
+  #modalClose {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #fff;
+    color: #000;
+    border: 0;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  #modalContent img,
+  #modalContent video,
+  #modalContent embed {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 8px;
+  }
+  #modalFilename {
+    margin-top: 10px;
+    font-size: 14px;
+  }
 
   /* spausdinimas: tik detalės ataskaitai */
   @media print{
@@ -193,8 +225,17 @@
     </div>
   </div>
 </header>
-
 <main id="app"></main>
+
+<!-- Modal for file preview -->
+<div id="fileModal">
+  <div>
+    <button id="modalClose">✕</button>
+    <div id="modalContent"></div>
+    <div id="modalFilename"></div>
+  </div>
+</div>
+
 <script>
 /* ========= local data + helpers ========= */
 const getClaims = () => { try{return JSON.parse(localStorage.getItem('claims')||'[]')}catch(_){return []} };
@@ -532,7 +573,7 @@ function renderDetail(id){
   const ACCEPT = /\.(jpg|jpeg|png|webp|mp4|pdf)$/i;
   dz.addEventListener('click', ()=> input.click());
   dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.style.background='#f8fafc'; });
-  dz.addEventListener('dragleave', ()=> dz.style.background='transparent');
+  dz.addEventListener('dragleave', ()=> dz.style.background='transparent';
   dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.background='transparent'; handleFiles(e.dataTransfer.files); });
   input.addEventListener('change', ()=> handleFiles(input.files));
   let lastCaptured=null;
@@ -980,12 +1021,53 @@ function renderDetail(id){
       else if(att.type==='pdf') el.innerHTML=title+`<a href="${src}" target="_blank">📄 PDF</a>`;
       else el.innerHTML=title+`<a href="${src}" target="_blank">📎 Atsisiųsti</a>`;
       container.appendChild(el);
+
+      // Pridedame paspaudimo funkcionalumą
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.del')) return; // neleidžiam trynimo mygtukui atidaryti modal
+        showFileInModal(att);
+      });
     });
   }
   function normalizeUserFiles(files){ if(!Array.isArray(files)) return []; return files.map(item=> typeof item==='string'? ({name:item.split('/').pop()||'failas', url:item, type:/\.(jpg|jpeg|png|webp|gif)$/i.test(item)?'image':/\.(mp4|webm|mov)$/i.test(item)?'video':/\.(pdf)$/i.test(item)?'pdf':'file'}) : item ); }
   function normalizeQualityFiles(arr){ if(!Array.isArray(arr)) return []; return arr.map(att=>{ if(att.dataUrl && !att.url) att.url=att.dataUrl; if(!att.type){ const u=att.url||''; att.type=/\.(jpg|jpeg|png|webp|gif)$/i.test(u)?'image':/\.(mp4|webm|mov)$/i.test(u)?'video':/\.(pdf)$/i.test(u)?'pdf':'file'; } return att; }); }
   function addHistory(action){ claim.history = claim.history || []; claim.history.push({ user:'Meistras', time:new Date().toISOString(), action }); saveClaim(); }
   function saveClaim(){ const all = getClaims(); const i = byId(all, claim.id); if (i>-1){ all[i]=claim; setClaims(all); } }
+
+  // Modal funkcijos
+  function showFileInModal(att) {
+    const modal = document.getElementById('fileModal');
+    const content = document.getElementById('modalContent');
+    const filename = document.getElementById('modalFilename');
+    
+    filename.textContent = att.name || 'Failas';
+    
+    if (att.type === 'image') {
+      content.innerHTML = `<img src="${att.dataUrl || att.url}" alt="">`;
+    } else if (att.type === 'video') {
+      content.innerHTML = `<video controls><source src="${att.dataUrl || att.url}"></video>`;
+    } else if (att.type === 'pdf') {
+      content.innerHTML = `<embed src="${att.dataUrl || att.url}" type="application/pdf" />`;
+    } else {
+      content.innerHTML = `<a href="${att.dataUrl || att.url}" target="_blank" style="color:#ffcc00;font-size:18px">Atidaryti failą</a>`;
+    }
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hideModal() {
+    document.getElementById('fileModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('modalClose').onclick = hideModal;
+  document.getElementById('fileModal').onclick = (e) => {
+    if (e.target.id === 'fileModal') hideModal();
+  };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideModal();
+  });
 }
 /* share helper */
 function copyLink(id){
