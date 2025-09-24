@@ -251,350 +251,349 @@
   </div>
 
   <script>
-    // ==================== DATA ====================
-    const STORAGE_KEY = 'meistro_claims';
-    let claims = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    let currentId = null;
-    let lastPhotoDataUrl = null;
-    let cameraStream = null;
+  // ==================== DUOMENŲ VALDYMAS (pagal master-mobile.html) ====================
+  const STORAGE_KEY = 'claims'; // Svarbu: tas pats raktas kaip master-mobile.html
+  let claims = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let currentId = null;
+  let lastPhotoDataUrl = null;
+  let cameraStream = null;
 
-    // ==================== HELPERS ====================
-    const fmtDate = d => new Date(d).toLocaleDateString('lt-LT');
-    const fmtTime = d => new Date(d).toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' });
-    const getStatusClass = s => {
-      if (s === 'Užbaigta') return 'status-completed';
-      if (s === 'Laukia dalių') return 'status-waiting';
-      if (s === 'Vykdoma') return 'status-progress';
-      return 'status-new';
-    };
+  const saveClaims = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(claims));
 
-    const saveClaims = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(claims));
+  // ==================== PAGALBINĖS FUNKCIJOS ====================
+  const fmtDate = d => new Date(d).toLocaleDateString('lt-LT');
+  const fmtTime = d => new Date(d).toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' });
+  const getStatusClass = s => {
+    if (s === 'Užbaigta') return 'status-completed';
+    if (s === 'Laukia dalių') return 'status-waiting';
+    if (s === 'Vykdoma') return 'status-progress';
+    return 'status-new';
+  };
 
-    // ==================== CAMERA ====================
-    async function startCamera() {
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        document.getElementById('cameraVideo').srcObject = cameraStream;
-        document.getElementById('cameraContainer').style.display = 'block';
-      } catch (e) {
-        alert('Nepavyko paleisti kameros.');
-      }
+  // ==================== KAMERA ====================
+  async function startCamera() {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      document.getElementById('cameraVideo').srcObject = cameraStream;
+      document.getElementById('cameraContainer').style.display = 'block';
+    } catch (e) {
+      alert('Nepavyko paleisti kameros.');
     }
+  }
 
-    function capturePhoto() {
-      const video = document.getElementById('cameraVideo');
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      closeCamera();
+  function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    closeCamera();
 
-      const claim = claims.find(c => c.id === currentId);
-      if (!claim.masterAttachments) claim.masterAttachments = [];
-      claim.masterAttachments.push({ type: 'image', dataUrl, name: `photo-${Date.now()}.jpg` });
-      lastPhotoDataUrl = dataUrl;
-      document.getElementById('annotateButton').disabled = false;
-      saveClaims();
-      renderPhotos();
+    const claim = claims.find(c => c.id === currentId);
+    if (!claim.masterAttachments) claim.masterAttachments = [];
+    claim.masterAttachments.push({ type: 'image', dataUrl, name: `photo-${Date.now()}.jpg` });
+    lastPhotoDataUrl = dataUrl;
+    document.getElementById('annotateButton').disabled = false;
+    saveClaims();
+    renderPhotos();
+  }
+
+  function closeCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
     }
+    document.getElementById('cameraContainer').style.display = 'none';
+  }
 
-    function closeCamera() {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = null;
-      }
-      document.getElementById('cameraContainer').style.display = 'none';
-    }
-
-    // ==================== ANNOTATE ====================
-    function startAnnotate() {
-      if (!lastPhotoDataUrl) return;
-      const canvas = document.getElementById('annotateCanvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      img.onload = () => {
-        const maxWidth = canvas.parentElement.clientWidth - 20;
-        const scale = Math.min(maxWidth / img.width, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.style.display = 'block';
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#ff0000';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        let isDrawing = false;
-        let last = null;
-        canvas.onpointerdown = e => {
-          isDrawing = true;
-          const rect = canvas.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          last = { x, y };
-        };
-        canvas.onpointermove = e => {
-          if (!isDrawing || !last) return;
-          const rect = canvas.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          ctx.beginPath();
-          ctx.moveTo(last.x, last.y);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          last = { x, y };
-        };
-        canvas.onpointerup = canvas.onpointercancel = () => isDrawing = false;
-        document.getElementById('annotateSaveButton').disabled = false;
-      };
-      img.src = lastPhotoDataUrl;
-    }
-
-    function saveAnnotate() {
-      const canvas = document.getElementById('annotateCanvas');
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      const claim = claims.find(c => c.id === currentId);
-      const atts = claim.masterAttachments;
-      for (let i = atts.length - 1; i >= 0; i--) {
-        if (atts[i].dataUrl === lastPhotoDataUrl) {
-          atts[i].dataUrl = dataUrl;
-          lastPhotoDataUrl = dataUrl;
-          break;
-        }
-      }
-      saveClaims();
-      renderPhotos();
-      canvas.style.display = 'none';
-      document.getElementById('annotateSaveButton').disabled = true;
-    }
-
-    // ==================== SIGNATURE ====================
-    let isSigDrawing = false, sigLast = null;
-    function initSigCanvas() {
-      const canvas = document.getElementById('signatureCanvas');
-      const ctx = canvas.getContext('2d');
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, rect.width, rect.height);
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
+  // ==================== ANOTACIJOS ====================
+  function startAnnotate() {
+    if (!lastPhotoDataUrl) return;
+    const canvas = document.getElementById('annotateCanvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      const maxWidth = canvas.parentElement.clientWidth - 20;
+      const scale = Math.min(maxWidth / img.width, 1);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.style.display = 'block';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 3;
       ctx.lineCap = 'round';
+      let isDrawing = false;
+      let last = null;
+      canvas.onpointerdown = e => {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        last = { x, y };
+      };
+      canvas.onpointermove = e => {
+        if (!isDrawing || !last) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(last.x, last.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        last = { x, y };
+      };
+      canvas.onpointerup = canvas.onpointercancel = () => isDrawing = false;
+      document.getElementById('annotateSaveButton').disabled = false;
+    };
+    img.src = lastPhotoDataUrl;
+  }
+
+  function saveAnnotate() {
+    const canvas = document.getElementById('annotateCanvas');
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const claim = claims.find(c => c.id === currentId);
+    const atts = claim.masterAttachments;
+    for (let i = atts.length - 1; i >= 0; i--) {
+      if (atts[i].dataUrl === lastPhotoDataUrl) {
+        atts[i].dataUrl = dataUrl;
+        lastPhotoDataUrl = dataUrl;
+        break;
+      }
     }
+    saveClaims();
+    renderPhotos();
+    canvas.style.display = 'none';
+    document.getElementById('annotateSaveButton').disabled = true;
+  }
 
-    function clearSignature() {
-      initSigCanvas();
-    }
+  // ==================== PARAŠAS ====================
+  let isSigDrawing = false, sigLast = null;
+  function initSigCanvas() {
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+  }
 
-    function saveSignature() {
-      const canvas = document.getElementById('signatureCanvas');
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const isEmpty = imageData.data.every((val, i) => !(i % 4 < 3) || val === 0 || (i % 4 === 3 && val === 0));
-      if (isEmpty) { alert('Nupieškite parašą.'); return; }
+  function clearSignature() {
+    initSigCanvas();
+  }
 
-      const dataUrl = canvas.toDataURL('image/png');
-      const claim = claims.find(c => c.id === currentId);
-      if (!claim.masterAttachments) claim.masterAttachments = [];
-      claim.masterAttachments.push({ type: 'image', dataUrl, name: `parasas-${Date.now()}.png` });
-      saveClaims();
-      alert('Parašas išsaugotas!');
-    }
+  function saveSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const isEmpty = imageData.data.every((val, i) => !(i % 4 < 3) || val === 0 || (i % 4 === 3 && val === 0));
+    if (isEmpty) { alert('Nupieškite parašą.'); return; }
 
-    // ==================== RENDER ====================
-    function renderList() {
-      const term = document.getElementById('searchInput').value.toLowerCase();
-      const filter = document.querySelector('.tab.active').dataset.filter;
-      let filtered = claims.filter(c => {
-        const match = [c.id, c.description, c.product, c?.contact?.name, c?.contact?.surname, c?.contact?.city].join(' ').toLowerCase().includes(term);
-        if (!match) return false;
-        if (filter === 'completed') return c.status === 'Užbaigta';
-        if (filter === 'waiting') return c.status === 'Laukia dalių';
-        if (filter === 'open') return c.status !== 'Užbaigta';
-        return true;
-      });
+    const dataUrl = canvas.toDataURL('image/png');
+    const claim = claims.find(c => c.id === currentId);
+    if (!claim.masterAttachments) claim.masterAttachments = [];
+    claim.masterAttachments.push({ type: 'image', dataUrl, name: `parasas-${Date.now()}.png` });
+    saveClaims();
+    alert('Parašas išsaugotas!');
+  }
 
-      document.getElementById('taskList').innerHTML = filtered.map(c => {
-        const addr = [c?.contact?.street, c?.contact?.city].filter(Boolean).join(', ');
-        return `
-          <div class="task-card" onclick="openDetail('${c.id}')">
-            <div class="task-header">
-              <div class="task-id-status">
-                <span class="task-id">#${c.id}</span>
-                <span class="status-badge ${getStatusClass(c.status)}">${c.status}</span>
-              </div>
-              <div class="task-description">${c.description || '–'}</div>
-              <div class="task-product">${c.product || '–'}</div>
+  // ==================== RODOMA SĄRAŠE ====================
+  function renderList() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const filter = document.querySelector('.tab.active').dataset.filter;
+    let filtered = claims.filter(c => {
+      const match = [c.id, c.description, c.product, c?.contact?.name, c?.contact?.surname, c?.contact?.city].join(' ').toLowerCase().includes(term);
+      if (!match) return false;
+      if (filter === 'completed') return c.status === 'Užbaigta';
+      if (filter === 'waiting') return c.status === 'Laukia dalių';
+      if (filter === 'open') return c.status !== 'Užbaigta';
+      return true;
+    });
+
+    document.getElementById('taskList').innerHTML = filtered.map(c => {
+      const addr = [c?.contact?.street, c?.contact?.city].filter(Boolean).join(', ');
+      return `
+        <div class="task-card" onclick="openDetail('${c.id}')">
+          <div class="task-header">
+            <div class="task-id-status">
+              <span class="task-id">#${c.id}</span>
+              <span class="status-badge ${getStatusClass(c.status)}">${c.status}</span>
             </div>
-            <div class="task-footer">
-              <div class="task-contact">${c?.contact?.name || ''} ${c?.contact?.surname || ''}</div>
-              <div class="task-date">${fmtDate(c.date)}</div>
-            </div>
-            <div class="task-footer">
-              <div class="task-contact">${addr}</div>
-              <select class="status-select" onchange="setStatus('${c.id}', this.value)">
-                <option value="Nauja" ${c.status === 'Nauja' ? 'selected' : ''}>Nauja</option>
-                <option value="Vykdoma" ${c.status === 'Vykdoma' ? 'selected' : ''}>Vykdoma</option>
-                <option value="Laukia dalių" ${c.status === 'Laukia dalių' ? 'selected' : ''}>Laukia dalių</option>
-                <option value="Užbaigta" ${c.status === 'Užbaigta' ? 'selected' : ''}>Užbaigta</option>
-              </select>
-            </div>
+            <div class="task-description">${c.description || '–'}</div>
+            <div class="task-product">${c.product || '–'}</div>
           </div>
-        `;
-      }).join('');
-
-      document.getElementById('openCount').textContent = claims.filter(c => c.status !== 'Užbaigta').length;
-      document.getElementById('waitingCount').textContent = claims.filter(c => c.status === 'Laukia dalių').length;
-      document.getElementById('completedCount').textContent = claims.filter(c => c.status === 'Užbaigta').length;
-      document.getElementById('allCount').textContent = claims.length;
-    }
-
-    function openDetail(id) {
-      currentId = id;
-      const c = claims.find(x => x.id === id);
-      if (!c) return;
-
-      document.getElementById('listView').style.display = 'none';
-      document.getElementById('detailView').style.display = 'block';
-
-      document.getElementById('detailTitle').textContent = c.description || 'Užduotis';
-      document.getElementById('detailStatus').textContent = c.status;
-      document.getElementById('detailStatus').className = 'status-badge ' + getStatusClass(c.status);
-
-      const addr = [c?.contact?.street, c?.contact?.city, c?.contact?.postal].filter(Boolean).join(', ');
-      document.getElementById('detailInfo').innerHTML = `
-        <div><strong>Produktas:</strong> ${c.product || '–'}</div>
-        <div><strong>Klientas:</strong> ${c?.contact?.name || ''} ${c?.contact?.surname || ''}</div>
-        <div><strong>Adresas:</strong> ${addr || '–'}</div>
-        <div><strong>Telefonas:</strong> ${c?.contact?.phone || '–'}</div>
-        <div><strong>Data:</strong> ${fmtDate(c.date)} ${fmtTime(c.date)}</div>
+          <div class="task-footer">
+            <div class="task-contact">${c?.contact?.name || ''} ${c?.contact?.surname || ''}</div>
+            <div class="task-date">${fmtDate(c.date)}</div>
+          </div>
+          <div class="task-footer">
+            <div class="task-contact">${addr}</div>
+            <select class="status-select" onchange="setStatus('${c.id}', this.value)">
+              <option value="Nauja" ${c.status === 'Nauja' ? 'selected' : ''}>Nauja</option>
+              <option value="Vykdoma" ${c.status === 'Vykdoma' ? 'selected' : ''}>Vykdoma</option>
+              <option value="Laukia dalių" ${c.status === 'Laukia dalių' ? 'selected' : ''}>Laukia dalių</option>
+              <option value="Užbaigta" ${c.status === 'Užbaigta' ? 'selected' : ''}>Užbaigta</option>
+            </select>
+          </div>
+        </div>
       `;
+    }).join('');
 
-      document.getElementById('notesTextarea').value = c.notes || '';
-      renderParts(c.parts || []);
-      renderPhotos();
-      setTimeout(initSigCanvas, 100);
-    }
+    document.getElementById('openCount').textContent = claims.filter(c => c.status !== 'Užbaigta').length;
+    document.getElementById('waitingCount').textContent = claims.filter(c => c.status === 'Laukia dalių').length;
+    document.getElementById('completedCount').textContent = claims.filter(c => c.status === 'Užbaigta').length;
+    document.getElementById('allCount').textContent = claims.length;
+  }
 
-    function renderParts(parts) {
-      const el = document.getElementById('partsList');
-      el.innerHTML = parts.map((p, i) => `
-        <div class="part-item">
-          <input class="part-input" value="${p}" onchange="updatePart(${i}, this.value)">
-          <button class="part-remove" onclick="removePart(${i})">✕</button>
-        </div>
-      `).join('');
-      el.innerHTML += `<div class="part-item"><input class="part-input" placeholder="Nauja dalis…" onchange="addPart(this.value)"></div>`;
-    }
+  // ==================== DETALĖS ====================
+  function openDetail(id) {
+    currentId = id;
+    const c = claims.find(x => x.id === id);
+    if (!c) return;
 
-    function renderPhotos() {
-      const claim = claims.find(c => c.id === currentId);
-      const photos = (claim?.masterAttachments || []).filter(a => a.type === 'image');
-      document.getElementById('photoCount').textContent = photos.length;
-      document.getElementById('photoGrid').innerHTML = photos.map((p, i) => `
-        <div class="photo-item">
-          <img src="${p.dataUrl}" class="photo-img">
-          <button class="photo-delete" onclick="deletePhoto(${i})">✕</button>
-        </div>
-      `).join('');
-      lastPhotoDataUrl = photos.length ? photos[photos.length - 1].dataUrl : null;
-      document.getElementById('annotateButton').disabled = !lastPhotoDataUrl;
-    }
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
 
-    // ==================== ACTIONS ====================
-    window.setStatus = (id, status) => {
-      const c = claims.find(x => x.id === id);
-      if (c) { c.status = status; saveClaims(); renderList(); }
-    };
+    document.getElementById('detailTitle').textContent = c.description || 'Užduotis';
+    document.getElementById('detailStatus').textContent = c.status;
+    document.getElementById('detailStatus').className = 'status-badge ' + getStatusClass(c.status);
 
-    function updatePart(i, val) {
-      const c = claims.find(x => x.id === currentId);
-      if (c) { c.parts[i] = val; saveClaims(); }
-    }
+    const addr = [c?.contact?.street, c?.contact?.city, c?.contact?.postal].filter(Boolean).join(', ');
+    document.getElementById('detailInfo').innerHTML = `
+      <div><strong>Produktas:</strong> ${c.product || '–'}</div>
+      <div><strong>Klientas:</strong> ${c?.contact?.name || ''} ${c?.contact?.surname || ''}</div>
+      <div><strong>Adresas:</strong> ${addr || '–'}</div>
+      <div><strong>Telefonas:</strong> ${c?.contact?.phone || '–'}</div>
+      <div><strong>Data:</strong> ${fmtDate(c.date)} ${fmtTime(c.date)}</div>
+    `;
 
-    function addPart(val) {
-      if (!val.trim()) return;
-      const c = claims.find(x => x.id === currentId);
-      if (c) { c.parts = [...(c.parts || []), val.trim()]; saveClaims(); renderParts(c.parts); }
-    }
+    document.getElementById('notesTextarea').value = c.notes || '';
+    renderParts(c.parts || []);
+    renderPhotos();
+    setTimeout(initSigCanvas, 100);
+  }
 
-    function removePart(i) {
-      const c = claims.find(x => x.id === currentId);
-      if (c) { c.parts.splice(i, 1); saveClaims(); renderParts(c.parts); }
-    }
+  function renderParts(parts) {
+    const el = document.getElementById('partsList');
+    el.innerHTML = parts.map((p, i) => `
+      <div class="part-item">
+        <input class="part-input" value="${p}" onchange="updatePart(${i}, this.value)">
+        <button class="part-remove" onclick="removePart(${i})">✕</button>
+      </div>
+    `).join('');
+    el.innerHTML += `<div class="part-item"><input class="part-input" placeholder="Nauja dalis…" onchange="addPart(this.value)"></div>`;
+  }
 
-    function deletePhoto(i) {
-      if (!confirm('Ištrinti nuotrauką?')) return;
-      const c = claims.find(x => x.id === currentId);
-      if (c) { c.masterAttachments.splice(i, 1); saveClaims(); renderPhotos(); }
-    }
+  function renderPhotos() {
+    const claim = claims.find(c => c.id === currentId);
+    const photos = (claim?.masterAttachments || []).filter(a => a.type === 'image');
+    document.getElementById('photoCount').textContent = photos.length;
+    document.getElementById('photoGrid').innerHTML = photos.map((p, i) => `
+      <div class="photo-item">
+        <img src="${p.dataUrl}" class="photo-img">
+        <button class="photo-delete" onclick="deletePhoto(${i})">✕</button>
+      </div>
+    `).join('');
+    lastPhotoDataUrl = photos.length ? photos[photos.length - 1].dataUrl : null;
+    document.getElementById('annotateButton').disabled = !lastPhotoDataUrl;
+  }
 
-    function saveTask() {
-      const c = claims.find(x => x.id === currentId);
-      if (c) { c.notes = document.getElementById('notesTextarea').value; saveClaims(); }
-      alert('Išsaugota!');
-    }
+  // ==================== VEIKSMAI ====================
+  window.setStatus = (id, status) => {
+    const c = claims.find(x => x.id === id);
+    if (c) { c.status = status; saveClaims(); renderList(); }
+  };
 
-    // ==================== INIT ====================
-    window.addEventListener('online', () => document.getElementById('offlineIndicator').style.display = 'none');
-    window.addEventListener('offline', () => document.getElementById('offlineIndicator').style.display = 'block');
+  function updatePart(i, val) {
+    const c = claims.find(x => x.id === currentId);
+    if (c) { c.parts[i] = val; saveClaims(); }
+  }
 
-    document.getElementById('searchInput').addEventListener('input', renderList);
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        renderList();
-      });
-    });
+  function addPart(val) {
+    if (!val.trim()) return;
+    const c = claims.find(x => x.id === currentId);
+    if (c) { c.parts = [...(c.parts || []), val.trim()]; saveClaims(); renderParts(c.parts); }
+  }
 
-    document.getElementById('backButton').onclick = () => {
-      document.getElementById('listView').style.display = 'block';
-      document.getElementById('detailView').style.display = 'none';
-      currentId = null;
+  function removePart(i) {
+    const c = claims.find(x => x.id === currentId);
+    if (c) { c.parts.splice(i, 1); saveClaims(); renderParts(c.parts); }
+  }
+
+  function deletePhoto(i) {
+    if (!confirm('Ištrinti nuotrauką?')) return;
+    const c = claims.find(x => x.id === currentId);
+    if (c) { c.masterAttachments.splice(i, 1); saveClaims(); renderPhotos(); }
+  }
+
+  function saveTask() {
+    const c = claims.find(x => x.id === currentId);
+    if (c) { c.notes = document.getElementById('notesTextarea').value; saveClaims(); }
+    alert('Išsaugota!');
+  }
+
+  // ==================== PRISIJUNGIMAS / INICIALIZAVIMAS ====================
+  // Jei reikia prisijungimo – galima pridėti vėliau, bet šiuo metu tiesiog naudojame localStorage
+  document.getElementById('searchInput').addEventListener('input', renderList);
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
       renderList();
-    };
-
-    document.getElementById('addPartButton').onclick = () => addPart('');
-
-    document.getElementById('addPhotoButton').onclick = startCamera;
-    document.getElementById('closeCameraButton').onclick = closeCamera;
-    document.getElementById('captureButton').onclick = capturePhoto;
-
-    document.getElementById('annotateButton').onclick = startAnnotate;
-    document.getElementById('annotateSaveButton').onclick = saveAnnotate;
-
-    const sigCanvas = document.getElementById('signatureCanvas');
-    sigCanvas.addEventListener('pointerdown', e => {
-      isSigDrawing = true;
-      const rect = sigCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      sigLast = { x, y };
     });
-    sigCanvas.addEventListener('pointermove', e => {
-      if (!isSigDrawing || !sigLast) return;
-      const rect = sigCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const ctx = sigCanvas.getContext('2d');
-      ctx.beginPath();
-      ctx.moveTo(sigLast.x, sigLast.y);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      sigLast = { x, y };
-    });
-    sigCanvas.addEventListener('pointerup', () => isSigDrawing = false);
-    sigCanvas.addEventListener('pointercancel', () => isSigDrawing = false);
+  });
 
-    document.getElementById('clearSignatureButton').onclick = clearSignature;
-    document.getElementById('saveSignatureButton').onclick = saveSignature;
-    document.getElementById('saveTaskButton').onclick = saveTask;
-
+  document.getElementById('backButton').onclick = () => {
+    document.getElementById('listView').style.display = 'block';
+    document.getElementById('detailView').style.display = 'none';
+    currentId = null;
     renderList();
-  </script>
+  };
+
+  document.getElementById('addPartButton').onclick = () => addPart('');
+
+  document.getElementById('addPhotoButton').onclick = startCamera;
+  document.getElementById('closeCameraButton').onclick = closeCamera;
+  document.getElementById('captureButton').onclick = capturePhoto;
+
+  document.getElementById('annotateButton').onclick = startAnnotate;
+  document.getElementById('annotateSaveButton').onclick = saveAnnotate;
+
+  const sigCanvas = document.getElementById('signatureCanvas');
+  sigCanvas.addEventListener('pointerdown', e => {
+    isSigDrawing = true;
+    const rect = sigCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    sigLast = { x, y };
+  });
+  sigCanvas.addEventListener('pointermove', e => {
+    if (!isSigDrawing || !sigLast) return;
+    const rect = sigCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const ctx = sigCanvas.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(sigLast.x, sigLast.y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    sigLast = { x, y };
+  });
+  sigCanvas.addEventListener('pointerup', () => isSigDrawing = false);
+  sigCanvas.addEventListener('pointercancel', () => isSigDrawing = false);
+
+  document.getElementById('clearSignatureButton').onclick = clearSignature;
+  document.getElementById('saveSignatureButton').onclick = saveSignature;
+  document.getElementById('saveTaskButton').onclick = saveTask;
+
+  renderList();
+</script>
 </body>
 </html>
