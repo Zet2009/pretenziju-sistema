@@ -52,11 +52,7 @@
   .section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
   .section h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
   .section h3::before{content:"";width:6px;height:6px;background:#111;border-radius:50%}
-  .grid2 {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 6px;
-}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
 .file {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -82,7 +78,9 @@
 }
 .file img,
 .file video {
-  object-fit: cover;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
 }
 .file a[href$=".pdf"]::before,
 .file a[href]:not([href*="."])::before {
@@ -101,6 +99,42 @@
   width: 100%;
   margin-top: 4px;
 }
+
+/* Kvadratinis rodymas tik foto ataskaitos galerijai */
+#report-gallery .file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  height: 110px;
+  text-align: center;
+}
+#report-gallery .file img,
+#report-gallery .file video {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+#report-gallery .file a[href$=".pdf"]::before,
+#report-gallery .file a[href]:not([href$=".pdf"]):not([href*="."])::before {
+  content: "📄";
+  font-size: 32px;
+  display: block;
+}
+#report-gallery .file a[href]:not([href$=".pdf"]):not([href*="."])::before {
+  content: "📎";
+}
+#report-gallery .file div[style*="font-size:12px"] {
+  font-size: 10px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin-top: 4px;
+}
+
   .file .del{position:absolute;top:6px;right:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
 
   #dropzone{border:2px dashed #cbd5e1;border-radius:12px;padding:16px;text-align:center;cursor:pointer}
