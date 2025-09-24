@@ -368,7 +368,7 @@ function renderDetail(id){
       <div id="dropzone">
         Nutempkite failus arba spauskite pasirinkti
         <br><small class="meta">JPG, PNG, WEBP, MP4, PDF (iki ~10 MB; nuotraukos automatiškai sumažinamos)</small>
-        <input id="file-input" type="file" multiple style="display:none" accept=".jpg,.jpeg,.png,.webp,.mp4,.pdf" capture="environment">
+        <input id="file-input" type="file" multiple style="display:none" accept="image/*,video/*,application/pdf">
       </div>
       <div id="selected-files" class="meta" style="margin-top:8px"></div>
 
@@ -385,7 +385,7 @@ function renderDetail(id){
           <button class="btn btn-ghost" id="annStart" disabled>✏️ Anotuoti paskutinę</button>
           <button class="btn btn-ghost" id="annSave"  disabled>💾 Išsaugoti anotaciją</button>
         </div>
-        <canvas id="annCanvas" class="sig" style="display:none;height:220px"></canvas>
+        <canvas id="annCanvas" style="display:none;border:1px dashed var(--line);border-radius:10px;background:#fff;touch-action:none"></canvas>
       </div>
 
       <hr style="margin:14px 0">
@@ -541,22 +541,29 @@ function renderDetail(id){
   let lastCaptured=null;
 
   async function compressImage(file, maxW=1600, maxH=1600, quality=0.85){
-    const img = new Image();
-    const buf = await file.arrayBuffer();
-    const blobUrl = URL.createObjectURL(new Blob([buf], {type:file.type||'image/jpeg'}));
-    await new Promise((res,reject)=>{ img.onload=()=>res(); img.onerror=reject; img.src=blobUrl; });
-    let {width:w, height:h} = img;
-    const ratio = Math.min(maxW/w, maxH/h, 1);
-    const cw = Math.round(w*ratio), ch = Math.round(h*ratio);
-    const can = document.createElement('canvas');
-    const dpr = Math.min(window.devicePixelRatio||1,2);
-    can.width = cw*dpr; can.height = ch*dpr;
-    can.getContext('2d').scale(dpr,dpr);
-    can.getContext('2d').drawImage(img,0,0,cw,ch);
-    URL.revokeObjectURL(blobUrl);
-    const type = (file.type && file.type.includes('png')) ? 'image/png' : 'image/jpeg';
-    const dataUrl = can.toDataURL(type, quality);
-    return dataUrl;
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      img.onload = () => {
+        let {width: w, height: h} = img;
+        const ratio = Math.min(maxW/w, maxH/h, 1);
+        const cw = Math.round(w*ratio), ch = Math.round(h*ratio);
+        const can = document.createElement('canvas');
+        const dpr = Math.min(window.devicePixelRatio||1,2);
+        can.width = cw*dpr; can.height = ch*dpr;
+        const ctx = can.getContext('2d');
+        ctx.scale(dpr,dpr);
+        ctx.drawImage(img,0,0,cw,ch);
+        const type = (file.type && file.type.includes('png')) ? 'image/png' : 'image/jpeg';
+        resolve(can.toDataURL(type, quality));
+      };
+      img.onerror = reject;
+    });
   }
 
   async function handleFiles(files){
@@ -570,7 +577,7 @@ function renderDetail(id){
         try{
           const dataUrl = await compressImage(f);
           // jei vis dar per didelis dataURL – atmesti
-          if (dataUrl.length/1.37 > MAX_MB*1024*1024) { // apytikslis b64->bytes
+          if (dataUrl.length * 0.75 > MAX_MB*1024*1024) { // approximate base64 to bytes
             notes.push(`❌ ${f.name} (per didelis net po mažinimo)`); continue;
           }
           toAdd = {name:f.name.replace(/\.(png|jpg|jpeg|webp)$/i,'.jpg'), dataUrl, type:'image'};
@@ -595,16 +602,20 @@ function renderDetail(id){
     renderGallery();
   }
 
-  async function fileToDataUrl(file){
-    const buf=await file.arrayBuffer();
-    const b64=btoa(String.fromCharCode(...new Uint8Array(buf)));
-    const mime=file.type||'application/octet-stream';
-    const dataUrl=`data:${mime};base64,${b64}`;
-    const lower=file.name.toLowerCase();
-    const type=/\.(jpg|jpeg|png|webp|gif)$/.test(lower)?'image':
-               /\.(mp4|webm|mov)$/.test(lower)?'video':
-               /\.(pdf)$/.test(lower)?'pdf':'file';
-    return {name:file.name,dataUrl,type};
+  function fileToDataUrl(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        const lower = file.name.toLowerCase();
+        const type = /\.(jpg|jpeg|png|webp|gif)$/.test(lower) ? 'image' :
+                     /\.(mp4|webm|mov)$/.test(lower) ? 'video' :
+                     /\.(pdf)$/.test(lower) ? 'pdf' : 'file';
+        resolve({name: file.name, dataUrl, type});
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   function renderGallery(){
@@ -637,7 +648,7 @@ function renderDetail(id){
 
   renderGallery();
 
-  // camera - PATAISYTA: naudojama galinė kamera
+  // camera - PATAISYTA VERSIJA
   const camVideo=document.getElementById('camVideo');
   const camCanvas=document.getElementById('camCanvas');
   const camStart=document.getElementById('camStart');
@@ -647,22 +658,22 @@ function renderDetail(id){
 
   camStart.addEventListener('click', async ()=>{
     try{
-      // Kamera su galine kamera
+      // Paprastesnis kameros paleidimas
       const constraints = {
         video: {
+          facingMode: 'environment',
           width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'environment' // Galinė kamera
+          height: { ideal: 720 }
         },
         audio: false
       };
       
-      // Bandome paleisti kamerą
+      // Bandome įvairius būdus paleisti kamerą
       camStream = await navigator.mediaDevices.getUserMedia(constraints)
         .catch(async () => {
-          // Jei nepavyksta su galine, bandome su bet kuria kamera
+          // Bandome su paprastesniais nustatymais
           return await navigator.mediaDevices.getUserMedia({ 
-            video: true, 
+            video: { facingMode: 'environment' }, 
             audio: false 
           });
         });
@@ -675,7 +686,7 @@ function renderDetail(id){
             camShot.disabled = false;
             camStop.disabled = false;
             camStart.disabled = true;
-            toast('Kamera sėkmingai paleista (galinė)');
+            toast('Kamera sėkmingai paleista');
           })
           .catch(e => {
             console.error('Klaida leidžiant video:', e);
@@ -751,82 +762,119 @@ function renderDetail(id){
     toast('Kamera išjungta');
   });
 
-  // annotate last captured - PATAISYTA KALIBRACIJA
+  // annotate last captured - FIXED CALIBRATION
   const annC = document.getElementById('annCanvas');
   const annStart = document.getElementById('annStart');
   const annSave  = document.getElementById('annSave');
-  let annCtx, drawing=false;
+  let annCtx, drawing=false, annImgWidth, annImgHeight;
 
   annStart.onclick = ()=>{
     if(!lastCaptured) return alert('Nėra ką anotuoti');
     const img = new Image();
     img.onload = ()=>{
-      // Nustatome canvas dydį originaliam
-      annC.width = img.width;
-      annC.height = img.height;
-      // CSS nustatome, kad atvaizduotų sumažintą
-      annC.style.width = '100%';
-      annC.style.height = 'auto';
-      annC.style.display='block';
+      const maxWidth = annC.parentElement.clientWidth - 20;
+      const maxHeight = 280; // reasonable max for mobile
+      const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      annImgWidth = img.width;
+      annImgHeight = img.height;
+
+      const displayWidth = img.width * scale;
+      const displayHeight = img.height * scale;
+
+      annC.width = displayWidth * dpr;
+      annC.height = displayHeight * dpr;
+      annC.style.width = displayWidth + 'px';
+      annC.style.height = displayHeight + 'px';
+      annC.style.display = 'block';
+
       annCtx = annC.getContext('2d');
-      
-      // Nubraižome nuotrauką originaliu dydžiu
-      annCtx.drawImage(img, 0, 0);
-      annCtx.lineWidth = 8; 
+      annCtx.scale(dpr, dpr);
+      annCtx.drawImage(img, 0, 0, displayWidth, displayHeight);
+
+      annCtx.lineWidth = 3; // thinner for precision
       annCtx.strokeStyle = '#ff3333'; 
-      annCtx.lineCap='round';
-      
-      // Kalibruotas brūkšniavimas - teisingos koordinatės
+      annCtx.lineCap = 'round';
+      annCtx.lineJoin = 'round';
+
+      // Event handlers
+      let lastPoint = null;
       annC.onpointerdown = (e)=>{
-        drawing=true; 
-        annCtx.beginPath(); 
-        // Gauname canvas santykį tarp originalaus dydžio ir rodomo dydžio
+        drawing = true; 
+        annCtx.beginPath();
         const rect = annC.getBoundingClientRect();
-        const scaleX = annC.width / rect.width;
-        const scaleY = annC.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
+        const x = (e.clientX - rect.left) ;
+        const y = (e.clientY - rect.top) ;
         annCtx.moveTo(x, y);
+        lastPoint = {x, y};
       };
       
       annC.onpointermove = (e)=>{
         if(!drawing) return; 
         const rect = annC.getBoundingClientRect();
-        const scaleX = annC.width / rect.width;
-        const scaleY = annC.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        annCtx.lineTo(x, y); 
-        annCtx.stroke();
+        const x = (e.clientX - rect.left) ;
+        const y = (e.clientY - rect.top) ;
+        if (lastPoint) {
+          annCtx.quadraticCurveTo(lastPoint.x, lastPoint.y, (lastPoint.x + x)/2, (lastPoint.y + y)/2);
+          annCtx.stroke();
+        }
+        lastPoint = {x, y};
       };
       
-      window.onpointerup = ()=> drawing=false;
+      annC.onpointerup = ()=>{
+        drawing = false;
+        lastPoint = null;
+      };
+      annC.onpointercancel = annC.onpointerup;
+
       annSave.disabled=false;
     };
     img.src = lastCaptured;
   };
   
   annSave.onclick = ()=>{
-    const dataUrl = annC.toDataURL('image/png');
+    // Create full size annotated image
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width = annImgWidth;
+    fullCanvas.height = annImgHeight;
+    const fullCtx = fullCanvas.getContext('2d');
     
-    // Atnaujinti paskutinį pridėtą
-    const lastIdx = claim.masterAttachments.length - 1;
-    if (claim.masterAttachments[lastIdx].dataUrl === lastCaptured) {
-      claim.masterAttachments[lastIdx].dataUrl = dataUrl;
-    }
-    lastCaptured = dataUrl;
-    annC.style.display='none'; 
-    annSave.disabled=true;
-    saveClaim();
-    renderGallery();
-    toast('Anotacija išsaugota');
+    // Draw original image
+    const img = new Image();
+    img.onload = () => {
+      fullCtx.drawImage(img, 0, 0);
+      
+      // Scale and draw annotations
+      const scaleX = annImgWidth / (annC.width / (window.devicePixelRatio || 1));
+      const scaleY = annImgHeight / (annC.height / (window.devicePixelRatio || 1));
+      fullCtx.drawImage(annC, 0, 0, annC.width, annC.height, 0, 0, annImgWidth, annImgHeight);
+      
+      const dataUrl = fullCanvas.toDataURL('image/jpeg', 0.8);
+      
+      // Update the last added attachment
+      const atts = claim.masterAttachments;
+      for (let i = atts.length - 1; i >= 0; i--) {
+        if (atts[i].dataUrl === lastCaptured) {
+          atts[i].dataUrl = dataUrl;
+          break;
+        }
+      }
+      lastCaptured = dataUrl;
+      annC.style.display='none'; 
+      annSave.disabled=true;
+      saveClaim();
+      renderGallery();
+      toast('Anotacija išsaugota');
+    };
+    img.src = lastCaptured;
   };
 
   /* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
   const sig = document.getElementById('sig');
   const sigOverlay = document.getElementById('sigOverlay');
   const sigActivate = document.getElementById('sigActivate');
-  const sctx = sig.getContext('2d', { willReadFrequently: true });
+  const sctx = sig.getContext('2d', { willReadFrequently:true });
 
   let strokes = [];        // kiekvienas brūkšnys = [points]
   let current = null;      // aktyvus brūkšnys
