@@ -115,18 +115,15 @@
 </header>
 
 <main id="app"></main>
-
 <script>
 /* ========= local data + helpers ========= */
 const getClaims = () => { try{return JSON.parse(localStorage.getItem('claims')||'[]')}catch(_){return []} };
 const setClaims = (v) => localStorage.setItem('claims', JSON.stringify(v));
 const fmt = (ts) => { try{return new Date(ts).toLocaleString('lt-LT')}catch(_){return ts} };
 const byId = (arr,id)=> arr.findIndex(x=>x.id===id);
-
 const app = document.getElementById('app');
 const params = new URLSearchParams(location.search);
 const claimId = params.get('id');
-
 window.addEventListener('online', drawOffline);
 window.addEventListener('offline', drawOffline);
 function drawOffline(){
@@ -139,7 +136,6 @@ function drawOffline(){
     app.prepend(bar);
   }
 }
-
 /* ========= MIGRACIJA (atsparumas skirtingoms struktūroms) ========= */
 function migrate(){
   const cs = getClaims();
@@ -165,10 +161,8 @@ function migrate(){
   if (changed) setClaims(cs);
 }
 migrate();
-
 /* ========= Router ========= */
 if (claimId) renderDetail(claimId); else renderList();
-
 /* =================== LIST =================== */
 function renderList(){
   let claims = getClaims();
@@ -186,12 +180,10 @@ function renderList(){
     <div id="list"></div>
   `;
   drawOffline();
-
   const q = document.getElementById('q');
   const tabs = document.getElementById('tabs');
   const list = document.getElementById('list');
   let filter = 'atviros';
-
   function counters(){
     const c = {atv:0,vyk:0,dal:0,uzb:0,vis:claims.length};
     claims.forEach(x=>{
@@ -206,7 +198,6 @@ function renderList(){
     document.getElementById('c-uzb').textContent=c.uzb;
     document.getElementById('c-vis').textContent=c.vis;
   }
-
   function card(c){
     const addr = [c?.contact?.street, c?.contact?.city].filter(Boolean).join(', ');
     const phone = c?.contact?.phone || '';
@@ -216,7 +207,6 @@ function renderList(){
     const nav = (/(Android|iPhone|iPad)/i.test(navigator.userAgent))
       ? `geo:0,0?q=${mapsQ}` : `https://www.google.com/maps/search/?api=1&query=${mapsQ}`;
     const pillCls = c.status==='Užbaigta'?'pill ok': c.status==='Laukia dalių'?'pill warn': c.status==='Vykdoma'?'pill info':'pill';
-
     return `
     <div class="card">
       <div class="head">
@@ -230,13 +220,11 @@ function renderList(){
       <div class="title">${c.description || 'Užduotis'}</div>
       <div class="line"><b>Produktas:</b> ${c.product || '-'}</div>
       <div class="line">${addr ? addr + ' • ' : ''}<b>Klientas:</b> ${c?.contact?.name||''} ${c?.contact?.surname||''}</div>
-
       <div class="tiny-actions">
         <a class="btn btn-ghost" href="${tel}">📞 Skambinti</a>
         <a class="btn btn-ghost" href="${nav}" target="_blank">🧭 Maršrutas</a>
         <a class="btn btn-ghost" href="${sms}">💬 Priminti</a>
       </div>
-
       <div class="cta">
         <button class="btn btn-accent" onclick="setStatus('${c.id}','Vykdoma')">Pradėti</button>
         <button class="btn btn-dark" onclick="markParts('${c.id}')">Dalys</button>
@@ -244,7 +232,6 @@ function renderList(){
       </div>
     </div>`;
   }
-
   function apply(){
     const term = (q.value||'').toLowerCase().trim();
     const filtered = claims.filter(c=>{
@@ -258,7 +245,6 @@ function renderList(){
     list.innerHTML = filtered.map(card).join('') || `<div class="meta" style="padding:8px 2px">Nieko nerasta.</div>`;
     counters();
   }
-
   tabs.addEventListener('click', (e)=>{
     if(!e.target.classList.contains('tab')) return;
     [...tabs.children].forEach(t=>t.classList.remove('active'));
@@ -267,7 +253,6 @@ function renderList(){
     apply();
   });
   q.addEventListener('input', apply);
-
   window.setStatus = function(id, status){
     const all = getClaims();
     const i = byId(all,id);
@@ -299,16 +284,13 @@ function renderList(){
       setClaims(all); claims=all; apply();
     }
   }
-
   apply();
 }
-
 /* =================== DETAIL =================== */
 function renderDetail(id){
   let claims = getClaims();
   let claim = claims.find(c=>c.id===id);
   if(!claim){ app.innerHTML='<div class="card">Pretenzija nerasta.</div>'; return; }
-
   app.innerHTML = `
     <div class="section" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
       <div style="flex:1">
@@ -319,39 +301,29 @@ function renderDetail(id){
         <div class="line"><b>Aprašymas:</b> ${claim.description||''}</div>
         <div class="line"><b>Adresas:</b> ${[claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ')}</div>
         <div class="line"><b>Kontaktas:</b> ${claim?.contact?.name||''} ${claim?.contact?.surname||''} • ${claim?.contact?.phone||''}</div>
-
         <div class="stat-box" style="margin-top:8px">
-          <button id="timerStart" class="btn btn-accent">▶ Pradėti laiką</button>
-          <button id="timerStop"  class="btn btn-ghost" disabled>⏹ Sustabdyti</button>
-          <span class="chip">Trukmė: <span id="timerOut">00:00:00</span></span>
           <button id="printBtn" class="btn btn-ghost">🧾 PDF</button>
           <button id="backBtn" class="btn btn-ghost">◀ Atgal</button>
         </div>
-
         <div class="stat-box">
           <a class="btn btn-ghost" id="btnCall">📞 Skambinti</a>
           <a class="btn btn-ghost" id="btnSms">💬 SMS</a>
-          <a class="btn btn-ghost" id="btnSms2">💬 SMS: vėluosiu</a>
           <a class="btn btn-ghost" id="btnNav" target="_blank">🧭 Naviguoti</a>
         </div>
       </div>
     </div>
-
     <div class="section">
       <h3>Kliento failai</h3>
       <div id="user-files" class="grid2"></div>
     </div>
-
     <div class="section">
       <h3>Kokybės dokumentai</h3>
       <div id="quality-attachments" class="grid2"></div>
     </div>
-
     <div class="section">
       <h3>Kokybės rekomendacijos</h3>
       <div id="quality-note" class="meta"></div>
     </div>
-
     <div class="section">
       <h3>Dalių sąrašas (checklist)</h3>
       <div id="parts"></div>
@@ -360,7 +332,6 @@ function renderDetail(id){
         <button class="btn btn-ghost" id="addPart">Pridėti</button>
       </div>
     </div>
-
     <div class="section">
       <h3>Foto ataskaita</h3>
       <div id="dropzone">
@@ -369,7 +340,6 @@ function renderDetail(id){
         <input id="file-input" type="file" multiple style="display:none" accept="image/*,video/*,application/pdf">
       </div>
       <div id="selected-files" class="meta" style="margin-top:8px"></div>
-
       <div class="cam-wrap">
         <div class="cam-row" style="margin-bottom:8px">
           <button type="button" id="camStart" class="btn btn-accent">📷 Kamera</button>
@@ -378,19 +348,16 @@ function renderDetail(id){
         </div>
         <video id="camVideo" class="cam-video" playsinline muted></video>
         <canvas id="camCanvas" style="display:none"></canvas>
-
         <div class="annotate-bar">
           <button class="btn btn-ghost" id="annStart" disabled>✏️ Anotuoti paskutinę</button>
           <button class="btn btn-ghost" id="annSave"  disabled>💾 Išsaugoti anotaciją</button>
         </div>
         <canvas id="annCanvas" style="display:none;border:1px dashed var(--line);border-radius:10px;background:#fff;touch-action:none"></canvas>
       </div>
-
       <hr style="margin:14px 0">
       <h4 style="margin-bottom:8px">Jau įkelta</h4>
       <div id="report-gallery" class="grid2"></div>
     </div>
-
     <div class="section">
       <h3>Kliento parašas</h3>
       <div class="sig-container">
@@ -406,7 +373,6 @@ function renderDetail(id){
         <button class="btn btn-ok" id="sigSave" disabled>Pridėti prie ataskaitos</button>
       </div>
     </div>
-    
     <div class="section">
       <h3>Darbo užbaigimas</h3>
       <div class="stat-box">
@@ -414,26 +380,13 @@ function renderDetail(id){
         <button class="btn btn-ok" id="completeBtn" disabled>✅ Pažymėti kaip atliktą</button>
       </div>
     </div>
-
-    <div class="section">
-      <h3>Serijos/QR skenavimas</h3>
-      <div class="stat-box">
-        <button class="btn btn-ghost" id="scanBtn">📷 Skenuoti</button>
-        <input id="serialInput" placeholder="Arba įrašykite kodą ranka" style="flex:1;padding:10px;border:1px solid var(--line);border-radius:10px">
-        <button class="btn btn-ghost" id="serialSave">Išsaugoti</button>
-      </div>
-      <div id="serialOut" class="meta" style="margin-top:6px"></div>
-    </div>
-
     <!-- ISTORIJA DABAR PASKUTINĖ -->
     <div class="section">
       <h3>Istorija</h3>
       <div id="historyBox" class="meta"></div>
     </div>
   `;
-
   drawOffline();
-
   /* quick actions */
   const phone = claim?.contact?.phone || '';
   const addr  = [claim?.contact?.street, claim?.contact?.city, claim?.contact?.postal].filter(Boolean).join(', ');
@@ -441,17 +394,14 @@ function renderDetail(id){
     document.getElementById('btnCall').href = `tel:${phone.replace(/\s+/g,'')}`;
     const base = phone.replace(/\s+/g,'');
     document.getElementById('btnSms').href  = `sms:${base}?body=${encodeURIComponent('Sveiki, atvykstu per ~30 min. / Rubineta')}`;
-    document.getElementById('btnSms2').href = `sms:${base}?body=${encodeURIComponent('Sveiki, vėluosiu ~15–20 min. Atsiprašau.')}`;
   }
   const mapsQ = encodeURIComponent(addr || (claim?.contact?.street||''));  
   document.getElementById('btnNav').href = (/(Android|iPhone|iPad)/i.test(navigator.userAgent))
     ? `geo:0,0?q=${mapsQ}` : `https://www.google.com/maps/search/?api=1&query=${mapsQ}`;
-
   // share/back/print
   document.getElementById('backBtn').onclick = ()=> history.length>1 ? history.back() : (location.href='master-mobile.html');
   document.getElementById('printBtn').onclick = ()=> window.print();
   document.getElementById('shareBtn')?.addEventListener('click', ()=> copyLink(claim.id));
-
   /* history */
   function drawHistory(){
     const box = document.getElementById('historyBox');
@@ -459,7 +409,6 @@ function renderDetail(id){
     box.innerHTML = arr.length? arr.map(h=>`${new Date(h.time).toLocaleString('lt-LT')} • ${h.user}: ${h.action}`).join('<br>') : 'Nėra įrašų.';
   }
   drawHistory();
-
   /* parts checklist */
   claim.parts = Array.isArray(claim.parts) ? claim.parts : [];
   const partsEl = document.getElementById('parts');
@@ -489,39 +438,11 @@ function renderDetail(id){
     });
   }
   drawParts();
-
-  /* timer (persist across refresh if norėtum – galima rašyti į claim.timerStart) */
-  let tStart = null, tTick=null;
-  const tOut = document.getElementById('timerOut');
-  const tStartBtn = document.getElementById('timerStart');
-  const tStopBtn  = document.getElementById('timerStop');
-  tStartBtn.onclick = ()=>{
-    if (tStart) return;
-    tStart = Date.now();
-    tStartBtn.disabled = true; tStopBtn.disabled=false;
-    tick();
-  };
-  tStopBtn.onclick = ()=>{
-    if (!tStart) return;
-    const dur = Date.now()-tStart;
-    addHistory(`Darbo laikas: ${fmtDur(dur)}`); drawHistory();
-    tStart=null; clearInterval(tTick);
-    tOut.textContent='00:00:00';
-    tStartBtn.disabled=false; tStopBtn.disabled=true;
-  };
-  function tick(){ tTick=setInterval(()=>{ tOut.textContent = fmtDur(Date.now()-tStart); }, 500); }
-  function fmtDur(ms){
-    const s=Math.floor(ms/1000), h=String(Math.floor(s/3600)).padStart(2,'0'),
-          m=String(Math.floor((s%3600)/60)).padStart(2,'0'), ss=String(s%60).padStart(2,'0');
-    return `${h}:${m}:${ss}`;
-  }
-
   /* files: user & quality */
   renderFilesArray(document.getElementById('user-files'), normalizeUserFiles(claim.files));
   renderFilesArray(document.getElementById('quality-attachments'), normalizeQualityFiles(claim.qualityAttachments));
   document.getElementById('quality-note').textContent =
     (claim.qualityExternalComment || claim.qualityAdvice || 'Nėra rekomendacijų.');
-
   /* photo report + camera + annotate */
   const dz = document.getElementById('dropzone');
   const input = document.getElementById('file-input');
@@ -529,15 +450,12 @@ function renderDetail(id){
   const gallery = document.getElementById('report-gallery');
   const MAX_MB = 10;
   const ACCEPT = /\.(jpg|jpeg|png|webp|mp4|pdf)$/i;
-
   dz.addEventListener('click', ()=> input.click());
   dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.style.background='#f8fafc'; });
   dz.addEventListener('dragleave', ()=> dz.style.background='transparent');
   dz.addEventListener('drop', e=>{ e.preventDefault(); dz.style.background='transparent'; handleFiles(e.dataTransfer.files); });
   input.addEventListener('change', ()=> handleFiles(input.files));
-
   let lastCaptured=null;
-
   async function compressImage(file, maxW=1600, maxH=1600, quality=0.85){
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -563,7 +481,6 @@ function renderDetail(id){
       img.onerror = reject;
     });
   }
-
   async function handleFiles(files){
     const notes=[];
     let added = 0;
@@ -599,7 +516,6 @@ function renderDetail(id){
     list.textContent = notes.join(', ');
     renderGallery();
   }
-
   function fileToDataUrl(file){
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -615,7 +531,6 @@ function renderDetail(id){
       reader.readAsDataURL(file);
     });
   }
-
   function renderGallery(){
     gallery.innerHTML='';
     const arr=(claim.masterAttachments||[]).slice();
@@ -643,9 +558,7 @@ function renderDetail(id){
       };
     });
   }
-
   renderGallery();
-
   // camera
   const camVideo=document.getElementById('camVideo');
   const camCanvas=document.getElementById('camCanvas');
@@ -653,7 +566,6 @@ function renderDetail(id){
   const camShot=document.getElementById('camShot');
   const camStop=document.getElementById('camStop');
   let camStream=null;
-
   camStart.addEventListener('click', async ()=>{
     try{
       const constraints = {
@@ -664,7 +576,6 @@ function renderDetail(id){
         },
         audio: false
       };
-      
       camStream = await navigator.mediaDevices.getUserMedia(constraints)
         .catch(async () => {
           return await navigator.mediaDevices.getUserMedia({ 
@@ -672,9 +583,7 @@ function renderDetail(id){
             audio: false 
           });
         });
-      
       camVideo.srcObject = camStream;
-      
       camVideo.onloadedmetadata = () => {
         camVideo.play()
           .then(() => {
@@ -688,55 +597,43 @@ function renderDetail(id){
             toast('Klaida paleidžiant kamerą');
           });
       };
-      
       camVideo.onerror = (e) => {
         console.error('Video klaida:', e);
         toast('Kamera nepaleista');
       };
-      
     } catch(e){
       console.error('Kameros klaida:', e);
       alert('Nepavyko paleisti kameros. Patikrinkite leidimus arba bandykite kitą naršyklę.');
     }
   });
-
   camShot.addEventListener('click', ()=>{
     if(!camStream || !camVideo.videoWidth) {
       toast('Pirmiausia paleiskite kamerą');
       return;
     }
-    
     try{
       const video = camVideo;
       const canvas = camCanvas;
-      
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         toast('Kamera dar neparengta. Palaukite.');
         return;
       }
-      
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
       const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      
       claim.masterAttachments=(claim.masterAttachments||[]).concat([{name:`kamera-${Date.now()}.jpg`, dataUrl, type:'image'}]);
       addHistory(`Pateikta foto ataskaita (1 fail.)`); drawHistory();
       lastCaptured = dataUrl;
       saveClaim(); renderGallery();
       document.getElementById('annStart').disabled = false;
-      
       toast('Nuotrauka sėkmingai padaryta ir išsaugota!');
-      
     }catch(error){
       console.error('Nuotraukos kūrimo klaida:', error);
       toast('Klaida kuriant nuotrauką');
     }
   });
-
   camStop.addEventListener('click', ()=>{
     if(camStream){ 
       camStream.getTracks().forEach(track => {
@@ -751,13 +648,11 @@ function renderDetail(id){
     camStart.disabled = false;
     toast('Kamera išjungta');
   });
-
   // annotate last captured
   const annC = document.getElementById('annCanvas');
   const annStart = document.getElementById('annStart');
   const annSave  = document.getElementById('annSave');
   let annCtx, drawing=false, annImgWidth, annImgHeight;
-
   annStart.onclick = ()=>{
     if(!lastCaptured) return alert('Nėra ką anotuoti');
     const img = new Image();
@@ -766,28 +661,22 @@ function renderDetail(id){
       const maxHeight = 280;
       const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
       annImgWidth = img.width;
       annImgHeight = img.height;
-
       const displayWidth = img.width * scale;
       const displayHeight = img.height * scale;
-
       annC.width = displayWidth * dpr;
       annC.height = displayHeight * dpr;
       annC.style.width = displayWidth + 'px';
       annC.style.height = displayHeight + 'px';
       annC.style.display = 'block';
-
       annCtx = annC.getContext('2d');
       annCtx.scale(dpr, dpr);
       annCtx.drawImage(img, 0, 0, displayWidth, displayHeight);
-
       annCtx.lineWidth = 3;
       annCtx.strokeStyle = '#ff3333'; 
       annCtx.lineCap = 'round';
       annCtx.lineJoin = 'round';
-
       let lastPoint = null;
       annC.onpointerdown = (e)=>{
         drawing = true; 
@@ -798,7 +687,6 @@ function renderDetail(id){
         annCtx.moveTo(x, y);
         lastPoint = {x, y};
       };
-      
       annC.onpointermove = (e)=>{
         if(!drawing) return; 
         const rect = annC.getBoundingClientRect();
@@ -810,34 +698,27 @@ function renderDetail(id){
         }
         lastPoint = {x, y};
       };
-      
       annC.onpointerup = ()=>{
         drawing = false;
         lastPoint = null;
       };
       annC.onpointercancel = annC.onpointerup;
-
       annSave.disabled=false;
     };
     img.src = lastCaptured;
   };
-  
   annSave.onclick = ()=>{
     const fullCanvas = document.createElement('canvas');
     fullCanvas.width = annImgWidth;
     fullCanvas.height = annImgHeight;
     const fullCtx = fullCanvas.getContext('2d');
-    
     const img = new Image();
     img.onload = () => {
       fullCtx.drawImage(img, 0, 0);
-      
       const scaleX = annImgWidth / (annC.width / (window.devicePixelRatio || 1));
       const scaleY = annImgHeight / (annC.height / (window.devicePixelRatio || 1));
       fullCtx.drawImage(annC, 0, 0, annC.width, annC.height, 0, 0, annImgWidth, annImgHeight);
-      
       const dataUrl = fullCanvas.toDataURL('image/jpeg', 0.8);
-      
       const atts = claim.masterAttachments;
       for (let i = atts.length - 1; i >= 0; i--) {
         if (atts[i].dataUrl === lastCaptured) {
@@ -854,18 +735,15 @@ function renderDetail(id){
     };
     img.src = lastCaptured;
   };
-
   /* --------- Signature (smooth, undo, hi-DPI, pressure) --------- */
   const sig = document.getElementById('sig');
   const sigOverlay = document.getElementById('sigOverlay');
   const sigActivate = document.getElementById('sigActivate');
   const sctx = sig.getContext('2d', { willReadFrequently:true });
-
   let strokes = [];
   let current = null;
   let sigDirty = false;
   let sigActive = false;
-
   function resizeSig(){
     const r = sig.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio||1, 2);
@@ -899,7 +777,6 @@ function renderDetail(id){
       sctx.stroke();
     }
   }
-
   function pt(e){
     const rect = sig.getBoundingClientRect();
     const pressure = typeof e.pressure === 'number' && e.pressure>0 ? e.pressure : 0.5;
@@ -918,7 +795,6 @@ function renderDetail(id){
     const speed = Math.min(1, Math.hypot(dx,dy) / 6);
     return Math.max(1.6, max - speed*2.2);
   }
-
   let lastDraw = 0;
   function onDown(e){
     if (!sigActive) return;
@@ -934,11 +810,9 @@ function renderDetail(id){
     const now = performance.now();
     if (now - lastDraw < 16) return;
     lastDraw = now;
-
     const p = pt(e);
     const prev = current[current.length-1];
     if (Math.abs(p.x - prev.x) + Math.abs(p.y - prev.y) < 1.2) return;
-
     current.push({ ...p, w: widthFrom(prev,p) });
     redraw();
   }
@@ -949,7 +823,6 @@ function renderDetail(id){
     current = null;
     redraw();
   }
-
   sigActivate.addEventListener('click', () => {
     sigActive = true;
     sig.classList.remove('sig-disabled');
@@ -958,14 +831,12 @@ function renderDetail(id){
     document.getElementById('sigClear').disabled = false;
     document.getElementById('sigSave').disabled = false;
   });
-
   sig.addEventListener('pointerdown', onDown);
   sig.addEventListener('pointermove', onMove);
   sig.addEventListener('pointerup', onUp);
   sig.addEventListener('pointercancel', onUp);
   window.addEventListener('resize', resizeSig);
   resizeSig();
-
   document.getElementById('sigUndo').onclick = ()=>{
     if (!sigActive) return;
     strokes.pop(); redraw();
@@ -984,7 +855,6 @@ function renderDetail(id){
     renderGallery();
     toast('Parašas pridėtas');
     updateCompleteButton();
-
     sigActive = false;
     sig.classList.add('sig-disabled');
     sigOverlay.style.display = 'flex';
@@ -992,72 +862,30 @@ function renderDetail(id){
     document.getElementById('sigClear').disabled = true;
     document.getElementById('sigSave').disabled = true;
   };
-
   /* --------- „Darbas atliktas" mygtukas su tikrinimais --------- */
   const completeBtn = document.getElementById('completeBtn');
   const completeReq = document.getElementById('completeReq');
-
   function hasSignature(){
     return (claim.masterAttachments||[]).some(a => /paras(as|a)|parašas/i.test(a.name||'') || /data:image\/png/.test(a.dataUrl||''));
   }
   function hasAnyEvidence(){
     return (claim.masterAttachments||[]).some(a => ['image','video','pdf'].includes(a.type));
   }
-
   function updateCompleteButton(){
     const ok = hasSignature() && hasAnyEvidence();
     completeBtn.disabled = !ok;
     completeReq.textContent = ok ? 'Paruošta užbaigti' : 'Reikia: ≥1 nuotraukos ir parašo';
   }
   updateCompleteButton();
-
   completeBtn.addEventListener('click', ()=>{
     if (!hasSignature()) { alert('Pridėkite kliento parašą.'); return; }
     if (!hasAnyEvidence()) { alert('Pridėkite bent vieną nuotrauką ar dokumentą.'); return; }
-
     claim.status = 'Užbaigta';
     addHistory('Darbas pažymėtas kaip atliktas');
     saveClaim();
     toast('✅ Pažymėta: Užbaigta');
     const tag = document.querySelector('.section .pill'); if (tag) tag.textContent = 'Užbaigta';
   });
-
-  /* barcode / QR */
-  const scanBtn = document.getElementById('scanBtn');
-  const serialInput = document.getElementById('serialInput');
-  const serialOut = document.getElementById('serialOut');
-  let detector = null;
-  try{
-    if ('BarcodeDetector' in window){
-      detector = new BarcodeDetector({formats:['qr_code','code_128','code_39','ean_13','ean_8','upc_e','upc_a']});
-    }
-  }catch(_){}
-  scanBtn.onclick = async ()=>{
-    if (!detector) { alert('Šiame įrenginyje skenavimo API nepalaikoma – įrašykite ranka.'); return; }
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-      const track = stream.getVideoTracks()[0];
-      const imgCap = new ImageCapture(track);
-      const shot = await imgCap.grabFrame();
-      track.stop();
-      const bmp = await createImageBitmap(shot);
-      const off = document.createElement('canvas'); off.width=bmp.width; off.height=bmp.height;
-      off.getContext('2d').drawImage(bmp,0,0);
-      const det = await detector.detect(off);
-      if (det && det[0]){
-        serialInput.value = det[0].rawValue || det[0].data || '';
-        serialOut.textContent = 'Nuskaityta: '+serialInput.value;
-      } else {
-        serialOut.textContent = 'Nieko neaptikta. Pabandykite dar kartą.';
-      }
-    }catch(e){ console.error(e); alert('Nepavyko nuskenuoti.'); }
-  };
-  document.getElementById('serialSave').onclick = ()=>{
-    const v = serialInput.value.trim(); if(!v) return;
-    claim.serial = v; addHistory('Užfiksuotas serijos/QR kodas: '+v); drawHistory(); saveClaim();
-    serialOut.textContent = 'Išsaugota: '+v;
-  };
-
   /* helpers inside detail */
   async function uploadFiles(fileList){ /* nebereikia – darome fileToDataUrl/kompresiją */ }
   function renderFilesArray(container, list){
@@ -1079,7 +907,6 @@ function renderDetail(id){
   function addHistory(action){ claim.history = claim.history || []; claim.history.push({ user:'Meistras', time:new Date().toISOString(), action }); saveClaim(); }
   function saveClaim(){ const all = getClaims(); const i = byId(all, claim.id); if (i>-1){ all[i]=claim; setClaims(all); } }
 }
-
 /* share helper */
 function copyLink(id){
   const url = location.origin + location.pathname + '?id=' + id;
@@ -1087,13 +914,11 @@ function copyLink(id){
   navigator.clipboard?.writeText(url);
   toast('Nuoroda nukopijuota');
 }
-
 /* logout */
 document.getElementById('logoutBtn').addEventListener('click', ()=>{
   localStorage.removeItem('currentUser');
   alert('Atsijungta');
 });
-
 /* tiny toast */
 function toast(msg){
   const t=document.createElement('div');
