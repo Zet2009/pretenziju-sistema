@@ -48,28 +48,58 @@
   .tiny-actions .btn{padding:6px 10px;border-radius:10px;font-size:13px}
   .cta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
   .cta .btn{padding:12px 10px;border-radius:12px}
-.file div[style*="font-size:12px"] {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
   .section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
   .section h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
   .section h3::before{content:"";width:6px;height:6px;background:#111;border-radius:50%}
-  .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px}
-  .file {
+  .grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 6px;
+}
+.file {
   border: 1px solid var(--line);
-  border-radius: 6px; /* sumažinta iš 10px */
-  padding: 4px;        /* sumažinta iš 8px */
+  border-radius: 8px;
   background: #fff;
   position: relative;
-  font-size: 11px;     /* šiek tiek sumažintas šriftas */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  text-align: center;
+  height: 100px; /* fiksuotas aukštis */
 }
-  .file img,
+.file img,
+.file video,
+.file a[href$=".pdf"],
+.file a[href]:not([href*="."]) {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+.file img,
 .file video {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px; /* sumažinta iš 6px */
+  object-fit: cover;
+}
+.file a[href$=".pdf"]::before,
+.file a[href]:not([href*="."])::before {
+  content: "📄";
+  font-size: 32px;
+}
+.file a[href]:not([href$=".pdf"]):not([href*="."])::before {
+  content: "📎";
+}
+
+.file div[style*="font-size:12px"] {
+  font-size: 10px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin-top: 4px;
 }
   .file .del{position:absolute;top:6px;right:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
 
