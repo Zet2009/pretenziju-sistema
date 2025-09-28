@@ -32,7 +32,6 @@ app.use(express.static('public'));
 app.options('*', cors(corsOptions));
 
 // === Gmail API autorizacija ir transporter'is ===
-const { google } = require('googleapis');
 const OAuth2 = google.auth.OAuth2;
 
 const oauth2Client = new OAuth2(
@@ -370,7 +369,7 @@ app.get('/api/cities', async (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 // === Paleidžiame serverį ===
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
