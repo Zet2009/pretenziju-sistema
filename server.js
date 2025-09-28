@@ -37,7 +37,7 @@ const OAuth2 = google.auth.OAuth2;
 const oauth2Client = new OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  'https://oauth2.googleapis.com/token' // Be tarpų!
+  'https://developers.google.com/oauthplayground'// Be tarpų!
 );
 
 oauth2Client.setCredentials({
