@@ -27,34 +27,54 @@ app.use(express.static('public'));
 // Įtraukite OPTIONS užklausų apdorojimą
 app.options('*', cors(corsOptions));
 
-// === Pagrindinė Resend email siuntimo funkcija ===
+// === Mailjet email siuntimo funkcija ===
 async function sendEmail(to, subject, text, html = null) {
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    // Mailjet API autentifikacija
+    const auth = Buffer.from(
+      `${process.env.MAILJET_API_KEY}:${process.env.MAILJET_API_SECRET}`
+    ).toString('base64');
+
+    const emailData = {
+      Messages: [
+        {
+          From: {
+            Email: process.env.EMAIL_FROM,
+            Name: process.env.EMAIL_FROM_NAME || 'Rubineta Pretenzijos'
+          },
+          To: [
+            {
+              Email: to,
+              Name: to.split('@')[0] // paprastas vardo generavimas
+            }
+          ],
+          Subject: subject,
+          TextPart: text,
+          ...(html && { HTMLPart: html })
+        }
+      ]
+    };
+
+    const response = await fetch('https://api.mailjet.com/v3.1/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+        'Authorization': `Basic ${auth}`
       },
-      body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'Rubineta Pretenzijos <noreply@rubineta.lt>',
-        to: Array.isArray(to) ? to : [to],
-        subject: subject,
-        text: text,
-        ...(html && { html: html })
-      })
+      body: JSON.stringify(emailData)
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Resend klaida: ${errorData.message || response.statusText}`);
+      console.error('Mailjet klaida:', errorData);
+      throw new Error(`Mailjet klaida: ${errorData.ErrorMessage || response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('✅ Laiškas išsiųstas:', data);
+    console.log('✅ Laiškas išsiųstas per Mailjet:', data);
     return data;
   } catch (error) {
-    console.error('❌ Klaida siunčiant laišką:', error.message);
+    console.error('❌ Klaida siunčiant laišką per Mailjet:', error.message);
     throw error;
   }
 }
@@ -308,5 +328,5 @@ app.get('/api/cities', async (req, res) => {
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
-  console.log(`✅ Naudojamas Resend email servisas`);
+  console.log(`✅ Naudojamas Mailjet email servisas`);
 });
