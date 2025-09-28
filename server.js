@@ -31,39 +31,37 @@ app.use(express.static('public'));
 // Įtraukite OPTIONS užklausų apdorojimą (svarbu CORS preflight užklausoms)
 app.options('*', cors(corsOptions));
 
-// === Gmail API autorizacija ir transporter'is ===
-const OAuth2 = google.auth.OAuth2;
+// === Siųsti el. laišką per Resend ===
+async function sendEmail(to, subject, text, html = null) {
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+      },
+      body: JSON.stringify({
+        from: process.env.EMAIL_USER,
+        to,
+        subject,
+        text,
+        ...(html && { html })
+      })
+    });
 
-const oauth2Client = new OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  'https://developers.google.com/oauthplayground'// Be tarpų!
-);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(`Resend klaida: ${error.message}`);
+    }
 
-oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
-});
-
-// Sukuriam transporter'į BE accessToken (jis bus dinamiškai gautas)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    type: 'OAuth2',
-    user: process.env.EMAIL_USER,
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.GOOGLE_REFRESH_TOKEN
+    const data = await response.json();
+    console.log('✅ Laiškas išsiųstas:', data);
+    return data;
+  } catch (error) {
+    console.error('❌ Klaida siunčiant laišką:', error.message);
+    throw error;
   }
-});
-
-// Patikriname ryšį (dabar tai veiks)
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Gmail autentifikacija nepavyko:', error.message);
-  } else {
-    console.log('✅ Gmail API pasiruošęs siųsti laiškus');
-  }
-});
+}
 // 24h cache Geonames atsakymams (kad neperspausti API)
 const cache = new LRU({
   max: 5000,
