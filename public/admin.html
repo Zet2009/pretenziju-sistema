@@ -1078,7 +1078,40 @@ function changePage(direction) {
         renderClaims();
     }
 }
+// admin.html - pakeisti failų rodymo dalį
+function viewClaimDetails(id) {
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const claim = claims.find(c => c.id === id);
+    if (!claim) return;
 
+    // Gauti failus iš catalog-table
+    const cloudinaryFiles = JSON.parse(localStorage.getItem('cloudinaryFiles')) || [];
+    const claimFiles = cloudinaryFiles.filter(file => 
+        file.claimId === id || file.originalName.includes(claim.id)
+    );
+
+    let fileListHtml = '<div class="file-list">';
+    if (claimFiles.length) {
+        claimFiles.forEach(file => {
+            fileListHtml += `
+                <div class="file-item">
+                    📎 <a href="${file.url}" target="_blank">${file.originalName}</a>
+                    <small>(${formatFileSize(file.size)})</small>
+                </div>
+            `;
+        });
+    } else {
+        fileListHtml += `
+            <div class="file-item">
+                <em>Nėra įkeltų failų. </em>
+                <a href="catalog-table.html" target="_blank">Įkelti failus į katalogą</a>
+            </div>
+        `;
+    }
+    fileListHtml += '</div>';
+
+    // Likusi modalio dalis išlieka ta pati...
+}
 /* =================== DEMO DUOMENYS (jei nėra) =================== */
 document.addEventListener('DOMContentLoaded', () => {
     // NEW: paprastas rikiavimo aktyvavimas ant 3 stulpelių
