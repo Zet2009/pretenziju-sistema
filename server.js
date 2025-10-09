@@ -325,6 +325,48 @@ app.get('/api/cities', async (req, res) => {
   }
 });
 
+// Pridėkite šiuos endpoint'us prie jūsų server.js
+
+// Failų saugojimas (galite naudoti duomenų bazę vietoj atminties)
+let cloudinaryFiles = [];
+
+// GET /api/cloudinary-files - gauti visus failus
+app.get('/api/cloudinary-files', (req, res) => {
+  res.json(cloudinaryFiles);
+});
+
+// POST /api/cloudinary-files - išsaugoti naują failą
+app.post('/api/cloudinary-files', (req, res) => {
+  try {
+    const fileData = req.body;
+    
+    // Patikriname ar failas jau egzistuoja
+    const existingIndex = cloudinaryFiles.findIndex(f => f.id === fileData.id);
+    if (existingIndex !== -1) {
+      cloudinaryFiles[existingIndex] = fileData;
+    } else {
+      cloudinaryFiles.unshift(fileData);
+    }
+    
+    res.json({ success: true, file: fileData });
+  } catch (error) {
+    console.error('Klaida saugant failo duomenis:', error);
+    res.status(500).json({ success: false, error: 'Nepavyko išsaugoti failo' });
+  }
+});
+
+// DELETE /api/cloudinary-files/:id - ištrinti failą
+app.delete('/api/cloudinary-files/:id', (req, res) => {
+  try {
+    const fileId = req.params.id;
+    cloudinaryFiles = cloudinaryFiles.filter(f => f.id !== fileId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Klaida trinant failą:', error);
+    res.status(500).json({ success: false, error: 'Nepavyko ištrinti failo' });
+  }
+});
+
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Serveris veikia ant http://0.0.0.0:${PORT}`);
