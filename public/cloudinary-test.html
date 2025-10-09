@@ -3,156 +3,938 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloudinary Test</title>
+    <title>Failų Katalogas - Rubineta</title>
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
     <style>
+        :root {
+            --primary: #4e5152;
+            --primary-light: #4A4A4A;
+            --secondary: #FFCC00;
+            --light: #F5F5F5;
+            --white: #FFFFFF;
+            --dark: #234d77;
+            --gray: #75757d;
+            --font: 'Roboto', sans-serif;
+        }
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 20px;
-            line-height: 1.6;
-            color: #333;
+            font-family: var(--font);
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.3;
+            font-size: 12px;
         }
-        h1 {
-            color: #2D2D2D;
-            text-align: center;
-            font-size: 1.5em;
+        
+        header {
+            background: var(--white);
+            padding: 10px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .form-group {
-            margin-bottom: 20px;
+        
+        .logo { 
+            height: 50px; 
+            cursor: pointer; 
         }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #2D2D2D;
-        }
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background: #f9f9f9;
-        }
-        button {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background: #2D2D2D;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #1a1a1a;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #f9f9f9;
-        }
-        #result img {
-            max-width: 100%;
-            margin-top: 10px;
-            border-radius: 4px;
-        }
-        #result video {
-            max-width: 100%;
-            margin-top: 10px;
-            border-radius: 4px;
-        }
-        #result a {
-            color: #17a2b8;
+        
+        nav a {
+            margin: 0 15px;
             text-decoration: none;
+            color: var(--dark);
+            font-weight: 200;
+            font-size: 14px;
         }
-        #result a:hover {
-            text-decoration: underline;
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        main {
+            max-width: 1800px;
+            margin: 10px auto;
+            padding: 10px;
+        }
+        
+        h1 { 
+            color: var(--primary); 
+            margin-bottom: 15px; 
+            font-size: 16px; 
+            text-align: center; 
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        /* Skirtukai */
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            background: #e9ecef;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        
+        .tab:hover { 
+            background: #dee2e6; 
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .tab-content { 
+            display: none; 
+        }
+        
+        .tab-content.active { 
+            display: block; 
+        }
+        
+        /* Įkėlimo sekcija */
+        .upload-section {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        /* Failų tinklelis */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .file-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            background: var(--white);
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .file-preview {
+            width: 100%;
+            height: 150px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .file-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .file-info {
+            margin-bottom: 10px;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+        
+        .file-meta {
+            font-size: 0.8em;
+            color: var(--gray);
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .file-actions .btn {
+            padding: 5px 10px;
+            font-size: 11px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        /* Žinutės */
+        .message {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Filtrai */
+        .filters {
+            background: var(--white);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 11px;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        /* Tuščios būsenos stilius */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        /* Statistika */
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 11px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
+        
+        .stat-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-width: 120px; 
+            text-align: center; 
+        }
+        
+        .stat-item .label { 
+            color: var(--gray); 
+            font-weight: 500; 
+            font-size: 10px; 
+            white-space: nowrap; 
+        }
+        
+        .stat-item .value { 
+            color: var(--primary); 
+            font-weight: bold; 
+            font-size: 13px; 
+        }
+        
+        /* Puslapiavimas */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .pagination-info { 
+            font-size: 12px; 
+            color: var(--gray); 
+        }
+        
+        .pagination-buttons { 
+            display: flex; 
+            gap: 10px; 
+        }
+        
+        .pagination-btn { 
+            padding: 6px 12px; 
+            background: var(--primary-light); 
+            color: var(--white); 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 11px; 
+        }
+        
+        .pagination-btn:disabled { 
+            background: #ccc; 
+            cursor: not-allowed; 
+        }
+        
+        @media (max-width: 600px) {
+            .filters { 
+                flex-direction: column; 
+            }
+            
+            .stats-bar { 
+                flex-direction: column; 
+                gap: 6px; 
+            }
+            
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pagination { 
+                flex-direction: column; 
+                gap: 10px; 
+            }
         }
     </style>
 </head>
 <body>
-    <h1>✅ Cloudinary Test – Įkelkite failą</h1>
+<header>
+    <img src="logo.jpg" alt="Rubineta Logo" class="logo" onclick="location.href='index.html'">
+    <nav>
+        <a href="index.html">Pagrindinis</a>
+        <a href="admin.html">Admin</a>
+        <a href="catalog-table.html" style="font-weight: bold;">Failų Katalogas</a>
+        <a href="duku.html">DUK</a>
+    </nav>
+</header>
 
-    <div class="form-group">
-        <label for="file">1. Pasirinkite failą</label>
-        <input type="file" id="file" accept="image/*,video/*,.pdf,.doc,.docx">
+<main>
+    <h1>📁 Failų Katalogas - Cloudinary Integracija</h1>
+    
+    <!-- Skirtukai -->
+    <div class="tabs">
+        <div class="tab active" onclick="openTab('upload')">Įkėlimas</div>
+        <div class="tab" onclick="openTab('files')">Visi Failai</div>
+        <div class="tab" onclick="openTab('stats')">Statistika</div>
     </div>
-
-    <!-- Štai jis – akivaizdus mygtukas -->
-    <button onclick="upload()">2. Įkelti į Cloudinary</button>
-
-    <div id="result" style="display:none;">
-        <strong>Statusas:</strong> <span id="status"></span><br>
-        <strong>Failo tipas:</strong> <span id="file-type"></span><br>
-        <strong>URL:</strong> <a id="url-link" target="_blank">Atidaryti failą</a><br>
-        <img id="preview" style="display:none;">
-        <video id="video-preview" controls style="display:none;"></video>
+    
+    <!-- Įkėlimo skirtukas -->
+    <div id="upload" class="tab-content active">
+        <div class="upload-section">
+            <h2>📤 Įkelti failus į Cloudinary</h2>
+            <p style="margin-bottom: 15px;">Čia įkeliami visi failai, kurie bus naudojami pretenzijose ir admin sistemoje</p>
+            
+            <div id="upload-message"></div>
+            
+            <button id="cloudinary-upload-btn" class="btn btn-success">
+                🚀 Atidaryti Cloudinary Uploader
+            </button>
+            
+            <div style="margin-top: 15px; font-size: 11px; color: var(--gray);">
+                <p><strong>Leidžiami failų tipai:</strong> nuotraukos, dokumentai, video</p>
+                <p><strong>Rekomenduojamas maksimalus dydis:</strong> iki 10MB</p>
+            </div>
+        </div>
+        
+        <div id="upload-results">
+            <!-- Čia bus rodomi ką tik įkelti failai -->
+        </div>
     </div>
+    
+    <!-- Failų peržiūros skirtukas -->
+    <div id="files" class="tab-content">
+        <h2>📂 Visi įkelti failai</h2>
+        
+        <!-- Filtrai -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="filter-type">Failo tipas</label>
+                <select id="filter-type" onchange="applyFilters()">
+                    <option value="">Visi tipai</option>
+                    <option value="image">Nuotraukos</option>
+                    <option value="video">Video</option>
+                    <option value="raw">Dokumentai</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-claim">Pretenzijos ID</label>
+                <input type="text" id="filter-claim" placeholder="PVZ-123" oninput="applyFilters()">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-name">Failo pavadinimas</label>
+                <input type="text" id="filter-name" placeholder="Ieškoti..." oninput="applyFilters()">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-date">Įkėlimo data</label>
+                <input type="date" id="filter-date" onchange="applyFilters()">
+            </div>
+            
+            <div class="filter-group" style="align-self: flex-end;">
+                <button class="btn" onclick="clearFilters()">Išvalyti filtrus</button>
+            </div>
+        </div>
+        
+        <!-- Failų tinklelis -->
+        <div id="files-grid" class="files-grid">
+            <!-- Failai bus įkelti čia -->
+        </div>
+        
+        <!-- Puslapiavimas -->
+        <div class="pagination">
+            <div class="pagination-info" id="pagination-info">Rodoma 0-0 iš 0</div>
+            <div class="pagination-buttons">
+                <button class="pagination-btn" id="prev-page" onclick="changePage(-1)">Ankstesnis</button>
+                <button class="pagination-btn" id="next-page" onclick="changePage(1)">Kitas</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistikos skirtukas -->
+    <div id="stats" class="tab-content">
+        <h2>📊 Failų statistika</h2>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="value" id="total-files">0</span>
+                <span class="label">Iš viso failų</span>
+            </div>
+            <div class="stat-item">
+                <span class="value" id="total-size">0 MB</span>
+                <span class="label">Bendras dydis</span>
+            </div>
+            <div class="stat-item">
+                <span class="value" id="image-count">0</span>
+                <span class="label">Nuotraukos</span>
+            </div>
+            <div class="stat-item">
+                <span class="value" id="document-count">0</span>
+                <span class="label">Dokumentai</span>
+            </div>
+            <div class="stat-item">
+                <span class="value" id="video-count">0</span>
+                <span class="label">Video</span>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h3>Populiariausi failų tipai</h3>
+                <div id="file-types-chart" style="height: 200px; display: flex; align-items: end; justify-content: center; gap: 10px; margin-top: 15px;">
+                    <!-- Čia bus diagrama -->
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h3>Naujausi failai</h3>
+                <div id="recent-files-list" style="margin-top: 15px;">
+                    <!-- Čia bus naujausi failai -->
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
 
-    <script>
-        function upload() {
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
-            const resultDiv = document.getElementById('result');
+<script>
+// =================== KONFIGŪRACIJA ===================
+// PAKEISKITE ŠIUOS DUOMENIS SAVAIS CLOUDINARY DUOMENAIS
+const CLOUDINARY_CONFIG = {
+    cloudName: '            fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', {
+',           // Pakeiskite savo Cloudinary cloud name
+    uploadPreset: 'r6wao0fr'      // Pakeiskite savo upload preset
+};
 
-            if (!file) {
-                alert('❌ Pasirinkite failą, kurį norite įkelti.');
-                return;
+// =================== GLOBALŪS KINTAMIEJIAI ===================
+let cloudinaryWidget = null;
+let cloudinaryFiles = JSON.parse(localStorage.getItem('cloudinaryFiles')) || [];
+let filteredFiles = [];
+let currentPage = 1;
+const itemsPerPage = 12;
+let currentFilters = {
+    type: '',
+    claim: '',
+    name: '',
+    date: ''
+};
+
+// =================== SKIRTUKŲ VALDYMAS ===================
+function openTab(tabName) {
+    // Paslėpti visus skirtukus
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Pašalinti active klasę iš skirtukų mygtukų
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Rodyti pasirinktą skirtuką
+    document.getElementById(tabName).classList.add('active');
+    
+    // Pridėti active klasę mygtukui
+    event.target.classList.add('active');
+    
+    // Atnaujinti duomenis jei reikia
+    if (tabName === 'files') {
+        applyFilters();
+        renderFiles();
+    } else if (tabName === 'stats') {
+        loadStats();
+    }
+}
+
+// =================== CLOUDINARY INTEGRACIJA ===================
+function initCloudinaryWidget() {
+    if (cloudinaryWidget) {
+        cloudinaryWidget.open();
+        return;
+    }
+
+    cloudinaryWidget = cloudinary.createUploadWidget({
+        cloudName: CLOUDINARY_CONFIG.cloudName,
+        uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
+        sources: ['local', 'url', 'camera'],
+        multiple: true,
+        defaultSource: 'local',
+        styles: {
+            palette: {
+                window: "#FFFFFF",
+                sourceBg: "#F4F4F5",
+                windowBorder: "#90a0b3",
+                tabIcon: "#000000",
+                inactiveTabIcon: "#555a5f",
+                menuIcons: "#5d6165",
+                link: "#3498db",
+                action: "#3498db",
+                inProgress: "#3498db",
+                complete: "#27ae60",
+                error: "#e74c3c",
+                textDark: "#000000",
+                textLight: "#FFFFFF"
             }
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'r6wao0fr'); // Tavo upload preset
-
-            // Rodyti, kad vyksta įkėlimas
-            document.getElementById('status').textContent = 'Įkelama...';
-            resultDiv.style.display = 'block';
-
-            fetch('https://api.cloudinary.com/v1_1/dtiiwo2bp/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.secure_url) {
-                    const url = data.secure_url;
-                    const resourceType = data.resource_type;
-
-                    document.getElementById('status').textContent = '✅ Sėkmingai įkelta!';
-                    document.getElementById('file-type').textContent = resourceType;
-                    document.getElementById('url-link').href = url;
-                    document.getElementById('url-link').textContent = url;
-
-                    // Parodyti failą pagal tipą
-                    const preview = document.getElementById('preview');
-                    const videoPreview = document.getElementById('video-preview');
-
-                    preview.style.display = 'none';
-                    videoPreview.style.display = 'none';
-
-                    if (resourceType === 'image') {
-                        preview.src = url;
-                        preview.style.display = 'block';
-                    } else if (resourceType === 'video') {
-                        videoPreview.src = url;
-                        videoPreview.style.display = 'block';
-                    }
-
-                } else {
-                    document.getElementById('status').textContent = '❌ Klaida: ' + (data.error?.message || 'Nežinoma');
-                }
-            })
-            .catch(err => {
-                console.error('Klaida:', err);
-                document.getElementById('status').textContent = '❌ Nepavyko įkelti. Klaida žurnale.';
-            });
         }
-    </script>
+    }, (error, result) => {
+        if (!error && result && result.event === "success") {
+            handleUploadSuccess(result.info);
+        } else if (error) {
+            showMessage('❌ Įkėlimo klaida: ' + error.message, 'error', 'upload-message');
+        }
+    });
+}
+
+function handleUploadSuccess(fileInfo) {
+    // Paprašyti vartotojo įvesti pretenzijos ID
+    const claimId = prompt('Įveskite pretenzijos ID (neprivaloma):\n\nJei failas susijęs su konkrečia pretenzija, įveskite jos ID. Jei ne - palikite tuščią.', '') || '';
+    
+    const fileData = {
+        id: fileInfo.public_id,
+        url: fileInfo.secure_url,
+        originalName: fileInfo.original_filename,
+        format: fileInfo.format,
+        size: fileInfo.bytes,
+        width: fileInfo.width,
+        height: fileInfo.height,
+        uploadedAt: new Date().toISOString(),
+        resourceType: fileInfo.resource_type,
+        claimId: claimId.trim()
+    };
+    
+    // Įdedame į masyvą
+    cloudinaryFiles.unshift(fileData);
+    
+    // Išsaugome localStorage
+    localStorage.setItem('cloudinaryFiles', JSON.stringify(cloudinaryFiles));
+    
+    // Rodyti sėkmės pranešimą
+    showUploadResult(fileData);
+    
+    // Atnaujinti failų sąrašą
+    applyFilters();
+    renderFiles();
+    
+    // Perjungti į failų skirtuką
+    document.querySelector('.tab[onclick="openTab(\'files\')"]').click();
+}
+
+function showUploadResult(fileData) {
+    const resultsContainer = document.getElementById('upload-results');
+    const fileElement = document.createElement('div');
+    fileElement.className = 'file-card';
+    
+    fileElement.innerHTML = `
+        <div class="file-preview">
+            ${fileData.resourceType === 'image' ? 
+                `<img src="${fileData.url}" alt="${fileData.originalName}">` : 
+                `<div style="font-size: 2em;">${getFileIcon(fileData.resourceType, fileData.format)}</div>`
+            }
+        </div>
+        <div class="file-info">
+            <div class="file-name">${escapeHtml(fileData.originalName)}</div>
+            <div class="file-meta">
+                ${formatFileSize(fileData.size)} • ${fileData.format.toUpperCase()}
+                ${fileData.claimId ? `<br>Pretenzija: ${fileData.claimId}` : ''}
+            </div>
+        </div>
+        <div class="file-actions">
+            <button class="btn" onclick="copyLink('${fileData.id}')">📋 Nuoroda</button>
+            <button class="btn" onclick="viewFile('${fileData.id}')">👀 Peržiūrėti</button>
+        </div>
+    `;
+    
+    resultsContainer.appendChild(fileElement);
+    showMessage('✅ Failas sėkmingai įkeltas į Cloudinary!', 'success', 'upload-message');
+}
+
+// =================== FAILŲ VALDYMAS ===================
+function applyFilters() {
+    // Gauti filtro reikšmes
+    currentFilters.type = document.getElementById('filter-type').value;
+    currentFilters.claim = document.getElementById('filter-claim').value.toLowerCase().trim();
+    currentFilters.name = document.getElementById('filter-name').value.toLowerCase().trim();
+    currentFilters.date = document.getElementById('filter-date').value;
+    
+    // Filtruoti failus
+    filteredFiles = cloudinaryFiles.filter(file => {
+        const matchesType = !currentFilters.type || file.resourceType === currentFilters.type;
+        const matchesClaim = !currentFilters.claim || (file.claimId && file.claimId.toLowerCase().includes(currentFilters.claim));
+        const matchesName = !currentFilters.name || file.originalName.toLowerCase().includes(currentFilters.name);
+        const matchesDate = !currentFilters.date || file.uploadedAt.startsWith(currentFilters.date);
+        
+        return matchesType && matchesClaim && matchesName && matchesDate;
+    });
+    
+    currentPage = 1;
+    renderFiles();
+}
+
+function clearFilters() {
+    document.getElementById('filter-type').value = '';
+    document.getElementById('filter-claim').value = '';
+    document.getElementById('filter-name').value = '';
+    document.getElementById('filter-date').value = '';
+    
+    applyFilters();
+}
+
+function renderFiles() {
+    const filesContainer = document.getElementById('files-grid');
+    
+    // Apskaičiuoti puslapiavimą
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredFiles.length);
+    const pageFiles = filteredFiles.slice(startIndex, endIndex);
+    
+    if (pageFiles.length === 0) {
+        filesContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📁</div>
+                <h3>Failų nerasta</h3>
+                <p>${filteredFiles.length === 0 && cloudinaryFiles.length > 0 ? 'Pakeiskite filtrus arba' : ''} įkelkite pirmąjį failą</p>
+                <button class="btn" onclick="openTab('upload')" style="margin-top: 10px;">Įkelti failus</button>
+            </div>
+        `;
+    } else {
+        filesContainer.innerHTML = pageFiles.map(file => `
+            <div class="file-card">
+                <div class="file-preview">
+                    ${file.resourceType === 'image' ? 
+                        `<img src="${file.url}" alt="${file.originalName}" loading="lazy">` : 
+                        `<div style="font-size: 2em;">${getFileIcon(file.resourceType, file.format)}</div>`
+                    }
+                </div>
+                <div class="file-info">
+                    <div class="file-name">${escapeHtml(file.originalName)}</div>
+                    <div class="file-meta">
+                        ${formatFileSize(file.size)} • ${file.format.toUpperCase()}<br>
+                        ${new Date(file.uploadedAt).toLocaleDateString('lt-LT')}
+                        ${file.claimId ? `<br><strong>Pretenzija:</strong> ${file.claimId}` : ''}
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="btn" onclick="copyLink('${file.id}')">📋 Nuoroda</button>
+                    <button class="btn" onclick="viewFile('${file.id}')">👀 Peržiūrėti</button>
+                    <button class="btn btn-danger" onclick="deleteFile('${file.id}')">🗑️ Trinti</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Atnaujinti puslapiavimo informaciją
+    document.getElementById('pagination-info').textContent = 
+        `Rodoma ${filteredFiles.length ? (startIndex + 1) : 0}-${endIndex} iš ${filteredFiles.length}`;
+    
+    // Atnaujinti puslapiavimo mygtukus
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = endIndex >= filteredFiles.length;
+}
+
+function changePage(direction) {
+    const newPage = currentPage + direction;
+    const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+    
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        renderFiles();
+    }
+}
+
+// =================== FAILŲ OPERACIJOS ===================
+function getFileIcon(resourceType, format) {
+    if (resourceType === 'image') return '🖼️';
+    if (resourceType === 'video') return '🎬';
+    if (format === 'pdf') return '📕';
+    if (['doc', 'docx'].includes(format)) return '📝';
+    if (['xls', 'xlsx'].includes(format)) return '📊';
+    if (['zip', 'rar'].includes(format)) return '📦';
+    return '📄';
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function copyLink(fileId) {
+    const file = cloudinaryFiles.find(f => f.id === fileId);
+    if (file) {
+        navigator.clipboard.writeText(file.url).then(() => {
+            showMessage('✅ Nuoroda nukopijuota į iškarpinę!', 'success', 'upload-message');
+        }).catch(err => {
+            console.error('Klaida kopijuojant:', err);
+            // Atsarginis būdas senesnėms naršyklėms
+            const textArea = document.createElement('textarea');
+            textArea.value = file.url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showMessage('✅ Nuoroda nukopijuota į iškarpinę!', 'success', 'upload-message');
+        });
+    }
+}
+
+function viewFile(fileId) {
+    const file = cloudinaryFiles.find(f => f.id === fileId);
+    if (file) {
+        window.open(file.url, '_blank');
+    }
+}
+
+function deleteFile(fileId) {
+    if (!confirm('Ar tikrai norite ištrinti šį failą?\n\nŠis veiksmas pašalins failą tik iš šios sistemos, bet jis liks Cloudinary.')) {
+        return;
+    }
+    
+    cloudinaryFiles = cloudinaryFiles.filter(f => f.id !== fileId);
+    localStorage.setItem('cloudinaryFiles', JSON.stringify(cloudinaryFiles));
+    
+    // Atnaujinti filtrus ir rodymą
+    applyFilters();
+    renderFiles();
+    
+    showMessage('✅ Failas pašalintas iš katalogo!', 'success', 'upload-message');
+}
+
+// =================== STATISTIKA ===================
+function loadStats() {
+    const totalFiles = cloudinaryFiles.length;
+    const totalSize = cloudinaryFiles.reduce((sum, file) => sum + file.size, 0);
+    const imageCount = cloudinaryFiles.filter(f => f.resourceType === 'image').length;
+    const videoCount = cloudinaryFiles.filter(f => f.resourceType === 'video').length;
+    const documentCount = cloudinaryFiles.filter(f => f.resourceType === 'raw').length;
+    
+    // Atnaujinti statistinius rodiklius
+    document.getElementById('total-files').textContent = totalFiles;
+    document.getElementById('total-size').textContent = formatFileSize(totalSize);
+    document.getElementById('image-count').textContent = imageCount;
+    document.getElementById('video-count').textContent = videoCount;
+    document.getElementById('document-count').textContent = documentCount;
+    
+    // Sukurti failų tipų diagramą
+    createFileTypesChart(imageCount, videoCount, documentCount);
+    
+    // Rodyti naujausius failus
+    showRecentFiles();
+}
+
+function createFileTypesChart(images, videos, documents) {
+    const chartContainer = document.getElementById('file-types-chart');
+    const total = images + videos + documents;
+    
+    if (total === 0) {
+        chartContainer.innerHTML = '<p style="color: #666;">Nėra duomenų</p>';
+        return;
+    }
+    
+    const maxHeight = 150; // Maksimalus stulpelio aukštis
+    
+    const imageHeight = total > 0 ? (images / total) * maxHeight : 0;
+    const videoHeight = total > 0 ? (videos / total) * maxHeight : 0;
+    const documentHeight = total > 0 ? (documents / total) * maxHeight : 0;
+    
+    chartContainer.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="height: ${imageHeight}px; width: 40px; background: #3498db; border-radius: 4px 4px 0 0;"></div>
+            <div style="margin-top: 5px; font-size: 10px;">Nuotraukos<br>${images}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="height: ${videoHeight}px; width: 40px; background: #e74c3c; border-radius: 4px 4px 0 0;"></div>
+            <div style="margin-top: 5px; font-size: 10px;">Video<br>${videos}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="height: ${documentHeight}px; width: 40px; background: #2ecc71; border-radius: 4px 4px 0 0;"></div>
+            <div style="margin-top: 5px; font-size: 10px;">Dokumentai<br>${documents}</div>
+        </div>
+    `;
+}
+
+function showRecentFiles() {
+    const recentFilesContainer = document.getElementById('recent-files-list');
+    const recentFiles = cloudinaryFiles.slice(0, 5); // 5 naujausi failai
+    
+    if (recentFiles.length === 0) {
+        recentFilesContainer.innerHTML = '<p style="color: #666; text-align: center;">Nėra įkeltų failų</p>';
+        return;
+    }
+    
+    recentFilesContainer.innerHTML = recentFiles.map(file => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">
+            <div style="flex: 1;">
+                <div style="font-weight: 500; font-size: 11px;">${escapeHtml(file.originalName)}</div>
+                <div style="font-size: 10px; color: #666;">
+                    ${formatFileSize(file.size)} • ${new Date(file.uploadedAt).toLocaleDateString('lt-LT')}
+                </div>
+            </div>
+            <button class="btn" onclick="viewFile('${file.id}')" style="padding: 4px 8px; font-size: 10px;">Peržiūrėti</button>
+        </div>
+    `).join('');
+}
+
+// =================== PAGALBINĖS FUNKCIJOS ===================
+function showMessage(text, type, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = `<div class="message ${type}">${text}</div>`;
+    
+    // Pašalinti pranešimą po 5 sekundžių
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 5000);
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// =================== INICIALIZACIJA ===================
+document.addEventListener('DOMContentLoaded', function() {
+    // Cloudinary mygtuko event listener
+    document.getElementById('cloudinary-upload-btn').addEventListener('click', initCloudinaryWidget);
+    
+    // Pradinis failų įkėlimas
+    applyFilters();
+    renderFiles();
+    
+    // Pridėti testinių failų, jei nėra (tik demonstracijai)
+    if (cloudinaryFiles.length === 0) {
+        console.log('Nėra įkeltų failų. Cloudinary integracija pasiruošusi.');
+    }
+});
+</script>
 </body>
 </html>
