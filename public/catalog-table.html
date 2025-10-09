@@ -37,37 +37,6 @@
     .pagination button.active { background: #007cba; color: white; border-color: #007cba; }
     .pagination button:disabled { color: #ccc; cursor: not-allowed; }
     .dots { padding: 6px 8px; color:#888 }
-
-    /* Detalės (naujame lange) – spaudos šablonas */
-    .d-wrap { max-width: 980px; margin: 0 auto; padding: 18px; font: 14px/1.5 Arial, sans-serif; color: #111; }
-    .d-head { display:flex; align-items:center; justify-content: space-between; gap:16px; margin-bottom:8px; }
-    .d-head .brand { display:flex; align-items:center; gap:10px; }
-    .d-head img.logo { height: 36px; }
-    .d-grid { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
-    .d-card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
-    .d-kv { display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px; }
-    .d-kv div { padding: 6px 0; border-bottom: 1px solid #eee; }
-    .d-k { color: #666; }
-    .d-gal img { max-width: 100%; border: 1px solid #ddd; border-radius: 6px; margin: 4px 0; cursor: zoom-in; }
-    .d-tools { margin-top: 12px; display:flex; gap:8px; align-items:center; }
-    .list { margin:0; padding-left:18px }
-    .list li{ margin:6px 0 }
-
-    /* (rezervas; realiai naudojama detalės lange) Peržiūros sluoksnis */
-    .viewer { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; z-index: 99999; cursor: zoom-out; }
-    .viewer img { max-width: 90vw; max-height: 90vh; transform-origin: center center; user-select: none; image-rendering: auto; }
-    .viewer .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); color:#fff; font: 12px/1.3 Arial, sans-serif; opacity:.8; }
-    .viewer .toolbar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(0,0,0,.55); padding: 6px; border-radius: 8px; }
-    .viewer .toolbar button { border: 0; padding: 6px 10px; cursor: pointer; border-radius: 6px; background: #fff; font: 12px Arial, sans-serif; }
-    .viewer .toolbar button:hover { background: #f0f0f0; }
-
-    @media print {
-      body { background:#fff; }
-      .d-card { border:0; padding:0 }
-      .d-grid { gap:14px }
-      .no-print { display:none !important; }
-      @page { margin: 16mm 14mm; }
-    }
   </style>
 </head>
 <body>
@@ -195,28 +164,6 @@
       return translateToLt(t || String(raw));
     }
 
-    /* ===== Saugus HTML ===== */
-    function cleanHTML(html) {
-      const t = document.createElement('template');
-      t.innerHTML = String(html || '');
-      t.content.querySelectorAll('script, iframe').forEach(n => n.remove());
-      t.content.querySelectorAll('*').forEach(el => {
-        [...el.attributes].forEach(a => {
-          const n = a.name.toLowerCase();
-          if (n.startsWith('on') || n === 'style') el.removeAttribute(a.name);
-          if (el.tagName === 'A' && n === 'href' && !/^https?:/i.test(a.value)) el.removeAttribute('href');
-        });
-        const allowed = ['P','BR','UL','OL','LI','B','I','STRONG','EM','A'];
-        if (!allowed.includes(el.tagName)) {
-          const span = document.createElement('span');
-          span.textContent = el.textContent;
-          el.replaceWith(span);
-        }
-      });
-      return t.innerHTML.trim();
-    }
-    function stripHtml(html){ const tmp=document.createElement('div'); tmp.innerHTML=html||''; return tmp.textContent||tmp.innerText||''; }
-
     /* ===== Pagalbinės ===== */
     function getMeta(p, key){ const m=(p.meta_data||[]).find(x=>x&&x.key===key); return m?m.value:null; }
     function hasVideo(p){ const m=Object.fromEntries((p.meta_data||[]).map(x=>[x.key,x.value])); return !!(m.video_lt||m.video_en||m.video_ru||m.video_lv); }
@@ -227,218 +174,12 @@
     function fmtDate(s){ if(!s) return ''; const d=new Date(s); if(isNaN(d)) return String(s).replace('T',' ').replace('Z',''); return new Intl.DateTimeFormat('lt-LT',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(d); }
     function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
-    /* ===== Dokumentai / Video ===== */
-    function mapMetaToResources(meta = []) {
-      const obj = Object.fromEntries(meta.map(x => [x.key, x.value]));
-      const list = [];
-      const add = (url, label) => { if(url) list.push({ url, label }); };
-      add(obj.montavimo_instrukcija, 'Montavimo instrukcija (PDF)');
-      add(obj.maintenance_manual, 'Priežiūros vadovas (PDF)');
-      add(obj.specification, 'Specifikacija (PDF)');
-      add(obj.attr_3d_pdf_file, '3D / Techninis brėžinys (PDF)');
-      if (obj.video_lt) list.push({ url: obj.video_lt, label: 'Vaizdo instrukcija (LT)' });
-      if (obj.video_en) list.push({ url: obj.video_en, label: 'Vaizdo instrukcija (EN)' });
-      if (obj.video_ru) list.push({ url: obj.video_ru, label: 'Vaizdo instrukcija (RU)' });
-      if (obj.video_lv) list.push({ url: obj.video_lv, label: 'Vaizdo instrukcija (LV)' });
-      return list;
-    }
-
-    /* ===== Patobulintas nuotraukų dedupe ===== */
-    function normFileName(src=''){
-      const p = src.split('?')[0].split('/').pop().toLowerCase();
-      return p
-        .replace(/-\d+x\d+(?=\.[a-z]+$)/i,'')
-        .replace(/-scaled(?=\.[a-z]+$)/,'')
-        .replace(/\((\d+)\)(?=\.[a-z]+$)/,'')
-        .replace(/[-_](copy|kopija|final|new|\d+)?(?=\.[a-z]+$)/,'')
-        .replace(/[\s]+/g,'');
-    }
-    function uniqueImages(images = []) {
-      const seen = new Map();
-      const out = [];
-      images
-        .slice()
-        .sort((a,b) => (a.position ?? 0) - (b.position ?? 0))
-        .forEach(img => {
-          let src = img?.src ? String(img.src) : '';
-          if (!src) return;
-          const base = normFileName(src);
-          const wh = (img?.width && img?.height) ? `${img.width}x${img.height}` : '';
-          const altKey = (img?.alt || img?.name || '').trim().toLowerCase();
-          const key = [base, wh, altKey].filter(Boolean).join('|');
-          if (seen.has(key)) return;
-          if (/placeholder|noimage|dummy/i.test(src)) return;
-          seen.set(key, src);
-          src = src.split('?')[0].replace(/-\d+x\d+(?=\.[a-z]+$)/i,'');
-          out.push({ ...img, src });
-        });
-      return out;
-    }
-
-    /* ===== Detalės – naujame lange su viewer ===== */
-    function openDetail(product) {
-      const win = window.open('', '_blank'); if (!win) { alert('Leiskite atidaryti naują langą.'); return; }
-      const title = normalizeLtValue(product.name || 'Produktas');
-      const link = product.permalink || location.href;
-
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
-      <style>
-        body{background:#f6f7fb;color:#111;margin:0}
-        a{color:#0645ad;text-decoration:none} a:hover{text-decoration:underline}
-        .d-wrap{max-width:980px;margin:0 auto;padding:18px;font:14px/1.5 Arial,sans-serif}
-        .d-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px}
-        .d-head .brand{display:flex;align-items:center;gap:10px}
-        .d-head img.logo{height:36px}
-        .muted{color:#666}
-        .d-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
-        .d-card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:12px}
-        .d-kv{display:grid;grid-template-columns:160px 1fr;gap:6px 12px}
-        .d-kv div{padding:6px 0;border-bottom:1px solid #eee}
-        .d-k{color:#666}
-        .d-gal img{max-width:100%;border:1px solid #ddd;border-radius:6px;margin:4px 0;cursor: zoom-in;}
-        .d-tools{margin-top:12px;display:flex;gap:8px;align-items:center}
-        .list{margin:0;padding-left:18px}
-        .list li{margin:6px 0}
-
-        .viewer{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:99999;cursor:zoom-out}
-        .viewer img{max-width:90vw;max-height:90vh;transform-origin:center center;user-select:none;image-rendering:auto}
-        .viewer .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);color:#fff;font:12px/1.3 Arial,sans-serif;opacity:.8}
-        .viewer .toolbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,0,0,.55);padding:6px;border-radius:8px}
-        .viewer .toolbar button{border:0;padding:6px 10px;cursor:pointer;border-radius:6px;background:#fff;font:12px Arial,sans-serif}
-        .viewer .toolbar button:hover{background:#f0f0f0}
-
-        @media print{ body{background:#fff}.d-card{border:0;padding:0}.d-grid{gap:14px}.no-print{display:none !important}@page{margin:16mm 14mm}}
-      </style>
-      </head><body>
-        <div class="d-wrap">
-          <div class="d-head">
-            <div class="brand"><img class="logo" src="${LOGO_URL}" alt="Rubineta"/></div>
-            <div><img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(link)}"/></div>
-          </div>
-          <h1>${escapeHtml(title)}</h1>
-          <div class="muted">SKU: ${escapeHtml(product.sku || '')} · ID: ${product.id || ''}</div>
-          <div id="content"></div>
-        </div>
-
-        <script>
-          (function(){
-            window._rbShowViewer = function(src, alt){
-              const doc = document;
-              const wrap = doc.createElement('div'); wrap.className='viewer';
-              const img  = doc.createElement('img'); img.src=src; img.alt=alt||'';
-
-              const toolbar = doc.createElement('div'); toolbar.className='toolbar';
-              const btnMinus = mk('–', ()=>zoom(0.9));
-              const btnPlus  = mk('+', ()=>zoom(1.1));
-              const btnFit   = mk('Į ekraną', fitToScreen);
-              const btn100   = mk('100%', ()=>{ scale=1; center(); apply(); });
-              const btnClose = mk('×', close);
-              toolbar.append(btnMinus, btnPlus, btnFit, btn100, btnClose);
-
-              const hint = doc.createElement('div'); hint.className='hint';
-              hint.textContent = 'Ratukas – priartinti, vilkite – perstumti, dvigubas spust. – 100%/200%, Esc – uždaryti';
-
-              wrap.append(img, toolbar, hint);
-              doc.body.appendChild(wrap);
-
-              let scale=1, pos={x:0,y:0}, dragging=false, start={x:0,y:0}, startPos={x:0,y:0}, fit=1;
-
-              img.addEventListener('load', ()=>{ fit = computeFit(); scale = fit; center(); apply(); });
-
-              function mk(t, fn){ const b=doc.createElement('button'); b.type='button'; b.textContent=t; b.onclick=fn; return b; }
-              function computeFit(){
-                const vw = doc.documentElement.clientWidth*0.90;
-                const vh = doc.documentElement.clientHeight*0.90;
-                const iw = img.naturalWidth  || img.width;
-                const ih = img.naturalHeight || img.height;
-                if(!iw||!ih) return 1;
-                return Math.min(vw/iw, vh/ih);
-              }
-              function center(){ pos={x:0,y:0}; }
-              function apply(){ img.style.transform = 'translate('+pos.x+'px,'+pos.y+'px) scale('+scale+')'; }
-              function zoom(f){ const old=scale; scale = clamp(old*f, 0.5, 6); apply(); }
-              function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-
-              function onWheel(e){ e.preventDefault(); zoom(e.deltaY<0?1.1:0.9); }
-              function onDown(e){ dragging=true; start={x:e.clientX,y:e.clientY}; startPos={...pos}; }
-              function onMove(e){ if(!dragging) return; pos.x = startPos.x+(e.clientX-start.x); pos.y = startPos.y+(e.clientY-start.y); apply(); }
-              function onUp(){ dragging=false; }
-              function onDbl(){ scale = scale<1.5 ? 2 : 1; center(); apply(); }
-              function onKey(e){
-                if(e.key==='Escape') return close();
-                if(e.key==='+' || e.key==='=') return zoom(1.1);
-                if(e.key==='-' || e.key==='_') return zoom(0.9);
-                if(e.key==='0') { scale=1; center(); apply(); }
-                if(e.key.toLowerCase()==='f') fitToScreen();
-              }
-              function fitToScreen(){ fit = computeFit(); scale = fit || 1; center(); apply(); }
-              function close(){ window.removeEventListener('keydown', onKey); wrap.remove(); }
-
-              wrap.addEventListener('click', e=>{ if(e.target===wrap) close(); });
-              img.addEventListener('wheel', onWheel, {passive:false});
-              img.addEventListener('mousedown', onDown); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
-              img.addEventListener('dblclick', onDbl); window.addEventListener('keydown', onKey);
-            };
-          })();
-        <\/script>
-      </body></html>`);
-      win.document.close();
-
-      const doc = win.document, content = doc.getElementById('content');
-
-      const grid = doc.createElement('div'); grid.className = 'd-grid';
-      const left = doc.createElement('div'); left.className = 'd-card';
-      const right = doc.createElement('div'); right.className = 'd-card';
-      grid.append(left, right); content.append(grid);
-
-      // Galerija su dedupe + viewer
-      const gal = doc.createElement('div'); gal.className = 'd-gal';
-      const imgs = uniqueImages(product.images || []);
-      if (imgs.length === 0) { const ph = doc.createElement('div'); ph.textContent = 'Nėra nuotraukų'; gal.append(ph); }
-      else {
-        imgs.forEach(i => {
-          const img = doc.createElement('img');
-          img.src = i.src; img.alt = normalizeLtValue(i.alt || product.name || '');
-          img.addEventListener('click', () => { win._rbShowViewer(i.src, img.alt); });
-          gal.append(img);
-        });
-      }
-      left.append(gal);
-
-      // Aprašymas – rodome tik jei ne „šiukšlė“ ir ne per trumpas
-      const raw = product.description || product.short_description || '';
-      let ltText = normalizeLtValue(stripHtml(raw)).trim();
-      if (!/^(parts|documents|dokuments|документы)$/i.test(ltText) && ltText.split(/\s+/).length >= 3) {
-        const desc = doc.createElement('div');
-        desc.innerHTML = cleanHTML(ltText.replace(/\n{2,}/g,'\n').split('\n').map(p=>`<p>${escapeHtml(p)}</p>`).join(''));
-        right.append(desc);
-      }
-
-      const listCard = doc.createElement('div'); listCard.className = 'd-card';
-      listCard.innerHTML = '<h3>Dokumentai ir video</h3>';
-      // PO to, kai sudėjai dokumentus/video į "listCard"
-addRepairGuidesUI(win, product);
-      const ul = doc.createElement('ul'); ul.className='list'; listCard.append(ul);
-      const resources = mapMetaToResources(product.meta_data || []);
-      if (resources.length === 0) { const li = doc.createElement('li'); li.innerHTML = '<em>Nėra dokumentų</em>'; ul.append(li); }
-      else resources.forEach(r => { const li = doc.createElement('li'); const a = doc.createElement('a'); a.href=r.url; a.target='_blank'; a.rel='noopener'; a.textContent=r.label; li.append(a); ul.append(li); });
-      right.append(listCard);
-
-      const spec = doc.createElement('div'); spec.className = 'd-card';
-      spec.innerHTML = '<h3>Specifikacijos</h3>';
-      const kv = doc.createElement('div'); kv.className='d-kv'; spec.append(kv);
-      (product.attributes || []).forEach(a => {
-        const k = doc.createElement('div'); k.className='d-k'; k.textContent = normalizeLtLabel(a?.name || '');
-        const v = doc.createElement('div'); const opts = Array.isArray(a?.options)?a.options:[];
-        v.textContent = opts.map(o=>normalizeLtValue(o)).join(', ');
-        kv.append(k,v);
-      });
-      right.append(spec);
-
-      const tools = doc.createElement('div'); tools.className = 'd-tools no-print';
-      const btn = doc.createElement('button'); btn.textContent = 'Spausdinti / PDF'; btn.onclick = () => win.print();
-      const lnk = doc.createElement('a'); lnk.href = link; lnk.textContent = 'Atidaryti produktą'; lnk.target = '_blank'; lnk.rel='noopener';
-      tools.append(btn, lnk); content.append(tools);
+    /* ===== Navigacija į detalų puslapį (vietoje openDetail) ===== */
+    function goToDetail(product){
+      const id = product.id || '';
+      const sku = product.sku || '';
+      const q = id ? `id=${encodeURIComponent(id)}` : `sku=${encodeURIComponent(sku)}`;
+      location.href = `prekes.html?${q}`;
     }
 
     /* ===== Lentelė / puslapiavimas / filtrai / eksportas ===== */
@@ -449,12 +190,12 @@ addRepairGuidesUI(win, product);
 
         const tdImg=document.createElement('td');
         const img=document.createElement('img'); img.className='thumb'; img.loading='lazy';
-        img.src=firstImage(p); img.alt=normalizeLtValue(p.name||''); img.onclick=()=>openDetail(p);
+        img.src=firstImage(p); img.alt=normalizeLtValue(p.name||''); img.onclick=()=>goToDetail(p);
         tdImg.append(img);
 
         const tdName=document.createElement('td');
         const a=document.createElement('a'); a.href='#'; a.textContent=normalizeLtValue(p.name||'');
-        a.onclick=(e)=>{e.preventDefault(); openDetail(p);}; tdName.append(a);
+        a.onclick=(e)=>{e.preventDefault(); goToDetail(p);}; tdName.append(a);
 
         const tdSku=document.createElement('td'); tdSku.className='sku nowrap'; tdSku.textContent=p.sku||'';
 
@@ -515,7 +256,7 @@ addRepairGuidesUI(win, product);
           if(!m) return false;
         }
         if(ser){
-          const series=(getAttr(p,'pa_serija')||'').toLowerCase();
+          const series=((p.attributes||[]).find(x=>x&&x.slug==='pa_serija')?.options||[]).join(', ').toLowerCase();
           if(!series.split(',').map(s=>s.trim()).includes(ser)) return false;
         }
 
@@ -528,11 +269,11 @@ addRepairGuidesUI(win, product);
         name: p=>normalizeLtValue(p.name||''),
         sku: p=>p.sku||'',
         cats: p=>(p.categories||[]).map(c=>normalizeLtValue(c.name||c.slug||'')).join(', '),
-        series: p=>getAttr(p,'pa_serija')||'',
-        warranty:p=>getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'',
-        conn:p=>getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'',
-        color:p=>getAttr(p,'pa_spalva')||'',
-        finish:p=>getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'',
+        series: p=>((p.attributes||[]).find(x=>x&&x.slug==='pa_serija')?.options||[]).join(', '),
+        warranty:p=>((p.attributes||[]).find(x=>x&&x.slug==='pa_garantija')?.options||[]).join(', ')||getMeta(p,'warranty')||'',
+        conn:p=>((p.attributes||[]).find(x=>x&&x.slug==='pa_pajungimas')?.options||[]).join(', ')||((p.attributes||[]).find(x=>x&&x.slug==='pa_jungtis')?.options||[]).join(', ')||getMeta(p,'connection')||'',
+        color:p=>((p.attributes||[]).find(x=>x&&x.slug==='pa_spalva')?.options||[]).join(', '),
+        finish:p=>((p.attributes||[]).find(x=>x&&x.slug==='pa_padengimas')?.options||[]).join(', ')||getMeta(p,'finish')||'',
         upd:p=>new Date(p.date_modified_gmt||p.date_modified||0).getTime()
       }[sortKey] || (p=>normalizeLtValue(p.name||''));
 
@@ -564,11 +305,12 @@ addRepairGuidesUI(win, product);
       const catSel=$('#cat'), serSel=$('#series'); const cats=new Set(), series=new Set();
       allProducts.forEach(p=>{
         (p.categories||[]).forEach(c=>{ const name=normalizeLtValue(c.name||c.slug||''); if(name) cats.add(name); });
-        const s=getAttr(p,'pa_serija'); if(s) s.split(',').map(x=>x.trim()).filter(Boolean).forEach(v=>series.add(v));
+        const s=((p.attributes||[]).find(x=>x&&x.slug==='pa_serija')?.options||[]).join(', ');
+        if(s) s.split(',').map(x=>x.trim()).filter(Boolean).forEach(v=>series.add(v));
       });
       const catVal=catSel.value, serVal=serSel.value;
-      catSel.innerHTML='<option value="">Visos</option>'+[...cats].sort().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-      serSel.innerHTML='<option value="">Visos</option>'+[...series].sort().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      catSel.innerHTML='<option value="">Visos</option>'+[...cats].sort().map(n=>`<option value="${n}">${n}</option>`).join('');
+      serSel.innerHTML='<option value="">Visos</option>'+[...series].sort().map(n=>`<option value="${n}">${n}</option>`).join('');
       if([...cats].includes(catVal)) catSel.value=catVal; if([...series].includes(serVal)) serSel.value=serVal;
     }
 
@@ -595,9 +337,11 @@ addRepairGuidesUI(win, product);
       return filtered.map(p=>({
         Pavadinimas: normalizeLtValue(p.name||''), SKU: p.sku||'',
         Kategorijos: (p.categories||[]).map(c=>normalizeLtValue(c.name||c.slug||'')).join(', '),
-        Serija: getAttr(p,'pa_serija')||'', Garantija: getAttr(p,'pa_garantija')||getMeta(p,'warranty')||'',
-        Jungtis: getAttr(p,'pa_pajungimas')||getAttr(p,'pa_jungtis')||getMeta(p,'connection')||'',
-        Spalva: getAttr(p,'pa_spalva')||'', Padengimas: getAttr(p,'pa_padengimas')||getMeta(p,'finish')||'',
+        Serija: ((p.attributes||[]).find(x=>x&&x.slug==='pa_serija')?.options||[]).join(', '),
+        Garantija: ((p.attributes||[]).find(x=>x&&x.slug==='pa_garantija')?.options||[]).join(', ')||getMeta(p,'warranty')||'',
+        Jungtis: ((p.attributes||[]).find(x=>x&&x.slug==='pa_pajungimas')?.options||[]).join(', ')||((p.attributes||[]).find(x=>x&&x.slug==='pa_jungtis')?.options||[]).join(', ')||getMeta(p,'connection')||'',
+        Spalva: ((p.attributes||[]).find(x=>x&&x.slug==='pa_spalva')?.options||[]).join(', '),
+        Padengimas: ((p.attributes||[]).find(x=>x&&x.slug==='pa_padengimas')?.options||[]).join(', ')||getMeta(p,'finish')||'',
         Atnaujinta: fmtDate(p.date_modified_gmt||p.date_modified||'')
       }));
     }
@@ -653,239 +397,7 @@ addRepairGuidesUI(win, product);
     function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
     window.onload = () => { setupSorting(); const saved=loadState(); if(saved&&saved.q) $('#q').value=saved.q; loadPage(); };
-
-    /** ================== REPAIR GUIDES MODULE (localStorage) ==================
- *  Saugojimui naudojamas localStorage raktas: 'repairGuides'
- *  Struktūra:
- *  repairGuides: Array<{ sku: string, guides: Array<{
- *     id: string, title: string, description: string,
- *     attachments: Array<{name:string,type:'image'|'video'|'pdf'|'file', dataUrl:string}>,
- *     createdBy: string, createdAt: string, updatedAt?: string
- *  }>}
- *  Rašymo teisės: tik 'admin' arba 'quality'
- *  Skaitymas: visi (partneris/meistras — tik peržiūra)
- * ======================================================================== */
-
-(function(){
-  if (window.RepairGuides) return;
-  window.RepairGuides = {
-    key: 'repairGuides',
-    _getAll() {
-      try { return JSON.parse(localStorage.getItem(this.key) || '[]'); }
-      catch { return []; }
-    },
-    _setAll(list) {
-      localStorage.setItem(this.key, JSON.stringify(list));
-    },
-    _findBucket(list, skuOrId) {
-      return list.find(x => x.sku === skuOrId);
-    },
-    load(skuOrId) {
-      const list = this._getAll();
-      const b = this._findBucket(list, skuOrId);
-      return b ? (b.guides || []) : [];
-    },
-    save(skuOrId, guides) {
-      const list = this._getAll();
-      let b = this._findBucket(list, skuOrId);
-      if (!b) { b = { sku: skuOrId, guides: [] }; list.push(b); }
-      b.guides = guides;
-      this._setAll(list);
-    }
-  };
-})();
-
-/** Maža įkėlimo > base64 pagalbinė, kad veiktų be backend’o */
-async function _rgFilesToData(list) {
-  const out = [];
-  for (const file of list) {
-    const buf = await file.arrayBuffer();
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-    const mime = file.type || 'application/octet-stream';
-    const name = file.name || 'file';
-    let type = 'file';
-    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(name)) type = 'image';
-    else if (/\.(mp4|webm|mov)$/i.test(name)) type = 'video';
-    else if (/\.pdf$/i.test(name)) type = 'pdf';
-    out.push({ name, type, dataUrl: `data:${mime};base64,${b64}` });
-  }
-  return out;
-}
-
-function _rgHasWritePermission() {
-  try {
-    const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    return !!(u && (u.role === 'admin' || u.role === 'quality'));
-  } catch { return false; }
-}
-
-function _rgGetCurrentUserEmail() {
-  try {
-    const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    return u?.email || u?.name || 'unknown';
-  } catch { return 'unknown'; }
-}
-
-/** UI renderer — kviečiamas produkto detalizacijos lange */
-function addRepairGuidesUI(win, product){
-  try {
-    const sku = (product.sku && String(product.sku).trim()) || (product.id ? 'ID-'+product.id : 'NO-SKU');
-    const canWrite = _rgHasWritePermission();
-
-    // Kur padėsime kortelę: šalia kitų kortelių (naudojame tą patį layout’ą)
-    const doc = win.document;
-    const wrap = doc.getElementById('content');
-    if (!wrap) return;
-
-    // Kortelė
-    const card = doc.createElement('div');
-    card.className = 'd-card';
-    card.style.marginTop = '12px';
-    card.innerHTML = `
-      <h3>Remonto instrukcijos</h3>
-      <div id="rg-list"></div>
-      ${canWrite ? `
-        <div id="rg-form" style="margin-top:12px;border-top:1px solid #eee;padding-top:12px;">
-          <h4 style="margin:6px 0;">+ Nauja instrukcija</h4>
-          <div style="display:grid;grid-template-columns:1fr;gap:8px;max-width:720px;">
-            <label>Instrukcijos pavadinimas
-              <input id="rg-title" type="text" placeholder="Pvz., Kaip pakeisti aeratorių" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;">
-            </label>
-            <label>Aprašymas
-              <textarea id="rg-desc" rows="4" placeholder="Trumpai aprašykite žingsnius, įrankius…" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;"></textarea>
-            </label>
-            <label>Prisegti failai (galima kelią)
-              <input id="rg-files" type="file" multiple accept="image/*,video/*,.pdf" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;background:#fff;">
-            </label>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <button id="rg-save" style="padding:8px 12px;border:0;border-radius:6px;background:#2d6cdf;color:#fff;cursor:pointer;">Išsaugoti</button>
-              <span id="rg-status" class="muted"></span>
-            </div>
-          </div>
-        </div>` : `
-        <div class="muted" style="margin-top:6px;">Redaguoti gali tik administratorius arba kokybės skyriaus darbuotojas.</div>
-      `}
-    `;
-    wrap.appendChild(card);
-
-    // Renderinimo logika
-    function renderList(){
-      const listEl = doc.getElementById('rg-list');
-      const guides = window.RepairGuides.load(sku);
-
-      if (!guides.length) {
-        listEl.innerHTML = '<div class="muted">Nėra remonto instrukcijų.</div>';
-        return;
-      }
-
-      listEl.innerHTML = guides.map(g => {
-        const files = (g.attachments||[]).map(f=>{
-          if (f.type==='image') {
-            return `<div style="margin:6px 0;"><img src="${f.dataUrl}" alt="${f.name}" style="max-width:100%;border:1px solid #ddd;border-radius:6px;"></div>`;
-          } else if (f.type==='video') {
-            return `<div style="margin:6px 0;"><video controls style="max-width:100%"><source src="${f.dataUrl}">Video nepalaikomas.</video></div>`;
-          } else if (f.type==='pdf') {
-            return `<div style="margin:6px 0;"><a href="${f.dataUrl}" download="${f.name}">📄 ${f.name}</a></div>`;
-          } else {
-            return `<div style="margin:6px 0;"><a href="${f.dataUrl}" download="${f.name}">📎 ${f.name}</a></div>`;
-          }
-        }).join('');
-
-        const meta = `<div class="muted" style="font-size:12px;margin-top:4px;">Sukūrė: ${g.createdBy||'—'} • ${new Date(g.updatedAt||g.createdAt).toLocaleString('lt-LT')}</div>`;
-        const actions = canWrite ? `
-          <div style="display:flex;gap:6px;margin-top:6px;">
-            <button data-id="${g.id}" class="rg-edit" style="padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">Redaguoti</button>
-            <button data-id="${g.id}" class="rg-delete" style="padding:6px 10px;border:1px solid #eee;border-radius:6px;background:#ffecec;color:#c00;cursor:pointer;">Šalinti</button>
-          </div>` : '';
-
-        return `
-          <div class="rg-item" data-id="${g.id}" style="border:1px solid #eee;border-radius:8px;padding:10px;margin:10px 0;background:#fff;">
-            <div style="font-weight:bold">${g.title||'Be pavadinimo'}</div>
-            <div style="white-space:pre-wrap;margin-top:4px;">${(g.description||'').replace(/</g,'&lt;')}</div>
-            ${files}
-            ${meta}
-            ${actions}
-          </div>`;
-      }).join('');
-
-      if (canWrite) {
-        listEl.querySelectorAll('.rg-delete').forEach(btn=>{
-          btn.addEventListener('click', ()=>{
-            const id = btn.getAttribute('data-id');
-            const guides = window.RepairGuides.load(sku);
-            const next = guides.filter(x=>x.id!==id);
-            if (confirm('Ar tikrai šalinti instrukciją?')) {
-              window.RepairGuides.save(sku, next);
-              renderList();
-            }
-          });
-        });
-
-        listEl.querySelectorAll('.rg-edit').forEach(btn=>{
-          btn.addEventListener('click', ()=>{
-            const id = btn.getAttribute('data-id');
-            const guides = window.RepairGuides.load(sku);
-            const g = guides.find(x=>x.id===id);
-            if (!g) return;
-            const title = prompt('Pavadinimas', g.title || '') ?? g.title;
-            const desc = prompt('Aprašymas', g.description || '') ?? g.description;
-            g.title = (title||'').trim();
-            g.description = (desc||'').trim();
-            g.updatedAt = new Date().toISOString();
-            window.RepairGuides.save(sku, guides);
-            renderList();
-          });
-        });
-      }
-    }
-
-    // Pradinis sąrašas
-    renderList();
-
-    // Rašymo forma
-    if (canWrite) {
-      const saveBtn = doc.getElementById('rg-save');
-      const statusEl = doc.getElementById('rg-status');
-      saveBtn?.addEventListener('click', async ()=>{
-        const title = (doc.getElementById('rg-title').value || '').trim();
-        const desc  = (doc.getElementById('rg-desc').value || '').trim();
-        const files = doc.getElementById('rg-files').files;
-
-        if (!title) { statusEl.textContent='Įrašykite pavadinimą.'; return; }
-
-        saveBtn.disabled = true; statusEl.textContent='Keliama…';
-        try {
-          const atts = await _rgFilesToData(files || []);
-          const guides = window.RepairGuides.load(sku);
-          guides.unshift({
-            id: Math.random().toString(36).slice(2),
-            title, description: desc,
-            attachments: atts,
-            createdBy: _rgGetCurrentUserEmail(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          });
-          window.RepairGuides.save(sku, guides);
-
-          // išvalom formą
-          doc.getElementById('rg-title').value = '';
-          doc.getElementById('rg-desc').value = '';
-          doc.getElementById('rg-files').value = '';
-          statusEl.textContent = 'Išsaugota.';
-          renderList();
-        } catch (e) {
-          console.error(e);
-          statusEl.textContent = 'Klaida įkeliant.';
-        } finally {
-          saveBtn.disabled = false;
-          setTimeout(()=>{ statusEl.textContent=''; }, 2000);
-        }
-      });
-    }
-  } catch(e){
-    console.error('Repair Guides UI error', e);
-  }
-}
   </script>
 </body>
 </html>
+
